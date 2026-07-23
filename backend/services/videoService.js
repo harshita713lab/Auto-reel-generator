@@ -80,6 +80,63 @@ function calculateDuration(numImages, template) {
 // ============================================================
 
 function renderWithRemotion(imagePaths, template, slideDuration, tempOutputPath) {
+
+    for (const config of encoderConfigs) {
+        if (config.skip) continue;
+        try {
+            const result = spawnSync(ffmpegPath || 'ffmpeg', config.testArgs, { timeout: 15000, stdio: ['pipe','pipe','pipe'] });
+            if (result.status === 0) {
+                console.log(`✅ [GPU SUCCESS] ${config.gpuType} acceleration enabled! Encoder: ${config.encoder}`);
+                return { videoEncoder: config.encoder, isGpuEnabled: true, gpuType: config.gpuType };
+            }
+        } catch (e) {}
+    }
+    return { videoEncoder: 'libx264', isGpuEnabled: false, gpuType: 'CPU' };
+}
+
+
+const hardware = detectHardwareEncoder();
+let videoEncoder = hardware.videoEncoder;
+let isGpuEnabled = hardware.isGpuEnabled;
+
+// ✅ CUBE & ROTATING TRANSITIONS MAPPING
+const TRANSITION_MAP = {
+    'cube': 'squeezeh',
+    'circle': 'circlecrop',
+    'circleopen': 'circleopen',
+    'radial': 'radial',
+    'smoothleft': 'slideleft',
+    'smoothright': 'slideright',
+    'wipeleft': 'wipeleft',
+    'wiperight': 'wiperight',
+    'dissolve': 'fade'
+};
+
+const COLOR_GRADES = {
+    'cinematic': 'colorbalance=rs=0.1:gs=0.05:bs=0.1,eq=contrast=1.1',
+    'warm': 'colorbalance=rs=0.2:gs=0.05:bs=-0.1,eq=saturation=1.2',
+    'golden': 'colorbalance=rs=0.25:gs=0.1:bs=-0.15',
+    'cool': 'colorbalance=rs=-0.1:gs=0.05:bs=0.25',
+    'vintage': 'colorbalance=rs=0.15:gs=0.1:bs=-0.05,hue=s=0.8',
+    'neon': 'colorbalance=rs=0.3:gs=-0.1:bs=0.3,eq=contrast=1.2:saturation=1.3',
+    'vibrant': 'eq=saturation=1.4:contrast=1.1',
+    'dramatic': 'eq=contrast=1.3:brightness=-0.05'
+};
+
+function getEncoderOptions(isGpu, encoder) {
+    const common = ['-c:a', 'aac', '-pix_fmt', 'yuv420p', '-r', '30', '-movflags', '+faststart', '-y'];
+    if (isGpu) {
+        if (encoder === 'h264_amf') {
+            return ['-c:v', 'h264_amf', '-usage', 'lowlatency', '-quality', 'speed', '-b:v', '4M', ...common];
+        }
+        if (encoder === 'h264_nvenc') {
+            return ['-c:v', 'h264_nvenc', '-preset', 'p2', '-b:v', '4M', ...common];
+        }
+    }
+    return ['-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '26', ...common];
+}
+
+exports.createReel = (imagePaths, musicPath, template, outputPath) => {
     return new Promise((resolve, reject) => {
         const numImages = imagePaths.length;
         const effects = template.effects || ['zoomin'];

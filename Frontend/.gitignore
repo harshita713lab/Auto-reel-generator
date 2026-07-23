@@ -1,0 +1,78 @@
+# ============================================
+# 🔥 DEPENDENCIES (Node Modules)
+# ============================================
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ============================================
+# 🔥 BUILD FILES
+# ============================================
+dist/
+build/
+out/
+.next/
+
+# ============================================
+# 🔥 ENVIRONMENT & SECRETS
+# ============================================
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+*.env
+.env.*.local
+
+# ============================================
+# 🔥 IDE / EDITOR
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.vs/
+*.iml
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.cache/
+.parcel-cache/
+.eslintcache
+.vite/
+*.tsbuildinfo
+
+# ============================================
+# 🔥 OS FILES
+# ============================================
+Thumbs.db
+Desktop.ini
+*.tmp
+*.bak
+*.swp
+
+# ============================================
+# 🔥 VITE SPECIFIC
+# ============================================
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# ============================================
+# 🔥 SENSITIVE DATA
+# ============================================
+*.pem
+*.p12
+*.crt
+*.key
+*.p7b
+*.pfx
+*.cer
+coverage/
+.nyc_output/
+__tests__/
+
