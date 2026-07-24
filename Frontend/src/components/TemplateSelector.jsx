@@ -136,12 +136,12 @@ function TemplateSelector({ onSelect, selectedId, imageCount }) {
                       <span className="detail-value">{template.slideDuration}s / slide</span>
                     </div>
                     <div className="detail-row">
-                      <span className="detail-label">🔄 Transition</span>
-                      <span className="detail-value">{template.transition}</span>
+                      <span className="detail-label">🔄 Transitions</span>
+                      <span className="detail-value">{(template.transitions || ['fade']).slice(0, 2).join(', ')}</span>
                     </div>
                     <div className="detail-row">
                       <span className="detail-label">🎨 Color</span>
-                      <span className="detail-value">{colorGradeLabels[template.colorGrade] || '🎨 Natural'}</span>
+                      <span className="detail-value">{(template.colorGrades || ['Natural']).slice(0, 2).join(', ')}</span>
                     </div>
                     <div className="detail-row">
                       <span className="detail-label">📸 Photos</span>

@@ -124,7 +124,7 @@ exports.generateReel = async (req, res) => {
     console.log('║         🎬  REEL GENERATION STARTED             ║');
     console.log('╚═══════════════════════════════════════════════════╝');
 
-    const { images } = req.body;
+    const { images, templateId } = req.body;
 
     if (!images || !Array.isArray(images) || images.length === 0) {
       return res.status(400).json({ error: 'No images provided' });
@@ -133,6 +133,7 @@ exports.generateReel = async (req, res) => {
     const photoCount = images.length;
     console.log(`\n📸 INPUT DETAILS:`);
     console.log(`   ├── Total Images: ${photoCount}`);
+    console.log(`   ├── Template ID Requested: ${templateId || 'auto-rotate'}`);
     console.log(`   ├── Image Paths: ${images.length} files`);
     images.forEach((img, i) => {
       console.log(`   │   └── Image ${i+1}: ${path.basename(img)}`);
@@ -144,8 +145,20 @@ exports.generateReel = async (req, res) => {
       return path.join(process.cwd(), img);
     });
 
-    // ✅ Get template that matches photo count (rotates for variety)
-    const selectedTemplate = getTemplateByExactPhotoCount(photoCount);
+    // ✅ Use requested templateId OR auto-rotate based on photo count
+    let selectedTemplate = null;
+    if (templateId) {
+      if (allTemplates.length === 0) loadTemplates();
+      selectedTemplate = allTemplates.find(t => t.id === templateId);
+      if (selectedTemplate) {
+        console.log(`\n🎯 Using selected template: ${selectedTemplate.name} (${templateId})`);
+      } else {
+        console.log(`\n⚠️ Template ${templateId} not found, falling back to auto-rotate`);
+        selectedTemplate = getTemplateByExactPhotoCount(photoCount);
+      }
+    } else {
+      selectedTemplate = getTemplateByExactPhotoCount(photoCount);
+    }
     
     console.log(`\n📐 TEMPLATE DETAILS:`);
     console.log(`   ├── ID: ${selectedTemplate.id}`);

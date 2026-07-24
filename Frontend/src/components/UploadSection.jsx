@@ -7,7 +7,7 @@ import ImagePreview from './ImagePreview';
 import Result from './Result';
 import TemplateSelector from './TemplateSelector';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 function UploadSection() {
     const [images, setImages] = useState([]);

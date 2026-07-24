@@ -1,198 +1,457 @@
-import { AbsoluteFill, Sequence, useCurrentFrame, interpolate, spring, Easing } from 'remotion';
+import { AbsoluteFill, Sequence, useCurrentFrame, interpolate, useVideoConfig } from 'remotion';
 import type { ReelProps } from './types';
+import React from 'react';
 
 // ============================================================
-// 🔥 EFFECT TYPES
+// 🔥 EFFECT & TRANSITION TYPES
 // ============================================================
 type EffectFn = (frame: number, durationInFrames: number) => React.CSSProperties;
 
 // ============================================================
-// 🎬 ALL ANIMATION EFFECTS
+// 🎬 ALL ANIMATION EFFECTS & COLOR GRADES
 // ============================================================
 const EFFECT_STYLES: Record<string, EffectFn> = {
-  // ============================================================
-  // 🔥 ZOOM EFFECTS
-  // ============================================================
-  'zoom-in': (frame, duration) => {
+  'none': () => ({}),
+  
+  // 🌟 TUMHARA - Advanced Zoom Effects
+  'zoomin': (frame, duration) => {
     const scale = interpolate(frame, [0, duration * 0.1, duration * 0.9, duration], [0.8, 1.15, 1.15, 1.0]);
     return { transform: `scale(${scale})` };
   },
-  'zoom-out': (frame, duration) => {
-    const scale = interpolate(frame, [0, duration * 0.1, duration * 0.9, duration], [1.2, 0.85, 0.85, 1.0]);
+  'zoomout': (frame, duration) => {
+    const scale = interpolate(frame, [0, duration * 0.1, duration * 0.9, duration], [1.2, 1.0, 1.0, 1.05]);
     return { transform: `scale(${scale})` };
   },
-  'zoom-slow': (frame, duration) => {
-    const scale = interpolate(frame, [0, duration], [1.0, 1.2]);
-    return { transform: `scale(${scale})` };
-  },
-  'zoom-fast': (frame, duration) => {
-    const scale = interpolate(frame, [0, duration * 0.3, duration], [1.0, 1.3, 1.0]);
-    return { transform: `scale(${scale})` };
-  },
-  'zoom-pulse': (frame, duration) => {
-    const scale = 1 + 0.08 * Math.sin((frame / duration) * Math.PI * 4);
-    return { transform: `scale(${scale})` };
-  },
+  
+  // 🌟 TANISHA - Basic Zoom Effects (Add karna hai)
+  'zoom-in': (frame, duration) => ({
+    transform: `scale(${interpolate(frame, [0, duration], [1.0, 1.25], { extrapolateRight: 'clamp' })})`,
+  }),
+  'zoom-out': (frame, duration) => ({
+    transform: `scale(${interpolate(frame, [0, duration], [1.25, 1.0], { extrapolateRight: 'clamp' })})`,
+  }),
+  'zoom-slow': (frame, duration) => ({
+    transform: `scale(${interpolate(frame, [0, duration], [1.0, 1.15], { extrapolateRight: 'clamp' })})`,
+  }),
+  'zoom-fast': (frame, duration) => ({
+    transform: `scale(${interpolate(frame, [0, duration * 0.3, duration], [1.0, 1.3, 1.0], { extrapolateRight: 'clamp' })})`,
+  }),
+  'zoom-pulse': (frame, duration) => ({
+    transform: `scale(${1 + 0.08 * Math.sin((frame / duration) * Math.PI * 4)})`,
+  }),
+  'fast_slow': (frame, duration) => ({
+    transform: `scale(${interpolate(frame, [0, 10, duration], [1, 1.18, 1.25], { extrapolateRight: 'clamp' })})`,
+  }),
 
-  // ============================================================
-  // 🔥 SLIDE EFFECTS
-  // ============================================================
-  'slide-left': (frame, duration) => {
-    const x = interpolate(frame, [0, duration], [-100, 0]);
-    return { transform: `translateX(${x}%)` };
-  },
-  'slide-right': (frame, duration) => {
-    const x = interpolate(frame, [0, duration], [100, 0]);
-    return { transform: `translateX(${x}%)` };
-  },
-  'slide-up': (frame, duration) => {
-    const y = interpolate(frame, [0, duration], [100, 0]);
-    return { transform: `translateY(${y}%)` };
-  },
-  'slide-down': (frame, duration) => {
-    const y = interpolate(frame, [0, duration], [-100, 0]);
-    return { transform: `translateY(${y}%)` };
-  },
+  // 🌟 TANISHA - Slide Effects (Add karna hai)
+  'slide-left': (frame, duration) => ({
+    transform: `translateX(${interpolate(frame, [0, Math.min(15, duration)], [-100, 0], { extrapolateRight: 'clamp' })}%)`,
+  }),
+  'slide-right': (frame, duration) => ({
+    transform: `translateX(${interpolate(frame, [0, Math.min(15, duration)], [100, 0], { extrapolateRight: 'clamp' })}%)`,
+  }),
+  'slide-up': (frame, duration) => ({
+    transform: `translateY(${interpolate(frame, [0, Math.min(15, duration)], [100, 0], { extrapolateRight: 'clamp' })}%)`,
+  }),
+  'slide-down': (frame, duration) => ({
+    transform: `translateY(${interpolate(frame, [0, Math.min(15, duration)], [-100, 0], { extrapolateRight: 'clamp' })}%)`,
+  }),
+  'slide': (frame, duration) => ({
+    transform: `translateX(${interpolate(frame, [0, duration], [-100, 0], { extrapolateRight: 'clamp' })}%)`,
+  }),
 
-  // ============================================================
-  // 🔥 ROTATE EFFECTS
-  // ============================================================
-  'rotate-in': (frame, duration) => {
-    const rotate = interpolate(frame, [0, duration], [-30, 0]);
-    const scale = interpolate(frame, [0, duration * 0.3, duration], [0.5, 1.1, 1.0]);
-    return { transform: `rotate(${rotate}deg) scale(${scale})` };
-  },
-  'rotate-out': (frame, duration) => {
-    const rotate = interpolate(frame, [0, duration], [0, 30]);
-    const scale = interpolate(frame, [0, duration * 0.7, duration], [1.0, 1.1, 0.8]);
-    return { transform: `rotate(${rotate}deg) scale(${scale})` };
-  },
-  'spin': (frame, duration) => {
-    const rotate = interpolate(frame, [0, duration], [0, 360]);
-    return { transform: `rotate(${rotate}deg)` };
-  },
-  'swing': (frame, duration) => {
-    const rotate = 10 * Math.sin((frame / duration) * Math.PI * 3);
-    return { transform: `rotate(${rotate}deg)` };
-  },
+  // 🌟 TANISHA - 3D Effects (Add karna hai)
+  'cube': (frame, duration) => ({
+    transform: `perspective(1000px) rotateY(${interpolate(frame, [0, Math.min(15, duration)], [90, 0], { extrapolateRight: 'clamp' })}deg) scale(0.9)`,
+  }),
+  'flip': (frame, duration) => ({
+    transform: `perspective(1000px) rotateX(${interpolate(frame, [0, Math.min(15, duration)], [180, 0], { extrapolateRight: 'clamp' })}deg) scale(0.9)`,
+  }),
+  'rotate-in': (frame, duration) => ({
+    transform: `rotate(${interpolate(frame, [0, duration], [-30, 0])}deg) scale(${interpolate(frame, [0, duration * 0.3, duration], [0.5, 1.1, 1.0])})`,
+  }),
+  '3d': (frame, duration) => ({
+    transform: `perspective(800px) rotateY(${30 * Math.sin((frame / duration) * Math.PI * 2)})`,
+  }),
 
-  // ============================================================
-  // 🔥 BOUNCE EFFECTS
-  // ============================================================
-  'bounce-in': (frame, duration) => {
-    const scale = spring({ frame, fps: 30, durationInFrames: duration, config: { damping: 10 } });
-    return { transform: `scale(${scale})` };
-  },
-  'bounce-up': (frame, duration) => {
-    const y = spring({ frame, fps: 30, durationInFrames: duration, config: { damping: 8 } });
-    return { transform: `translateY(${(1 - y) * 50}%)` };
-  },
-
-  // ============================================================
-  // 🔥 COLOR EFFECTS
-  // ============================================================
+  // 🌟 TUMHARA - Color Grades (Superior)
   'vintage': () => ({ filter: 'sepia(0.6) contrast(1.1) brightness(1.05) saturate(0.8)' }),
-  'warm': () => ({ filter: 'sepia(0.3) brightness(1.1) saturate(1.2)' }),
-  'cinematic': () => ({ filter: 'contrast(1.1) brightness(0.95) saturate(0.9)' }),
-  'dreamy': () => ({ filter: 'brightness(1.05) contrast(0.95) blur(0.5px) saturate(0.8)' }),
-  'soft-focus': () => ({ filter: 'blur(1px) contrast(0.9) brightness(1.02)' }),
-  'vibrant': () => ({ filter: 'saturate(1.5) contrast(1.1) brightness(1.02)' }),
-  'dramatic': () => ({ filter: 'contrast(1.3) brightness(0.95) saturate(1.1)' }),
-  'pastel': () => ({ filter: 'brightness(1.05) saturate(0.85) contrast(0.9)' }),
-  'sepia': () => ({ filter: 'sepia(0.8) saturate(0.5) brightness(0.95)' }),
-  'bw': () => ({ filter: 'grayscale(1) contrast(1.1) brightness(0.98)' }),
   'golden': () => ({ filter: 'sepia(0.4) saturate(1.3) brightness(1.05) hue-rotate(-5deg)' }),
-  'cool': () => ({ filter: 'saturate(0.8) hue-rotate(10deg) brightness(0.95)' }),
-  'neon': () => ({ filter: 'saturate(1.6) contrast(1.2) brightness(1.05) hue-rotate(-20deg)' }),
-  'rose': () => ({ filter: 'sepia(0.2) saturate(1.2) brightness(1.02) hue-rotate(-10deg)' }),
-
-  // ============================================================
-  // 🔥 FILTER EFFECTS
-  // ============================================================
-  'glitch': (frame) => ({
-    filter: frame % 30 < 3 ? 'hue-rotate(180deg) brightness(1.5) saturate(2)' : 'none',
-    transform: frame % 30 < 3 ? `translate(${Math.random() * 10 - 5}px, ${Math.random() * 10 - 5}px)` : 'none'
+  'cinematic': () => ({ filter: 'contrast(1.1) brightness(0.95) saturate(0.9)' }),
+  'deepCinematic': () => ({ filter: 'contrast(1.25) brightness(0.9) saturate(0.85)' }),
+  'softfocus': () => ({ filter: 'blur(0.5px) brightness(1.05)' }),
+  'warm': () => ({ filter: 'sepia(0.3) saturate(1.2)' }),
+  'cool': () => ({ filter: 'hue-rotate(180deg) saturate(0.8)' }),
+  'hdr': () => ({ filter: 'contrast(1.2) saturate(1.2)' }),
+  'hdrGlow': () => ({ filter: 'contrast(1.3) brightness(1.1) saturate(1.3)' }),
+  'hdrSurge': () => ({ filter: 'contrast(1.35) brightness(1.05) saturate(1.4)' }),
+  'dreamy': () => ({ filter: 'brightness(1.1) blur(0.3px)' }),
+  'dreamySoft': () => ({ filter: 'brightness(1.12) blur(0.4px) saturate(0.9)' }),
+  'sepia': () => ({ filter: 'sepia(0.9)' }),
+  'sepiaVintage': () => ({ filter: 'sepia(0.75) contrast(1.15) brightness(0.95)' }),
+  'bw': () => ({ filter: 'grayscale(1)' }),
+  'blackAndWhiteDeep': () => ({ filter: 'grayscale(1) contrast(1.4) brightness(0.95)' }),
+  'glitch': () => ({ filter: 'contrast(1.4) saturate(1.5)' }),
+  'glitchPulse': (frame, duration) => {
+    const blurVal = interpolate(frame, [0, 5, 10, duration], [2, 0, 1, 0]);
+    return { filter: `contrast(1.5) saturate(1.6) blur(${blurVal}px)` };
+  },
+  'neonglow': () => ({ filter: 'brightness(1.2) saturate(1.4)' }),
+  'cyberNeon': () => ({ filter: 'brightness(1.25) saturate(1.7) hue-rotate(15deg) contrast(1.2)' }),
+  'pulse': (frame, duration) => {
+    const scale = interpolate(frame, [0, duration * 0.5, duration], [1.0, 1.08, 1.0]);
+    return { transform: `scale(${scale})` };
+  },
+  'pastel': () => ({ filter: 'brightness(1.1) saturate(0.7)' }),
+  'pastelSoft': () => ({ filter: 'brightness(1.15) saturate(0.65) contrast(0.95)' }),
+  'popup': (frame, duration) => {
+    const scale = interpolate(frame, [0, duration * 0.2], [0.9, 1.0], { extrapolateRight: 'clamp' });
+    return { transform: `scale(${scale})` };
+  },
+  'vibrant': () => ({ filter: 'saturate(1.5) contrast(1.1)' }),
+  'neon': () => ({ filter: 'brightness(1.25) saturate(1.6) hue-rotate(10deg)' }),
+  'dramatic': () => ({ filter: 'contrast(1.3) brightness(0.9)' }),
+  'rose': () => ({ filter: 'sepia(0.3) hue-rotate(320deg) saturate(1.2)' }),
+  'pastelGlow': () => ({ filter: 'brightness(1.08) saturate(0.8) sepia(0.1)' }),
+  'coolBlueGlow': () => ({ filter: 'brightness(1.05) saturate(0.9) hue-rotate(190deg)' }),
+  'warmGlow': () => ({ filter: 'brightness(1.08) saturate(1.25) sepia(0.25)' }),
+  'sepiaGlow': () => ({ filter: 'sepia(0.85) brightness(1.02)' }),
+  
+  // 🌟 TANISHA - Missing Effects (Add karna hai)
+  'film-grain': (frame) => ({
+    filter: `contrast(1.1) brightness(0.98) saturate(0.9)`,
+    opacity: 0.95 + 0.05 * Math.sin(frame * 0.5),
   }),
-  'blur': () => ({ filter: 'blur(2px)' }),
-  'pixelate': (frame) => {
-    const size = interpolate(frame % 60, [0, 30, 60], [20, 2, 20]);
-    return { imageRendering: 'pixelated', filter: `pixelate(${size}px)` };
-  },
-  'noise': (frame) => ({
-    filter: `contrast(1.2) brightness(${1 + 0.05 * Math.sin(frame * 0.3)})`
+  'flash': (frame) => ({
+    filter: frame % 20 < 2 ? 'brightness(2) saturate(0)' : 'none',
   }),
-
-  // ============================================================
-  // 🔥 COMPLEX EFFECTS
-  // ============================================================
-  'ken-burns': (frame, duration) => {
-    const scale = interpolate(frame, [0, duration], [1.0, 1.25]);
-    const x = interpolate(frame, [0, duration], [0, -5]);
-    const y = interpolate(frame, [0, duration], [0, -5]);
-    return { transform: `scale(${scale}) translate(${x}%, ${y}%)` };
-  },
-  'parallax': (frame, duration) => {
-    const x = interpolate(frame, [0, duration], [0, 15]);
-    const y = interpolate(frame, [0, duration], [0, 10]);
-    return { transform: `translate(${x}%, ${y}%) scale(1.08)` };
-  },
-  'reveal': (frame, duration) => {
-    const clip = interpolate(frame, [0, duration * 0.7, duration], [0, 100, 100]);
-    return { clipPath: `inset(0 ${100 - clip}% 0 0)` };
-  },
-  'fade-in': (frame, duration) => {
-    const opacity = interpolate(frame, [0, duration * 0.2], [0, 1]);
-    return { opacity };
-  },
-  'fade-out': (frame, duration) => {
-    const opacity = interpolate(frame, [0, duration * 0.8, duration], [1, 1, 0]);
-    return { opacity };
-  },
-
-  // ============================================================
-  // 🔥 DEFAULT
-  // ============================================================
-  'none': () => ({}),
+  'pixelize': (frame) => ({
+    filter: frame % 25 < 3 ? 'scale(0.5)' : 'none',
+    transform: frame % 25 < 3 ? 'scale(2)' : 'scale(1)',
+  }),
 };
 
 // ============================================================
-// 🔥 REEL IMAGE COMPONENT
+// 🚀 TRANSITION STYLE HELPER (TUMHARA - Advanced)
 // ============================================================
-interface ReelImageProps {
-  src: string;
-  effectName: string;
-  durationInFrames: number;
+const getTransitionStyle = (transitionName: string, frame: number): React.CSSProperties => {
+  if (!transitionName || transitionName === 'none') return {};
+
+  // Basic Fades
+  if (transitionName === 'fade' || transitionName === 'dissolve' || transitionName === 'dreamyFade') {
+    const opacity = interpolate(frame, [0, 18], [0, 1], { extrapolateRight: 'clamp' });
+    return { opacity };
+  }
+
+  // Slides
+  if (transitionName === 'smoothleft' || transitionName === 'slideleft') {
+    const x = interpolate(frame, [0, 20], [1080, 0], { extrapolateRight: 'clamp' });
+    return { transform: `translateX(${x}px)` };
+  }
+  if (transitionName === 'smoothright' || transitionName === 'slideright') {
+    const x = interpolate(frame, [0, 20], [-1080, 0], { extrapolateRight: 'clamp' });
+    return { transform: `translateX(${x}px)` };
+  }
+  if (transitionName === 'slideup' || transitionName === 'wipeup') {
+    const y = interpolate(frame, [0, 20], [1920, 0], { extrapolateRight: 'clamp' });
+    return { transform: `translateY(${y}px)` };
+  }
+  if (transitionName === 'slidedown' || transitionName === 'wipedown') {
+    const y = interpolate(frame, [0, 20], [-1920, 0], { extrapolateRight: 'clamp' });
+    return { transform: `translateY(${y}px)` };
+  }
+
+  // 🌟 TUMHARA - Advanced Transitions
+  if (transitionName === 'cinematicZoom') {
+    const scale = interpolate(frame, [0, 25], [1.15, 1], { extrapolateRight: 'clamp' });
+    const opacity = interpolate(frame, [0, 15], [0, 1], { extrapolateRight: 'clamp' });
+    return { transform: `scale(${scale})`, opacity };
+  }
+  if (transitionName === 'smoothRotate') {
+    const rotate = interpolate(frame, [0, 25], [6, 0], { extrapolateRight: 'clamp' });
+    const scale = interpolate(frame, [0, 25], [0.95, 1], { extrapolateRight: 'clamp' });
+    return { transform: `scale(${scale}) rotate(${rotate}deg)` };
+  }
+  if (transitionName === 'parallaxSlide') {
+    const x = interpolate(frame, [0, 25], [300, 0], { extrapolateRight: 'clamp' });
+    return { transform: `translateX(${x}px)` };
+  }
+  if (transitionName === 'smoothBounce') {
+    const y = interpolate(frame, [0, 12, 22, 30], [150, -20, 10, 0], { extrapolateRight: 'clamp' });
+    const opacity = interpolate(frame, [0, 15], [0, 1], { extrapolateRight: 'clamp' });
+    return { transform: `translateY(${y}px)`, opacity };
+  }
+  if (transitionName === 'glitchFlash') {
+    const opacity = interpolate(frame, [0, 5, 10, 20], [0.2, 1, 0.6, 1], { extrapolateRight: 'clamp' });
+    const skew = interpolate(frame, [0, 8, 15], [10, -5, 0], { extrapolateRight: 'clamp' });
+    return { opacity, transform: `skewX(${skew}deg)` };
+  }
+  if (transitionName === 'pixelize') {
+    const blur = interpolate(frame, [0, 15], [12, 0], { extrapolateRight: 'clamp' });
+    return { filter: `blur(${blur}px)` };
+  }
+  if (transitionName === 'fastWipe') {
+    const progress = interpolate(frame, [0, 10], [1080, 0], { extrapolateRight: 'clamp' });
+    return { transform: `translateX(${progress}px)` };
+  }
+  if (transitionName.includes('wipe')) {
+    const progress = interpolate(frame, [0, 20], [1080, 0], { extrapolateRight: 'clamp' });
+    return { transform: `translateX(${progress}px)` };
+  }
+
+  return {};
+};
+
+// ============================================================
+// 🔥 COLLAGE COMPONENTS (TUMHARA - Keep as is)
+// ============================================================
+interface ThreePhotoCollageSlideProps {
+  images: string[];
+  vignette?: boolean;
 }
 
-const ReelImage: React.FC<ReelImageProps> = ({ src, effectName, durationInFrames }) => {
+const ThreePhotoCollageSlide: React.FC<ThreePhotoCollageSlideProps> = ({ images, vignette }) => {
   const frame = useCurrentFrame();
-  const effectFn: EffectFn = EFFECT_STYLES[effectName] || EFFECT_STYLES['none'];
-  const style = effectFn(frame, durationInFrames);
-  
+
+  const p1 = interpolate(frame, [0, 18], [0, 1], { extrapolateRight: 'clamp' });
+  const p2 = interpolate(frame, [5, 23], [0, 1], { extrapolateRight: 'clamp' });
+  const p3 = interpolate(frame, [10, 28], [0, 1], { extrapolateRight: 'clamp' });
+
+  const x1 = interpolate(p1, [0, 1], [-1080, 0]);
+  const x2 = interpolate(p2, [0, 1], [1080, 0]);
+  const x3 = interpolate(p3, [0, 1], [-1080, 0]);
+
   return (
-    <img
-      src={src}
-      style={{
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-        transition: 'all 0.1s ease',
-        ...style,
-      }}
-      alt="Reel slide"
-    />
+    <div style={{ position: 'relative', width: '1080px', height: '1920px', overflow: 'hidden', backgroundColor: '#111' }}>
+      <div style={{ transform: `translateX(${x1}px)`, position: 'absolute', top: '0px', width: '1080px', height: '600px' }}>
+        <img src={images[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Collage 1" />
+      </div>
+      <div style={{ transform: `translateX(${x2}px)`, position: 'absolute', top: '630px', width: '1080px', height: '600px' }}>
+        <img src={images[1]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Collage 2" />
+      </div>
+      <div style={{ transform: `translateX(${x3}px)`, position: 'absolute', top: '1260px', width: '1080px', height: '600px' }}>
+        <img src={images[2]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Collage 3" />
+      </div>
+      {vignette && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+          background: 'radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%)',
+          pointerEvents: 'none',
+        }} />
+      )}
+    </div>
   );
 };
 
 // ============================================================
-// 🔥 MAIN COMPOSITION
+// 🔥 GRID COLLAGE COMPONENT (TUMHARA)
+// ============================================================
+interface GridCollageSlideProps {
+  images: string[];
+  vignette?: boolean;
+}
+
+const GridCollageSlide: React.FC<GridCollageSlideProps> = ({ images, vignette }) => {
+  const frame = useCurrentFrame();
+  const scale = interpolate(frame, [0, 30], [0.92, 1], { extrapolateRight: 'clamp' });
+  const opacity = interpolate(frame, [0, 15], [0, 1], { extrapolateRight: 'clamp' });
+
+  return (
+    <div style={{ 
+      position: 'relative', width: '1080px', height: '1920px', overflow: 'hidden', backgroundColor: '#0a0a0a',
+      display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: '12px', padding: '12px',
+      transform: `scale(${scale})`, opacity 
+    }}>
+      {images.slice(0, 4).map((img, idx) => (
+        <div key={idx} style={{ width: '100%', height: '100%', overflow: 'hidden', borderRadius: '16px' }}>
+          <img src={img} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={`Grid ${idx}`} />
+        </div>
+      ))}
+      {vignette && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+          background: 'radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%)',
+          pointerEvents: 'none',
+        }} />
+      )}
+    </div>
+  );
+};
+
+// ============================================================
+// 🔥 HORIZONTAL COLLAGE COMPONENT (TUMHARA)
+// ============================================================
+interface HorizontalCollageSlideProps {
+  images: string[];
+  vignette?: boolean;
+}
+
+const HorizontalCollageSlide: React.FC<HorizontalCollageSlideProps> = ({ images, vignette }) => {
+  const frame = useCurrentFrame();
+  const y1 = interpolate(frame, [0, 20], [-960, 0], { extrapolateRight: 'clamp' });
+  const y2 = interpolate(frame, [0, 20], [960, 0], { extrapolateRight: 'clamp' });
+
+  return (
+    <div style={{ position: 'relative', width: '1080px', height: '1920px', overflow: 'hidden', backgroundColor: '#111' }}>
+      <div style={{ transform: `translateY(${y1}px)`, position: 'absolute', top: '0px', width: '1080px', height: '955px' }}>
+        <img src={images[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Split Top" />
+      </div>
+      <div style={{ transform: `translateY(${y2}px)`, position: 'absolute', top: '965px', width: '1080px', height: '955px' }}>
+        <img src={images[1]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Split Bottom" />
+      </div>
+      {vignette && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+          background: 'radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%)',
+          pointerEvents: 'none',
+        }} />
+      )}
+    </div>
+  );
+};
+
+// ============================================================
+// 🔥 IMAGE WITH EFFECTS COMPONENT (TUMHARA - Superior)
+// ============================================================
+interface ReelImageProps {
+  src: string;
+  effectName: string;
+  colorGrade?: string;
+  transitionName?: string;
+  durationInFrames: number;
+  vignette?: boolean;
+  effectsList?: string[];
+}
+
+const ReelImage: React.FC<ReelImageProps> = ({ 
+  src, 
+  effectName, 
+  colorGrade, 
+  transitionName = 'none',
+  durationInFrames,
+  vignette = false,
+  effectsList = []
+}) => {
+  const frame = useCurrentFrame();
+  
+  const hasGlassBlurBg = effectsList.includes('glassBlurBg');
+
+  const effectFn: EffectFn = EFFECT_STYLES[effectName] || EFFECT_STYLES['none'];
+  const effectStyle = effectFn(frame, durationInFrames);
+  
+  const colorGradeFn: EffectFn = colorGrade && EFFECT_STYLES[colorGrade] 
+    ? EFFECT_STYLES[colorGrade] 
+    : EFFECT_STYLES['none'];
+  const colorGradeStyle = colorGradeFn(frame, durationInFrames);
+
+  const transitionStyle = getTransitionStyle(transitionName, frame);
+  
+  const combinedStyle: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover' as const,
+    position: 'relative',
+    zIndex: 2,
+    ...effectStyle,
+    ...colorGradeStyle,
+    ...transitionStyle,
+  };
+  
+  return (
+    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', backgroundColor: '#0a0a0a' }}>
+      {/* 🌟 Glassmorphism / Frosted Background Blur Aura */}
+      {hasGlassBlurBg && (
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1, overflow: 'hidden' }}>
+          <img
+            src={src}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              filter: 'blur(25px) brightness(0.55) saturate(1.2)',
+              transform: 'scale(1.25)',
+            }}
+            alt="Blur Background"
+          />
+        </div>
+      )}
+
+      {/* Main Foreground Image */}
+      <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <img
+          src={src}
+          style={hasGlassBlurBg ? { ...combinedStyle, width: '90%', height: '82%', objectFit: 'contain', borderRadius: '20px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' } : combinedStyle}
+          alt="Reel slide"
+        />
+      </div>
+
+      {vignette && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.5) 100%)',
+          pointerEvents: 'none',
+          zIndex: 3,
+        }} />
+      )}
+    </div>
+  );
+};
+
+// ============================================================
+// 🔥 MAIN COMPOSITION (TUMHARA - Keep as is)
 // ============================================================
 export const ReelComposition: React.FC<ReelProps> = ({ images, template }) => {
-  const { effects, slideDuration, width, height } = template;
+  const { 
+    effects = ['none'], 
+    slideDuration = 3, 
+    width = 1080, 
+    height = 1920,
+    colorGrades = [], 
+    transitions = [], 
+    vignette = false, 
+    collageType,
+    collage = false,
+  } = template || {};
+  
   const durationInFrames = Math.round(slideDuration * 30);
 
   if (!images || images.length === 0) {
     return <AbsoluteFill style={{ backgroundColor: 'black' }} />;
+  }
+
+  // ✅ Special Collage Layout Handlers
+  if (collage) {
+    if (collageType === 'three' && images.length >= 3) {
+      return (
+        <AbsoluteFill style={{ backgroundColor: 'black', width, height }}>
+          <Sequence from={0} durationInFrames={durationInFrames}>
+            <ThreePhotoCollageSlide images={images} vignette={vignette} />
+          </Sequence>
+        </AbsoluteFill>
+      );
+    }
+    if (collageType === 'grid' && images.length >= 4) {
+      return (
+        <AbsoluteFill style={{ backgroundColor: 'black', width, height }}>
+          <Sequence from={0} durationInFrames={durationInFrames}>
+            <GridCollageSlide images={images} vignette={vignette} />
+          </Sequence>
+        </AbsoluteFill>
+      );
+    }
+    if (collageType === 'horizontal' && images.length >= 2) {
+      return (
+        <AbsoluteFill style={{ backgroundColor: 'black', width, height }}>
+          <Sequence from={0} durationInFrames={durationInFrames}>
+            <HorizontalCollageSlide images={images} vignette={vignette} />
+          </Sequence>
+        </AbsoluteFill>
+      );
+    }
   }
 
   return (
@@ -200,6 +459,8 @@ export const ReelComposition: React.FC<ReelProps> = ({ images, template }) => {
       {images.map((img: string, index: number) => {
         const startFrame = index * durationInFrames;
         const effectName = effects[index % effects.length] || 'none';
+        const colorGrade = colorGrades.length > 0 ? colorGrades[index % colorGrades.length] : undefined;
+        const transitionName = transitions.length > 0 ? transitions[index % transitions.length] : 'none';
         
         return (
           <Sequence 
@@ -210,7 +471,11 @@ export const ReelComposition: React.FC<ReelProps> = ({ images, template }) => {
             <ReelImage 
               src={img} 
               effectName={effectName}
+              colorGrade={colorGrade}
+              transitionName={transitionName}
               durationInFrames={durationInFrames}
+              vignette={vignette}
+              effectsList={effects}
             />
           </Sequence>
         );
