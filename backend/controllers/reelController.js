@@ -128,6 +128,7 @@ exports.generateReel = async (req, res) => {
     console.log(`   ├── Color Grades: ${(selectedTemplate.colorGrades || ['none']).join(', ')}`);
     console.log(`   ├── Vignette: ${selectedTemplate.vignette ? '✅ Yes' : '❌ No'}`);
     console.log(`   ├── Collage: ${selectedTemplate.collage ? '✅ Yes' : '❌ No'}`);
+    console.log(`   ├── Collage Type: ${selectedTemplate.collageType || 'vertical'}`);
     console.log(`   └── Quality: ${selectedTemplate.quality || 'high'}`);
 
     // ✅ Get music from template or random
@@ -216,12 +217,23 @@ exports.generateReel = async (req, res) => {
     let processedImages = await imageService.processImages(absolutePaths, templateWithDuration);
     console.log(`   ✅ ${processedImages.length} images processed successfully`);
     
-    // ✅ Create collage if template has collage
+    // ============================================================
+    // 🔥 🔥 🔥 COLLAGE CREATION - YAHI CHANGE HAI 🔥 🔥 🔥
+    // ============================================================
     if (selectedTemplate.collage) {
       console.log(`\n🧩 COLLAGE CREATION:`);
-      console.log(`   ├── Type: ${selectedTemplate.collageType || 'grid'}`);
+      console.log(`   ├── Type: ${selectedTemplate.collageType || 'vertical'}`);
+      console.log(`   ├── Images per collage: ${selectedTemplate.imagesPerCollage || 3}`);
       console.log(`   └── Creating collage...`);
-      processedImages = await collageService.createCollage(processedImages, selectedTemplate);
+      
+      // ✅ Check if circle collage
+      if (selectedTemplate.collageType === 'circle') {
+        processedImages = await collageService.createCircleCollage(processedImages, selectedTemplate);
+      } else {
+        // ✅ Default: vertical collage with gaps
+        processedImages = await collageService.createCollage(processedImages, selectedTemplate);
+      }
+      
       console.log(`   ✅ ${processedImages.length} collage images created`);
     }
 
@@ -314,7 +326,8 @@ exports.generateReel = async (req, res) => {
         transitions: selectedTemplate.transitions || ['fade'],
         effects: selectedTemplate.effects || ['none'],
         colorGrades: selectedTemplate.colorGrades || ['none'],
-        collage: selectedTemplate.collage || false
+        collage: selectedTemplate.collage || false,
+        collageType: selectedTemplate.collageType || 'vertical'
       }
     });
 

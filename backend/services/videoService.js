@@ -1,10 +1,29 @@
 const { exec } = require("child_process");
-const { spawnSync } = require("child_process"); // ✅ ADD THIS
+const { spawnSync } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 const ffmpeg = require("fluent-ffmpeg");
+const crypto = require("crypto");
 
+// ============================================================
+// ✅ CACHE SYSTEM
+// ============================================================
+const CACHE_DIR = path.join(__dirname, '../cache');
+if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
+
+function generateCacheKey(imagePaths, musicPath, template) {
+    const hash = crypto.createHash('md5');
+    // ✅ Sort images for consistent cache key
+    const sortedImages = [...imagePaths].sort();
+    hash.update(sortedImages.join('|'));
+    hash.update(musicPath || '');
+    hash.update(JSON.stringify(template));
+    return hash.digest('hex');
+}
+
+// ============================================================
 // FFmpeg Path Setup
+// ============================================================
 let ffmpegPath = null;
 try {
   const { execSync } = require("child_process");
@@ -27,31 +46,15 @@ if (!ffmpegPath) {
 ffmpeg.setFfmpegPath(ffmpegPath || "ffmpeg");
 
 // ============================================================
-// 🖥️ HARDWARE ENCODER DETECTION (ADD THIS FUNCTION)
+// 🖥️ HARDWARE ENCODER DETECTION
 // ============================================================
 function detectHardwareEncoder() {
   console.log("\n🖥️ HARDWARE ENCODER DETECTION:");
 
-  // ✅ Define encoderConfigs here
   const encoderConfigs = [
-    {
-      gpuType: "NVIDIA",
-      encoder: "h264_nvenc",
-      testArgs: ["-encoders", "-f", "null", "-"],
-      skip: false,
-    },
-    {
-      gpuType: "AMD",
-      encoder: "h264_amf",
-      testArgs: ["-encoders", "-f", "null", "-"],
-      skip: false,
-    },
-    {
-      gpuType: "Intel",
-      encoder: "h264_qsv",
-      testArgs: ["-encoders", "-f", "null", "-"],
-      skip: false,
-    },
+    { gpuType: "NVIDIA", encoder: "h264_nvenc", testArgs: ["-encoders", "-f", "null", "-"], skip: false },
+    { gpuType: "AMD", encoder: "h264_amf", testArgs: ["-encoders", "-f", "null", "-"], skip: false },
+    { gpuType: "Intel", encoder: "h264_qsv", testArgs: ["-encoders", "-f", "null", "-"], skip: false },
   ];
 
   for (const config of encoderConfigs) {
@@ -62,14 +65,8 @@ function detectHardwareEncoder() {
         stdio: ["pipe", "pipe", "pipe"],
       });
       if (result.status === 0) {
-        console.log(
-          `✅ [GPU SUCCESS] ${config.gpuType} acceleration enabled! Encoder: ${config.encoder}`,
-        );
-        return {
-          videoEncoder: config.encoder,
-          isGpuEnabled: true,
-          gpuType: config.gpuType,
-        };
+        console.log(`✅ [GPU SUCCESS] ${config.gpuType} acceleration enabled! Encoder: ${config.encoder}`);
+        return { videoEncoder: config.encoder, isGpuEnabled: true, gpuType: config.gpuType };
       }
     } catch (e) {}
   }
@@ -77,107 +74,15 @@ function detectHardwareEncoder() {
   return { videoEncoder: "libx264", isGpuEnabled: false, gpuType: "CPU" };
 }
 
-// ============================================================
-// ⏱️ DURATION CALCULATION LOGIC (Min 16s - Max 30s Range)
-// ============================================================
-function calculateDuration(numImages, template) {
-  console.log(`\n⏱️ DURATION CALCULATION:`);
-  console.log(`   ├── Images: ${numImages}`);
-  console.log(
-    `   ├── Template Slide Duration: ${template.slideDuration || 3.0}s`,
-  );
-
-  const MIN_TOTAL_DURATION = 16.0;
-  const MAX_TOTAL_DURATION = 30.0;
-
-  let slideDuration = template.slideDuration || 3.0;
-  let estimatedTotal = numImages * slideDuration;
-
-  console.log(`   ├── Estimated Total: ${estimatedTotal.toFixed(2)}s`);
-  console.log(
-    `   ├── Target Range: ${MIN_TOTAL_DURATION}s - ${MAX_TOTAL_DURATION}s`,
-  );
-
-  if (estimatedTotal < MIN_TOTAL_DURATION) {
-    slideDuration = MIN_TOTAL_DURATION / numImages;
-    console.log(
-      `   📌 ADJUSTED: Increased slide duration to ${slideDuration.toFixed(2)}s to meet minimum 16s limit.`,
-    );
-  } else if (estimatedTotal > MAX_TOTAL_DURATION) {
-    slideDuration = MAX_TOTAL_DURATION / numImages;
-    console.log(
-      `   📌 ADJUSTED: Decreased slide duration to ${slideDuration.toFixed(2)}s to stay under 30s max limit.`,
-    );
-  } else {
-    console.log(
-      `   ✅ Perfect! Duration is already within the 16s - 30s range.`,
-    );
-  }
-
-  const totalDuration = numImages * slideDuration;
-  console.log(`   ✅ Final Slide Duration: ${slideDuration.toFixed(2)}s`);
-  console.log(`   ✅ Final Total Duration: ${totalDuration.toFixed(2)}s`);
-
-  return {
-    slideDuration: slideDuration,
-    totalDuration: totalDuration,
-  };
-}
-
-// ✅ CUBE & ROTATING TRANSITIONS MAPPING
-const TRANSITION_MAP = {
-  cube: "squeezeh",
-  circle: "circlecrop",
-  circleopen: "circleopen",
-  radial: "radial",
-  smoothleft: "slideleft",
-  smoothright: "slideright",
-  wipeleft: "wipeleft",
-  wiperight: "wiperight",
-  dissolve: "fade",
-};
-
-const COLOR_GRADES = {
-  cinematic: "colorbalance=rs=0.1:gs=0.05:bs=0.1,eq=contrast=1.1",
-  warm: "colorbalance=rs=0.2:gs=0.05:bs=-0.1,eq=saturation=1.2",
-  golden: "colorbalance=rs=0.25:gs=0.1:bs=-0.15",
-  cool: "colorbalance=rs=-0.1:gs=0.05:bs=0.25",
-  vintage: "colorbalance=rs=0.15:gs=0.1:bs=-0.05,hue=s=0.8",
-  neon: "colorbalance=rs=0.3:gs=-0.1:bs=0.3,eq=contrast=1.2:saturation=1.3",
-  vibrant: "eq=saturation=1.4:contrast=1.1",
-  dramatic: "eq=contrast=1.3:brightness=-0.05",
-};
-
-// ✅ DETECT HARDWARE (after function is defined)
 const hardware = detectHardwareEncoder();
 let videoEncoder = hardware.videoEncoder;
 let isGpuEnabled = hardware.isGpuEnabled;
 
 function getEncoderOptions(isGpu, encoder) {
-  const common = [
-    "-c:a",
-    "aac",
-    "-pix_fmt",
-    "yuv420p",
-    "-r",
-    "30",
-    "-movflags",
-    "+faststart",
-    "-y",
-  ];
+  const common = ["-c:a", "aac", "-pix_fmt", "yuv420p", "-r", "30", "-movflags", "+faststart", "-y"];
   if (isGpu) {
     if (encoder === "h264_amf") {
-      return [
-        "-c:v",
-        "h264_amf",
-        "-usage",
-        "lowlatency",
-        "-quality",
-        "speed",
-        "-b:v",
-        "4M",
-        ...common,
-      ];
+      return ["-c:v", "h264_amf", "-usage", "lowlatency", "-quality", "speed", "-b:v", "4M", ...common];
     }
     if (encoder === "h264_nvenc") {
       return ["-c:v", "h264_nvenc", "-preset", "p2", "-b:v", "4M", ...common];
@@ -186,13 +91,148 @@ function getEncoderOptions(isGpu, encoder) {
   return ["-c:v", "libx264", "-preset", "ultrafast", "-crf", "26", ...common];
 }
 
-// 🎬 REMOTION RENDER (Video with effects)
-function renderWithRemotion(
-  imagePaths,
-  template,
-  slideDuration,
-  tempOutputPath,
-) {
+// ============================================================
+// ⏱️ DURATION CALCULATION
+// ============================================================
+function calculateDuration(numImages, template) {
+  console.log(`\n⏱️ DURATION CALCULATION:`);
+  console.log(`   ├── Images: ${numImages}`);
+  console.log(`   ├── Template Slide Duration: ${template.slideDuration || 3.0}s`);
+
+  const MIN_TOTAL_DURATION = 12.0;
+  const MAX_TOTAL_DURATION = 30.0;
+
+  let slideDuration = template.slideDuration || 3.0;
+  let estimatedTotal = numImages * slideDuration;
+
+  console.log(`   ├── Estimated Total: ${estimatedTotal.toFixed(2)}s`);
+  console.log(`   ├── Target Range: ${MIN_TOTAL_DURATION}s - ${MAX_TOTAL_DURATION}s`);
+
+  if (estimatedTotal < MIN_TOTAL_DURATION) {
+    slideDuration = MIN_TOTAL_DURATION / numImages;
+    console.log(`   📌 ADJUSTED: Increased slide duration to ${slideDuration.toFixed(2)}s`);
+  } else if (estimatedTotal > MAX_TOTAL_DURATION) {
+    slideDuration = MAX_TOTAL_DURATION / numImages;
+    console.log(`   📌 ADJUSTED: Decreased slide duration to ${slideDuration.toFixed(2)}s`);
+  } else {
+    console.log(`   ✅ Perfect! Duration is within range.`);
+  }
+
+  const totalDuration = numImages * slideDuration;
+  console.log(`   ✅ Final Slide Duration: ${slideDuration.toFixed(2)}s`);
+  console.log(`   ✅ Final Total Duration: ${totalDuration.toFixed(2)}s`);
+
+  return { slideDuration, totalDuration };
+}
+
+// ============================================================
+// 🎬 EFFECTS FOR REMOTION
+// ============================================================
+const EFFECT_STYLES = {
+  'zoom-in': (frame, duration) => ({
+    transform: `scale(${1 + 0.25 * (frame / duration)})`,
+  }),
+  'zoom-out': (frame, duration) => ({
+    transform: `scale(${1.25 - 0.25 * (frame / duration)})`,
+  }),
+  'zoomin': (frame, duration) => ({
+    transform: `scale(${1 + 0.25 * (frame / duration)})`,
+  }),
+  'zoomout': (frame, duration) => ({
+    transform: `scale(${1.25 - 0.25 * (frame / duration)})`,
+  }),
+  'zoom-slow': (frame, duration) => ({
+    transform: `scale(${1 + 0.15 * (frame / duration)})`,
+  }),
+  'zoom-fast': (frame, duration) => ({
+    transform: `scale(${1 + 0.4 * Math.sin((frame / duration) * Math.PI)})`,
+  }),
+  'zoom-pulse': (frame, duration) => ({
+    transform: `scale(${1 + 0.08 * Math.sin((frame / duration) * Math.PI * 4)})`,
+  }),
+  'fast_slow': (frame, duration) => ({
+    transform: `scale(${1 + 0.2 * Math.sin((frame / duration) * Math.PI * 2)})`,
+  }),
+  'slide-left': (frame, duration) => ({
+    transform: `translateX(${-100 + 100 * (frame / Math.min(15, duration))}%)`,
+  }),
+  'slide-right': (frame, duration) => ({
+    transform: `translateX(${100 - 100 * (frame / Math.min(15, duration))}%)`,
+  }),
+  'slide-up': (frame, duration) => ({
+    transform: `translateY(${100 - 100 * (frame / Math.min(15, duration))}%)`,
+  }),
+  'slide-down': (frame, duration) => ({
+    transform: `translateY(${-100 + 100 * (frame / Math.min(15, duration))}%)`,
+  }),
+  'smoothleft': (frame, duration) => ({
+    transform: `translateX(${-100 + 100 * (frame / Math.min(20, duration))}%)`,
+  }),
+  'smoothright': (frame, duration) => ({
+    transform: `translateX(${100 - 100 * (frame / Math.min(20, duration))}%)`,
+  }),
+  'slideleft': (frame, duration) => ({
+    transform: `translateX(${-100 + 100 * (frame / Math.min(15, duration))}%)`,
+  }),
+  'slideright': (frame, duration) => ({
+    transform: `translateX(${100 - 100 * (frame / Math.min(15, duration))}%)`,
+  }),
+  'slide': (frame, duration) => ({
+    transform: `translateX(${-100 + 200 * (frame / duration)})`,
+  }),
+  'cube': (frame, duration) => ({
+    transform: `perspective(1000px) rotateY(${90 - 90 * (frame / Math.min(15, duration))}deg) scale(0.9)`,
+  }),
+  'flip': (frame, duration) => ({
+    transform: `perspective(1000px) rotateX(${180 - 180 * (frame / Math.min(15, duration))}deg) scale(0.9)`,
+  }),
+  'rotate-in': (frame, duration) => ({
+    transform: `rotate(${-30 + 30 * (frame / duration)}deg) scale(${0.5 + 0.5 * (frame / duration)})`,
+  }),
+  '3d': (frame, duration) => ({
+    transform: `perspective(800px) rotateY(${30 * Math.sin((frame / duration) * Math.PI * 2)})`,
+  }),
+  'vintage': () => ({ filter: 'sepia(0.6) contrast(1.1) brightness(1.05) saturate(0.8)' }),
+  'sepia': () => ({ filter: 'sepia(0.8) contrast(1.05)' }),
+  'bw': () => ({ filter: 'saturate(0)' }),
+  'warm': () => ({ filter: 'sepia(0.3) brightness(1.1) saturate(1.2)' }),
+  'cinematic': () => ({ filter: 'contrast(1.15) brightness(0.95) saturate(1.1)' }),
+  'dreamy': () => ({ filter: 'brightness(1.05) contrast(0.95) blur(0.5px) saturate(0.8)' }),
+  'vibrant': () => ({ filter: 'saturate(1.5) contrast(1.1) brightness(1.02)' }),
+  'dramatic': () => ({ filter: 'contrast(1.3) brightness(0.95) saturate(1.1)' }),
+  'golden': () => ({ filter: 'sepia(0.4) saturate(1.3) brightness(1.05) hue-rotate(-5deg)' }),
+  'cool': () => ({ filter: 'saturate(0.8) hue-rotate(10deg) brightness(0.95)' }),
+  'neon': () => ({ filter: 'saturate(1.6) contrast(1.2) brightness(1.05) hue-rotate(-20deg)' }),
+  'neonglow': () => ({ filter: 'saturate(1.6) contrast(1.2) brightness(1.05) hue-rotate(-20deg)' }),
+  'hdr': () => ({ filter: 'contrast(1.2) brightness(1.1) saturate(1.3)' }),
+  'film-grain': (frame) => ({
+    filter: `contrast(1.1) brightness(0.98) saturate(0.9)`,
+    opacity: 0.95 + 0.05 * Math.sin(frame * 0.5),
+  }),
+  'pastel': () => ({ filter: 'saturate(0.7) brightness(1.1) contrast(0.9)' }),
+  'rose': () => ({ filter: 'hue-rotate(-10deg) saturate(1.1) brightness(1.05)' }),
+  'softfocus': () => ({ filter: 'blur(0.3px) brightness(1.02) saturate(0.9)' }),
+  'pulse': (frame) => ({
+    transform: `scale(${1 + 0.03 * Math.sin(frame * 0.2)})`,
+  }),
+  'glitch': (frame) => ({
+    filter: frame % 15 < 3 ? 'hue-rotate(180deg) brightness(1.5) saturate(2)' : 'none',
+    transform: frame % 15 < 3 ? `translate(${(Math.random() - 0.5) * 10}px, ${(Math.random() - 0.5) * 10}px)` : 'none',
+  }),
+  'flash': (frame) => ({
+    filter: frame % 20 < 2 ? 'brightness(2) saturate(0)' : 'none',
+  }),
+  'pixelize': (frame) => ({
+    filter: frame % 25 < 3 ? 'scale(0.5)' : 'none',
+    transform: frame % 25 < 3 ? 'scale(2)' : 'scale(1)',
+  }),
+  'none': () => ({}),
+};
+
+// ============================================================
+// 🔥 REMOTION RENDER
+// ============================================================
+function renderWithRemotion(imagePaths, template, slideDuration, tempOutputPath) {
   return new Promise((resolve, reject) => {
     const numImages = imagePaths.length;
     const effects = template.effects || ["zoomin"];
@@ -201,9 +241,7 @@ function renderWithRemotion(
     console.log(`\n🎬 REMOTION RENDER:`);
     console.log(`   ├── Images: ${numImages}`);
     console.log(`   ├── Effects: ${effects.slice(0, numImages).join(", ")}`);
-    console.log(
-      `   ├── Transitions: ${transitions.slice(0, numImages - 1).join(", ")}`,
-    );
+    console.log(`   ├── Transitions: ${transitions.slice(0, numImages - 1).join(", ")}`);
     console.log(`   ├── Slide Duration: ${slideDuration.toFixed(2)}s`);
     console.log(`   ├── Output: ${path.basename(tempOutputPath)}`);
     console.log(`   └── Status: Rendering...`);
@@ -225,25 +263,17 @@ function renderWithRemotion(
     const port = process.env.PORT || 5000;
     const serverBaseUrl = `http://localhost:${port}`;
     const imageUrls = imagePaths.map((imgPath) => {
-      const relativePath = path
-        .relative(process.cwd(), imgPath)
-        .replace(/\\/g, "/");
+      const relativePath = path.relative(process.cwd(), imgPath).replace(/\\/g, "/");
       return `${serverBaseUrl}/${relativePath}`;
     });
 
-    console.log(`   🔗 Serving images via: ${serverBaseUrl}`);
-
     const tempDataPath = path.join(__dirname, "../temp_data.json");
-    const data = {
-      images: imageUrls,
-      template: templateForRemotion,
-    };
+    const data = { images: imageUrls, template: templateForRemotion };
     fs.writeFileSync(tempDataPath, JSON.stringify(data, null, 2));
 
     const remotionDir = path.join(__dirname, "../remotion");
     const renderScript = path.join(remotionDir, "render.js");
 
-    // ✅ GPU FLAGS
     const gpuFlags = [
       '--enable-gpu',
       '--enable-hardware-overlays',
@@ -257,17 +287,7 @@ function renderWithRemotion(
       '--disable-dev-shm-usage',
     ];
 
-    const args = [
-      `"${renderScript}"`,
-      `"${tempDataPath}"`,
-      `"${tempOutputPath}"`,
-      ...gpuFlags,
-    ];
-
-    console.log(
-      `   🚀 Command: node ${path.basename(renderScript)} [data.json] [output] [GPU]`,
-    );
-    console.log(`   🎮 GPU Acceleration: ENABLED`);
+    const args = [`"${renderScript}"`, `"${tempDataPath}"`, `"${tempOutputPath}"`, ...gpuFlags];
 
     const { spawn } = require("child_process");
     const child = spawn("node", args, {
@@ -275,15 +295,10 @@ function renderWithRemotion(
       stdio: "pipe",
       shell: true,
       windowsVerbatimArguments: true,
-      env: {
-        ...process.env,
-        NODE_OPTIONS: '--max-old-space-size=8192',
-        GPU_ENABLED: 'true',
-      }
+      env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=8192', GPU_ENABLED: 'true' }
     });
 
-    let stdoutData = "";
-    let stderrData = "";
+    let stdoutData = "", stderrData = "";
 
     child.stdout.on("data", (data) => {
       const output = data.toString();
@@ -298,17 +313,11 @@ function renderWithRemotion(
     });
 
     child.on("close", (code) => {
-      if (fs.existsSync(tempDataPath)) {
-        fs.unlinkSync(tempDataPath);
-        console.log(`   🗑️ Temp data file cleaned up`);
-      }
-
+      if (fs.existsSync(tempDataPath)) fs.unlinkSync(tempDataPath);
       if (code !== 0) {
         console.error(`   ❌ Remotion render exited with code ${code}`);
         console.error(`   ❌ Stderr: ${stderrData}`);
-        return reject(
-          new Error(`Remotion render failed with code ${code}: ${stderrData}`),
-        );
+        return reject(new Error(`Remotion render failed with code ${code}: ${stderrData}`));
       }
       console.log(`   ✅ Remotion render completed!`);
       resolve();
@@ -321,17 +330,12 @@ function renderWithRemotion(
   });
 }
 
+// ============================================================
 // 🎵 FFMPEG: Add Music & Finalize
-// 🎵 FFMPEG: Add Music & Finalize (Stable & Instant Fast Copy)
+// ============================================================
 function addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath) {
   return new Promise((resolve, reject) => {
     const hasMusic = musicPath && fs.existsSync(musicPath);
-
-    console.log(`\n🎵 FFMPEG MUSIC ADD:`);
-    console.log(`   ├── Music Path: ${musicPath || "None"}`);
-    console.log(`   ├── Music File: ${hasMusic ? path.basename(musicPath) : "No Music"}`);
-    console.log(`   ├── Temp Video: ${path.basename(tempVideoPath)}`);
-    console.log(`   └── Output: ${path.basename(outputPath)}`);
 
     if (!hasMusic) {
       console.log(`   ⚠️ No music found, renaming temp to final...`);
@@ -344,15 +348,14 @@ function addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath) {
 
     console.log(`   🎬 Merging audio with video stream copy...`);
 
-    // Stream copy (-c:v copy) prevents re-encoding crashes and finishes in < 1 second!
     ffmpeg()
       .input(tempVideoPath)
       .input(musicPath)
       .inputOptions(["-stream_loop -1"])
       .outputOptions([
-        "-map 0:v:0",   // Video from 1st input
-        "-map 1:a:0",   // Audio from 2nd input
-        "-c:v copy",    // Fast Stream Copy (No GPU re-encode crash!)
+        "-map 0:v:0",
+        "-map 1:a:0",
+        "-c:v copy",
         "-c:a aac",
         "-b:a 192k",
         "-shortest",
@@ -360,16 +363,11 @@ function addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath) {
       ])
       .output(outputPath)
       .on("start", (cmd) => {
-        console.log(`   🚀 FFmpeg started... Command: ${cmd}`);
+        console.log(`   🚀 FFmpeg started...`);
       })
       .on("end", () => {
         if (fs.existsSync(tempVideoPath)) {
-          try {
-            fs.unlinkSync(tempVideoPath);
-            console.log(`   🗑️ Temp file cleaned up: ${path.basename(tempVideoPath)}`);
-          } catch (e) {
-            console.log(`   ⚠️ Temp cleanup postponed: ${e.message}`);
-          }
+          try { fs.unlinkSync(tempVideoPath); } catch (e) {}
         }
         console.log(`   ✅ Final video with music ready!`);
         resolve();
@@ -381,68 +379,41 @@ function addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath) {
       .run();
   });
 }
-// 🔥 MAIN FUNCTION: Remotion + FFmpeg Pipeline
+
+// ============================================================
+// 🔥 MAIN FUNCTION - WITH CACHE
+// ============================================================
 exports.createReel = async (imagePaths, musicPath, template, outputPath) => {
   try {
     console.log(`\n╔═══════════════════════════════════════════════════╗`);
-    console.log(`║         🎬  VIDEO SERVICE PIPELINE              ║`);
+    console.log(`║        🎬  VIDEO SERVICE PIPELINE              ║`);
     console.log(`╚═══════════════════════════════════════════════════╝`);
 
-    console.log(`\n📥 INPUT SUMMARY:`);
-    console.log(`   ├── Images: ${imagePaths.length}`);
-    console.log(
-      `   ├── Music: ${musicPath ? path.basename(musicPath) : "None"}`,
-    );
-    console.log(`   ├── Template: ${template.name || "Unnamed"}`);
-    console.log(`   ├── Output: ${path.basename(outputPath)}`);
-    console.log(`   └── Valid Images: Checking...`);
+    // ✅ CHECK CACHE FIRST
+    const cacheKey = generateCacheKey(imagePaths, musicPath, template);
+    const cachePath = path.join(CACHE_DIR, `${cacheKey}.mp4`);
+    
+    if (fs.existsSync(cachePath)) {
+      console.log(`\n⚡⚡⚡ CACHE HIT! Using cached video`);
+      console.log(`📁 Cache file: ${path.basename(cachePath)}`);
+      fs.copyFileSync(cachePath, outputPath);
+      console.log(`✅ Video copied from cache in < 1 second!`);
+      return true;
+    }
+    
+    console.log(`\n🔄 CACHE MISS - Rendering new video...`);
 
     const validImages = imagePaths.filter((img) => fs.existsSync(img));
-    console.log(
-      `   ✅ Valid Images: ${validImages.length}/${imagePaths.length}`,
-    );
-
     if (validImages.length === 0) {
-      console.log(`   ❌ No valid images found!`);
       throw new Error("No valid images found!");
     }
 
     const numImages = validImages.length;
-
-    console.log(`\n📐 TEMPLATE DETAILS:`);
-    console.log(`   ├── Name: ${template.name || "Unnamed"}`);
-    console.log(`   ├── ID: ${template.id || "N/A"}`);
-    console.log(`   ├── Width: ${template.width || 1080}`);
-    console.log(`   ├── Height: ${template.height || 1920}`);
-    console.log(
-      `   ├── Transitions: ${(template.transitions || ["fade"]).join(", ")}`,
-    );
-    console.log(`   ├── Effects: ${(template.effects || ["none"]).join(", ")}`);
-    console.log(
-      `   ├── Color Grades: ${(template.colorGrades || ["none"]).join(", ")}`,
-    );
-    console.log(`   └── Vignette: ${template.vignette ? "Yes" : "No"}`);
-
-    const { slideDuration, totalDuration } = calculateDuration(
-      numImages,
-      template,
-    );
-    console.log(`\n⏱️ FINAL TIMING:`);
-    console.log(`   ├── Slide Duration: ${slideDuration.toFixed(2)}s`);
-    console.log(`   ├── Total Duration: ${totalDuration.toFixed(2)}s`);
-    console.log(`   └── Status: ✅ Valid`);
+    const { slideDuration, totalDuration } = calculateDuration(numImages, template);
 
     const tempVideoPath = outputPath.replace(".mp4", "_temp.mp4");
-    console.log(`\n📁 OUTPUT PATHS:`);
-    console.log(`   ├── Temp: ${path.basename(tempVideoPath)}`);
-    console.log(`   └── Final: ${path.basename(outputPath)}`);
 
-    await renderWithRemotion(
-      validImages,
-      template,
-      slideDuration,
-      tempVideoPath,
-    );
+    await renderWithRemotion(validImages, template, slideDuration, tempVideoPath);
     await addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath);
 
     if (fs.existsSync(outputPath)) {
@@ -453,17 +424,15 @@ exports.createReel = async (imagePaths, musicPath, template, outputPath) => {
       console.log(`   ├── Size: ${fileSizeMB} MB`);
       console.log(`   ├── Duration: ${totalDuration.toFixed(2)}s`);
       console.log(`   └── Status: ✅ Success`);
+      
+      // ✅ SAVE TO CACHE
+      fs.copyFileSync(outputPath, cachePath);
+      console.log(`💾 Saved to cache: ${path.basename(cachePath)}`);
     }
-
-    console.log(`\n╔═══════════════════════════════════════════════════╗`);
-    console.log(`║         ✅  VIDEO SERVICE COMPLETED            ║`);
-    console.log(`╚═══════════════════════════════════════════════════╝\n`);
 
     return true;
   } catch (error) {
-    console.error(`\n❌ PIPELINE ERROR:`);
-    console.error(`   ├── Message: ${error.message}`);
-    console.error(`   └── Stack: ${error.stack}`);
+    console.error(`\n❌ PIPELINE ERROR: ${error.message}`);
     throw error;
   }
 };
