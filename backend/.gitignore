@@ -1,0 +1,163 @@
+# Server
+PORT=3000
+NODE_ENV=development
+
+# MongoDB
+MONGODB_URI=mongodb+srv://tanishaprajapati342_db_user:tanisha123@cluster0.2skrpzn.mongodb.net/reelmaker
+
+# File Paths (Backend ke relative)
+UPLOAD_DIR=./uploads/temp
+GENERATED_DIR=./generated/reels
+
+# ✅ IMPORTANT - Music aur Templates ke sahi paths
+MUSIC_DIR=./music
+TEMPLATES_DIR=./templates
+
+# Limits
+MAX_FILE_SIZE=10485760
+MAX_IMAGES=10
+# backend/.env
+node_modules/
+# backend/.env
+
+# backend/.env
+
+# ✅ Use Sandbox key
+SHOTSTACK_API_KEY=Xe7Ttb3b2DS6efPKhsAmB8BEcyLZojzCbuKGgG1i
+
+# ✅ USE SANDBOX ENDPOINT - NOT PRODUCTION
+SHOTSTACK_API_URL=https://api.shotstack.io/edit/stage/render
+
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+backend/.env
+.env.local
+.env.development
+.env.production
+
+# Backend generated files
+backend/uploads/
+backend/generated/
+backend/temp_clips/
+backend/test_outputs/
+backend/test_images/
+
+# Media files (videos, images, audio)
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.webp
+*.ico
+*.mp3
+*.wav
+*.aac
+*.flac
+
+# ============================================
+# 🔥 CRITICAL: LARGE BINARY FILES TO IGNORE
+# ============================================
+
+# Executable files
+*.exe
+*.dll
+*.so
+*.dylib
+*.bin
+
+# WebAssembly files
+*.wasm
+
+# Git pack files (should never be tracked)
+*.pack
+*.idx
+
+# Chrome/Headless browsers
+chrome-headless-shell.exe
+chromedriver.exe
+chromedriver
+
+# FFmpeg and video processing tools
+ffmpeg.exe
+ffmpeg
+ffprobe.exe
+ffprobe
+ffplay.exe
+ffplay
+
+# Build tools and bundlers
+rspack.win32-x64-msvc.node
+esbuild.exe
+esbuild
+swc.*.node
+
+# Electron/Chromium files
+*.pak
+icudtl.dat
+*.bin
+*.dat
+
+# Virtual machine files
+*.vmdk
+*.vdi
+*.vhd
+*.qcow2
+*.ova
+*.ovf
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Archive files
+*.zip
+*.rar
+*.7z
+*.tar.gz
+*.tgz
+
+# ============================================
+# END CRITICAL LARGE FILES
+# ============================================
+
+# Logs
+*.log
+logs/
+error.log
+combined.log
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# 🔥 Remotion ke andar ke node_modules aur build outputs
+backend/remotion/node_modules/
+backend/remotion/.remotion/
+backend/remotion/out/
