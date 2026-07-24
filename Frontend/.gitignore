@@ -1,0 +1,185 @@
+# ============================================
+# 🔥 DEPENDENCIES (Node Modules)
+# ============================================
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ============================================
+# 🔥 BUILD FILES
+# ============================================
+dist/
+build/
+out/
+.next/
+*.tgz
+*.tar.gz
+
+# ============================================
+# 🔥 ENVIRONMENT & SECRETS
+# ============================================
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+*.env
+.env.*.local
+.env.*.development
+.env.*.production
+
+# ============================================
+# 🔥 IDE / EDITOR
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.vs/
+*.iml
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.cache/
+.parcel-cache/
+.eslintcache
+.vite/
+*.tsbuildinfo
+
+# ============================================
+# 🔥 OS FILES
+# ============================================
+Thumbs.db
+Desktop.ini
+*.tmp
+*.bak
+*.swp
+
+# ============================================
+# 🔥 VITE SPECIFIC
+# ============================================
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# ============================================
+# 🔥 SENSITIVE DATA
+# ============================================
+*.pem
+*.p12
+*.crt
+*.key
+*.p7b
+*.pfx
+*.cer
+coverage/
+.nyc_output/
+__tests__/
+
+# ============================================
+# 🔥 ADD THESE FOR COMPLETE COVERAGE
+# ============================================
+
+# ============================================
+# 🔧 BACKEND/TEMP FILES (Frontend ke andar agar koi temp files ho)
+# ============================================
+*.zip
+*.rar
+*.7z
+*.gz
+*.tar
+
+# ============================================
+# 🔧 DEBUG FILES
+# ============================================
+*.map
+*.sourcemap
+*.spec.js
+*.test.js
+*.spec.ts
+*.test.ts
+*.spec.tsx
+*.test.tsx
+
+# ============================================
+# 🔧 BACKUP FILES
+# ============================================
+*.backup
+*.old
+*.orig
+
+# ============================================
+# 🔧 DATABASE FILES (if any)
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# ============================================
+# 🔧 MEDIA FILES (Large files - optional)
+# ============================================
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+*.mp3
+*.wav
+*.aac
+*.flac
+*.wma
+*.m4a
+
+# ============================================
+# 🔧 IMAGES (Large files - optional)
+# ============================================
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.webp
+*.ico
+*.svg
+*.tiff
+*.psd
+
+# ============================================
+# 🔧 EXECUTABLES
+# ============================================
+*.exe
+*.dll
+*.so
+*.dylib
+*.bin
+*.sh
+*.bat
+*.cmd
+*.msi
+
+# ============================================
+# 🔧 COVERAGE FILES
+# ============================================
+*.lcov
+coverage/
+.nyc_output/
+
+# ============================================
+# 🔧 TEST OUTPUTS
+# ============================================
+*.testresults
+test-results/
+jest-results.json
+
+# ============================================
+# 🔧 MISC
+# ============================================
+*.part
+*.download
+*.torrent
+*.crdownload
