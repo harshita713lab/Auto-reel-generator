@@ -5,7 +5,7 @@ function Result({ reelData, onReset }) {
     const [rating, setRating] = useState(0);
 
     const videoUrl = reelData?.downloadUrl 
-        ? `http://localhost:5000${reelData.downloadUrl}` 
+        ? `http://localhost:3000${reelData.downloadUrl}` 
         : '';
 
     // ✅ Download function - blob fetch karke download karega

@@ -1,11 +1,10 @@
 // frontend/src/components/LatestReel.jsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { toast } from 'react-toastify'; // ✅ Import
 import 'react-toastify/dist/ReactToastify.css';
 
-const API_URL = 'http://localhost:5000/api';
-const BASE_URL = 'http://localhost:5000'; // ✅ ADD THIS
+const API_URL = 'http://localhost:3000/api';
 
 function LatestReel() {
     const [latestReel, setLatestReel] = useState(null);
@@ -29,6 +28,7 @@ function LatestReel() {
     };
 
     const handleDelete = async (id) => {
+        // ✅ Sweet confirmation dialog instead of confirm()
         if (!window.confirm('Are you sure you want to delete this reel?')) {
             return;
         }
@@ -39,15 +39,15 @@ function LatestReel() {
             });
 
             if (response.ok) {
-                toast.success('✅ Reel deleted successfully!');
+                toast.success('✅ Reel deleted successfully!'); // ✅ Toast
                 setLatestReel(null);
             } else {
                 const error = await response.json();
-                toast.error('❌ Failed to delete: ' + (error.error || 'Unknown error'));
+                toast.error('❌ Failed to delete: ' + (error.error || 'Unknown error')); // ✅ Toast
             }
         } catch (error) {
             console.error('Error deleting reel:', error);
-            toast.error('❌ Failed to delete reel');
+            toast.error('❌ Failed to delete reel'); // ✅ Toast
         }
     };
 
@@ -74,8 +74,7 @@ function LatestReel() {
                     muted 
                     style={{ width: '100%', maxHeight: '400px', borderRadius: '12px' }}
                 >
-                    {/* ✅ FIX: http://localhost:3000 → BASE_URL */}
-                    <source src={`${BASE_URL}${latestReel.videoUrl}`} type="video/mp4" />
+                    <source src={`http://localhost:3000${latestReel.videoUrl}`} type="video/mp4" />
                 </video>
                 <div className="latest-reel-info">
                     <span>🎵 {latestReel.usedMusic}</span>

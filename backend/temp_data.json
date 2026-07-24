@@ -1,0 +1,35 @@
+{
+  "images": [
+    "http://localhost:3000/uploads/temp/processed_734a5df6-6106-4419-b002-d27b33483197.jpg",
+    "http://localhost:3000/uploads/temp/processed_f19d64e9-4ab8-40b1-b612-ba2920ee9cc9.webp",
+    "http://localhost:3000/uploads/temp/processed_a0cb7977-07f4-4997-a080-f8e5176a0a21.jpg",
+    "http://localhost:3000/uploads/temp/processed_cca2d644-5288-4e14-8f4a-7b1a23c0f0e5.jpg"
+  ],
+  "template": {
+    "name": "🎬 4-Photo Dynamic HDR Surge",
+    "width": 1080,
+    "height": 1920,
+    "slideDuration": 4,
+    "transitionDuration": 0.6,
+    "transitions": [
+      "fastWipe",
+      "smoothRotate",
+      "cinematicZoom"
+    ],
+    "effects": [
+      "hdrSurge",
+      "popup",
+      "cinematic",
+      "hdr"
+    ],
+    "colorGrades": [
+      "hdr",
+      "vibrant",
+      "cinematic",
+      "hdr"
+    ],
+    "vignette": false,
+    "totalDuration": 16,
+    "numImages": 4
+  }
+}

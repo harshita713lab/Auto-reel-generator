@@ -88,6 +88,34 @@ function resetTemplateRotation() {
 resetTemplateRotation();
 
 // ============================================
+// ✅ GET ALL TEMPLATES (ADD THIS!)
+// ============================================
+exports.getAllTemplates = async (req, res) => {
+  try {
+    const rawData = fs.readFileSync(TEMPLATES_FILE, 'utf8');
+    const data = JSON.parse(rawData);
+    
+    let templates = [];
+    if (Array.isArray(data)) {
+      templates = data;
+    } else if (data.templates) {
+      templates = data.templates;
+    } else {
+      templates = data;
+    }
+    
+    res.status(200).json({
+      success: true,
+      templates: templates,
+      count: templates.length
+    });
+  } catch (error) {
+    console.error('❌ Error loading templates:', error.message);
+    res.status(500).json({ error: 'Failed to load templates' });
+  }
+};
+
+// ============================================
 // ✅ GENERATE REEL (With Remotion + FFmpeg)
 // ============================================
 exports.generateReel = async (req, res) => {
@@ -218,7 +246,7 @@ exports.generateReel = async (req, res) => {
     console.log(`   ✅ ${processedImages.length} images processed successfully`);
     
     // ============================================================
-    // 🔥 🔥 🔥 COLLAGE CREATION - YAHI CHANGE HAI 🔥 🔥 🔥
+    // 🔥 COLLAGE CREATION
     // ============================================================
     if (selectedTemplate.collage) {
       console.log(`\n🧩 COLLAGE CREATION:`);
@@ -230,7 +258,6 @@ exports.generateReel = async (req, res) => {
       if (selectedTemplate.collageType === 'circle') {
         processedImages = await collageService.createCircleCollage(processedImages, selectedTemplate);
       } else {
-        // ✅ Default: vertical collage with gaps
         processedImages = await collageService.createCollage(processedImages, selectedTemplate);
       }
       

@@ -14,6 +14,14 @@ if (typeof reelController.generateReel === 'function') {
   console.error('❌ generateReel is not a function!');
 }
 
+// ✅ ADD THIS ROUTE
+if (typeof reelController.getAllTemplates === 'function') {
+  router.get('/templates', reelController.getAllTemplates);
+  console.log('✅ GET /templates registered');
+} else {
+  console.error('❌ getAllTemplates is not a function!');
+}
+
 if (typeof reelController.generateReelWithShotstack === 'function') {
   router.post('/generate-shotstack', reelController.generateReelWithShotstack);
   console.log('✅ POST /generate-shotstack registered');
