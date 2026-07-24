@@ -7,7 +7,8 @@ const imageService = require('../services/imageService');
 const Reel = require('../models/Reel');
 
 const generatedDir = process.env.GENERATED_DIR || './generated/reels';
-const musicDir = process.env.MUSIC_DIR || './music';
+// ✅ FIX: Music directory ko backend/music pe point karo (relative to __dirname)
+const musicDir = path.resolve(__dirname, '..', 'music');
 const TEMPLATES_FILE = path.join(__dirname, '../templates.json');
 
 if (!fs.existsSync(generatedDir)) fs.mkdirSync(generatedDir, { recursive: true });
@@ -172,42 +173,29 @@ exports.generateReel = async (req, res) => {
     console.log(`   ├── Collage Type: ${selectedTemplate.collageType || 'vertical'}`);
     console.log(`   └── Quality: ${selectedTemplate.quality || 'high'}`);
 
-    // ✅ Get music from template or random
+    // ✅ Get music - ALWAYS pick a RANDOM song for each video (so har video me alag song ho)
     let musicPath = '';
     let musicFileName = 'No Music';
     
-    if (selectedTemplate.music) {
-      const musicFile = path.join(musicDir, selectedTemplate.music);
-      if (fs.existsSync(musicFile)) {
-        musicPath = musicFile;
-        musicFileName = selectedTemplate.music;
-        console.log(`\n🎵 MUSIC DETAILS:`);
-        console.log(`   ├── Source: Template (${selectedTemplate.music})`);
-        console.log(`   ├── Path: ${musicPath}`);
-        console.log(`   └── Status: ✅ Found`);
-      } else {
-        console.log(`\n🎵 MUSIC DETAILS:`);
-        console.log(`   ├── Source: Template (${selectedTemplate.music})`);
-        console.log(`   └── Status: ❌ Not found, trying fallback...`);
-      }
-    }
+    console.log(`\n🎵 Looking for MP3 files in: ${musicDir}`);
+    const files = fs.readdirSync(musicDir).filter(f => f.endsWith('.mp3'));
+    console.log(`   🎵 MP3 files found: ${files.length}`);
+    files.forEach((f, i) => console.log(`   │   ${i+1}. ${f}`));
     
-    if (!musicPath) {
-      const files = fs.readdirSync(musicDir).filter(f => f.endsWith('.mp3'));
-      if (files.length > 0) {
-        const randomFile = files[Math.floor(Math.random() * files.length)];
-        musicPath = path.join(musicDir, randomFile);
-        musicFileName = randomFile;
-        console.log(`\n🎵 MUSIC DETAILS:`);
-        console.log(`   ├── Source: Random fallback`);
-        console.log(`   ├── File: ${randomFile}`);
-        console.log(`   ├── Path: ${musicPath}`);
-        console.log(`   └── Status: ✅ Found (${files.length} MP3 files available)`);
-      } else {
-        console.log(`\n🎵 MUSIC DETAILS:`);
-        console.log(`   ├── Source: None`);
-        console.log(`   └── Status: ⚠️ No MP3 files found in music folder`);
-      }
+    if (files.length > 0) {
+      // ✅ ALWAYS pick a random song - har video me alag alag song
+      const randomFile = files[Math.floor(Math.random() * files.length)];
+      musicPath = path.join(musicDir, randomFile);
+      musicFileName = randomFile;
+      console.log(`\n🎵 MUSIC DETAILS:`);
+      console.log(`   ├── Source: Random (${files.length} MP3 files available)`);
+      console.log(`   ├── File: ${randomFile}`);
+      console.log(`   ├── Path: ${musicPath}`);
+      console.log(`   └── Status: ✅ Found`);
+    } else {
+      console.log(`\n🎵 MUSIC DETAILS:`);
+      console.log(`   ├── Source: None`);
+      console.log(`   └── Status: ⚠️ No MP3 files found in music folder`);
     }
 
     const outputFilename = `reel_${uuidv4()}.mp4`;
@@ -286,6 +274,7 @@ exports.generateReel = async (req, res) => {
     console.log(`\n📊 PIPELINE SUMMARY:`);
     console.log(`   ├── Images: ${processedImages.length}`);
     console.log(`   ├── Music: ${musicFileName}`);
+    console.log(`   ├── Music Path: ${musicPath || 'None'}`);
     console.log(`   ├── Template: ${selectedTemplate.name}`);
     console.log(`   ├── Slide Duration: ${slideDuration.toFixed(2)}s`);
     console.log(`   ├── Total Duration: ${totalDuration.toFixed(2)}s`);

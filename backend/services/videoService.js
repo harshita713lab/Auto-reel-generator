@@ -467,7 +467,7 @@ function renderWithRemotion(
 // 🎵 FFMPEG: Add Music & Finalize (TANISHA - Better logging)
 // ============================================================
 // ============================================================
-// 🎵 FFMPEG: Add Music & Finalize (CPU ONLY - GUARANTEED)
+// 🎵 FFMPEG: Add Music & Finalize (DIRECT EXEC - FIXED)
 // ============================================================
 function addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath) {
   return new Promise((resolve, reject) => {
@@ -488,41 +488,37 @@ function addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath) {
       return resolve();
     }
 
-    console.log(`   🎬 Adding music with loop & FFmpeg streams mapping...`);
-    console.log(`   💻 Forcing CPU encoding for compatibility...`);
+    console.log(`   🎬 Adding music with loop & FFmpeg...`);
 
-    ffmpeg()
-      .input(tempVideoPath)
-      .input(musicPath)
-      .inputOptions(["-stream_loop -1"])
-      .outputOptions([
-        "-map 0:v:0",
-        "-map 1:a:0",
-        "-c:v libx264",      // ✅ Force CPU encoding
-        "-preset fast",
-        "-crf 23",
-        "-c:a aac",
-        "-b:a 192k",
-        "-shortest",
-        "-y",
-      ])
-      .output(outputPath)
-      .on("start", (cmd) => {
-        console.log(`   🚀 FFmpeg started (CPU)...`);
-      })
-      .on("end", () => {
-        if (fs.existsSync(tempVideoPath)) {
-          try { fs.unlinkSync(tempVideoPath); } catch (e) {}
-          console.log(`   🗑️ Temp file cleaned up: ${path.basename(tempVideoPath)}`);
-        }
-        console.log(`   ✅ Final video with music ready!`);
-        resolve();
-      })
-      .on("error", (err) => {
-        console.error(`   ❌ FFmpeg Error: ${err.message}`);
-        reject(err);
-      })
-      .run();
+    // ✅ DIRECT EXEC - Most reliable
+    const { exec } = require("child_process");
+    
+    // ✅ Windows paths ko escape karo
+    const tempPath = tempVideoPath.replace(/\\/g, '/');
+    const musicPathEscaped = musicPath.replace(/\\/g, '/');
+    const outPath = outputPath.replace(/\\/g, '/');
+
+    const cmd = `ffmpeg -i "${tempPath}" -stream_loop -1 -i "${musicPathEscaped}" -y -map 0:v:0 -map 1:a:0 -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 192k -shortest "${outPath}"`;
+
+    console.log(`   📝 Command: ${cmd}`);
+
+    exec(cmd, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`   ❌ FFmpeg Error: ${error.message}`);
+        console.error(`   📝 Stderr: ${stderr}`);
+        return reject(error);
+      }
+      
+      if (stderr) console.log(`   📝 FFmpeg output: ${stderr}`);
+      
+      if (fs.existsSync(tempVideoPath)) {
+        try { fs.unlinkSync(tempVideoPath); } catch (e) {}
+        console.log(`   🗑️ Temp file cleaned up: ${path.basename(tempVideoPath)}`);
+      }
+      
+      console.log(`   ✅ Final video with music ready!`);
+      resolve();
+    });
   });
 }
 // ============================================================
