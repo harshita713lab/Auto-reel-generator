@@ -222,7 +222,6 @@ function renderWithRemotion(
       numImages: numImages,
     };
 
-    // ✅ FIX: Use PORT from .env (not hardcoded 3000)
     const port = process.env.PORT || 5000;
     const serverBaseUrl = `http://localhost:${port}`;
     const imageUrls = imagePaths.map((imgPath) => {
@@ -244,17 +243,31 @@ function renderWithRemotion(
     const remotionDir = path.join(__dirname, "../remotion");
     const renderScript = path.join(remotionDir, "render.js");
 
-    // ✅ FIX: No quotes needed for ES Modules with spawn
-    // ✅ FIX: Paths ko quotes mein wrap karo (space wali directories ke liye)
+    // ✅ GPU FLAGS
+    const gpuFlags = [
+      '--enable-gpu',
+      '--enable-hardware-overlays',
+      '--enable-accelerated-2d-canvas',
+      '--enable-accelerated-video-decode',
+      '--enable-gpu-rasterization',
+      '--ignore-gpu-blocklist',
+      '--disable-gpu-sandbox',
+      '--use-gl=egl',
+      '--no-sandbox',
+      '--disable-dev-shm-usage',
+    ];
+
     const args = [
       `"${renderScript}"`,
       `"${tempDataPath}"`,
       `"${tempOutputPath}"`,
+      ...gpuFlags,
     ];
 
     console.log(
-      `   🚀 Command: node ${path.basename(renderScript)} [data.json] [output]`,
+      `   🚀 Command: node ${path.basename(renderScript)} [data.json] [output] [GPU]`,
     );
+    console.log(`   🎮 GPU Acceleration: ENABLED`);
 
     const { spawn } = require("child_process");
     const child = spawn("node", args, {
@@ -262,6 +275,11 @@ function renderWithRemotion(
       stdio: "pipe",
       shell: true,
       windowsVerbatimArguments: true,
+      env: {
+        ...process.env,
+        NODE_OPTIONS: '--max-old-space-size=8192',
+        GPU_ENABLED: 'true',
+      }
     });
 
     let stdoutData = "";
@@ -304,15 +322,14 @@ function renderWithRemotion(
 }
 
 // 🎵 FFMPEG: Add Music & Finalize
+// 🎵 FFMPEG: Add Music & Finalize (Stable & Instant Fast Copy)
 function addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath) {
   return new Promise((resolve, reject) => {
     const hasMusic = musicPath && fs.existsSync(musicPath);
 
     console.log(`\n🎵 FFMPEG MUSIC ADD:`);
     console.log(`   ├── Music Path: ${musicPath || "None"}`);
-    console.log(
-      `   ├── Music File: ${hasMusic ? path.basename(musicPath) : "No Music"}`,
-    );
+    console.log(`   ├── Music File: ${hasMusic ? path.basename(musicPath) : "No Music"}`);
     console.log(`   ├── Temp Video: ${path.basename(tempVideoPath)}`);
     console.log(`   └── Output: ${path.basename(outputPath)}`);
 
@@ -325,20 +342,21 @@ function addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath) {
       return resolve();
     }
 
-    console.log(`   🎬 Adding music with loop & FFmpeg streams mapping...`);
+    console.log(`   🎬 Merging audio with video stream copy...`);
 
+    // Stream copy (-c:v copy) prevents re-encoding crashes and finishes in < 1 second!
     ffmpeg()
       .input(tempVideoPath)
       .input(musicPath)
       .inputOptions(["-stream_loop -1"])
       .outputOptions([
-        "-map 0:v",
-        "-map 1:a",
-        "-c:v copy",
+        "-map 0:v:0",   // Video from 1st input
+        "-map 1:a:0",   // Audio from 2nd input
+        "-c:v copy",    // Fast Stream Copy (No GPU re-encode crash!)
         "-c:a aac",
         "-b:a 192k",
         "-shortest",
-        "-y",
+        "-y"
       ])
       .output(outputPath)
       .on("start", (cmd) => {
@@ -346,10 +364,12 @@ function addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath) {
       })
       .on("end", () => {
         if (fs.existsSync(tempVideoPath)) {
-          fs.unlinkSync(tempVideoPath);
-          console.log(
-            `   🗑️ Temp file cleaned up: ${path.basename(tempVideoPath)}`,
-          );
+          try {
+            fs.unlinkSync(tempVideoPath);
+            console.log(`   🗑️ Temp file cleaned up: ${path.basename(tempVideoPath)}`);
+          } catch (e) {
+            console.log(`   ⚠️ Temp cleanup postponed: ${e.message}`);
+          }
         }
         console.log(`   ✅ Final video with music ready!`);
         resolve();
@@ -361,7 +381,6 @@ function addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath) {
       .run();
   });
 }
-
 // 🔥 MAIN FUNCTION: Remotion + FFmpeg Pipeline
 exports.createReel = async (imagePaths, musicPath, template, outputPath) => {
   try {
