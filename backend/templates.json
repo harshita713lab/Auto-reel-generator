@@ -15,7 +15,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-1.mp3",
+      "music": "ReelAudio-6.mp3",
       "description": "Advanced background blur with smooth cinematic physics and depth effect"
     },
     {
@@ -163,7 +163,7 @@
       "vignette": false,
       "collage": false,
       "quality": "medium",
-      "music": "ReelAudio-10.mp3",
+      "music": "ReelAudio-12.mp3",
       "description": "Electric pulse neon vibe with sharp flash transitions"
     },
     {
@@ -309,7 +309,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-7.mp3",
+      "music": "ReelAudio-13.mp3",
       "description": "Classic sepia presentation with modern framed depth"
     },
     {
@@ -509,7 +509,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-7.mp3",
+      "music": "ReelAudio-14.mp3",
       "description": "🎞️ Classic vintage film look with sepia and grain"
     },
     {
@@ -587,7 +587,7 @@
       "imagesPerCollage": 3,
       "gap": 20,
       "quality": "high",
-      "music": "ReelAudio-2.mp3",
+      "music": "ReelAudio-15.mp3",
       "description": "⭕ 3 circular photos with dreamy dissolves"
     }
   ],

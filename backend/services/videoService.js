@@ -490,15 +490,26 @@ function addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath) {
 
     console.log(`   🎬 Adding music with loop & FFmpeg...`);
 
-    // ✅ DIRECT EXEC - Most reliable
     const { exec } = require("child_process");
     
-    // ✅ Windows paths ko escape karo
+    // ✅ Use ffmpeg-static
+    let ffmpegBinary = "ffmpeg";
+    try {
+      const ffmpegStatic = require("ffmpeg-static");
+      if (ffmpegStatic && fs.existsSync(ffmpegStatic)) {
+        ffmpegBinary = ffmpegStatic;
+        console.log(`   🔧 Using ffmpeg-static: ${ffmpegBinary}`);
+      }
+    } catch (e) {
+      console.log(`   ⚠️ ffmpeg-static not found, using system ffmpeg`);
+    }
+
     const tempPath = tempVideoPath.replace(/\\/g, '/');
     const musicPathEscaped = musicPath.replace(/\\/g, '/');
     const outPath = outputPath.replace(/\\/g, '/');
 
-    const cmd = `ffmpeg -i "${tempPath}" -stream_loop -1 -i "${musicPathEscaped}" -y -map 0:v:0 -map 1:a:0 -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 192k -shortest "${outPath}"`;
+    // ✅ Fixed: use ffmpegBinary + optional audio map
+    const cmd = `"${ffmpegBinary}" -i "${tempPath}" -stream_loop -1 -i "${musicPathEscaped}" -y -map 0:v:0 -map 1:a? -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 192k -shortest "${outPath}"`;
 
     console.log(`   📝 Command: ${cmd}`);
 
