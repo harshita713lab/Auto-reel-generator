@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify'; // ✅ Import
 import 'react-toastify/dist/ReactToastify.css';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://localhost:5000/api';
 
 function LatestReel() {
     const [latestReel, setLatestReel] = useState(null);
@@ -74,7 +74,7 @@ function LatestReel() {
                     muted 
                     style={{ width: '100%', maxHeight: '400px', borderRadius: '12px' }}
                 >
-                    <source src={`http://localhost:3000${latestReel.videoUrl}`} type="video/mp4" />
+                    <source src={`http://localhost:5000${latestReel.videoUrl}`} type="video/mp4" />
                 </video>
                 <div className="latest-reel-info">
                     <span>🎵 {latestReel.usedMusic}</span>

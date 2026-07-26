@@ -15,7 +15,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-6.mp3",
+      "music": "ReelAudio-1.mp3",
       "description": "Advanced background blur with smooth cinematic physics and depth effect"
     },
     {
@@ -33,7 +33,7 @@
       "vignette": false,
       "collage": false,
       "quality": "medium",
-      "music": "ReelAudio-10.mp3",
+      "music": "ReelAudio-2.mp3",
       "description": "High-speed cyber glitch with neon background bloom and fast flashes"
     },
     {
@@ -51,7 +51,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-2.mp3",
+      "music": "ReelAudio-3.mp3",
       "description": "Luxury aesthetic with blurred background bokeh and soft dream filter"
     },
     {
@@ -71,7 +71,7 @@
       "collageType": "grid",
       "imagesPerCollage": 4,
       "quality": "high",
-      "music": "ReelAudio-3.mp3",
+      "music": "ReelAudio-4.mp3",
       "description": "Advanced grid collage with pop physics and vibrant HDR grading"
     },
     {
@@ -89,7 +89,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-7.mp3",
+      "music": "ReelAudio-5.mp3",
       "description": "Old-school professional film grain with blurred depth backdrop"
     },
     {
@@ -125,7 +125,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-4.mp3",
+      "music": "ReelAudio-7.mp3",
       "description": "Slow luxury romantic flow with deep blur background lighting"
     },
     {
@@ -145,7 +145,7 @@
       "collageType": "horizontal",
       "imagesPerCollage": 2,
       "quality": "high",
-      "music": "ReelAudio-1.mp3",
+      "music": "ReelAudio-8.mp3",
       "description": "Sleek horizontal split with advanced background layering"
     },
     {
@@ -163,7 +163,7 @@
       "vignette": false,
       "collage": false,
       "quality": "medium",
-      "music": "ReelAudio-12.mp3",
+      "music": "ReelAudio-9.mp3",
       "description": "Electric pulse neon vibe with sharp flash transitions"
     },
     {
@@ -181,7 +181,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-1.mp3",
+      "music": "ReelAudio-10.mp3",
       "description": "Warm golden atmosphere backed by blurred depth of field"
     },
     {
@@ -198,11 +198,11 @@
       "colorGrades": ["cinematic", "vintage", "cinematic"],
       "vignette": true,
       "collage": true,
-      "collageType": "three",
+      "collageType": "horizontal",
       "imagesPerCollage": 3,
       "quality": "high",
-      "music": "ReelAudio-2.mp3",
-      "description": "Professional 3-story layout with left-right-left slide animations and gap"
+      "music": "ReelAudio-11.mp3",
+      "description": "Professional 3-photo horizontal row collage with glass blur effects"
     },
     {
       "id": "cc_012",
@@ -219,7 +219,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-9.mp3",
+      "music": "ReelAudio-12.mp3",
       "description": "High contrast black and white styling with blurred backdrop aura"
     },
     {
@@ -237,7 +237,7 @@
       "vignette": false,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-5.mp3",
+      "music": "ReelAudio-13.mp3",
       "description": "Punchy HDR tone mapping with energetic directional swipes"
     },
     {
@@ -255,7 +255,7 @@
       "vignette": false,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-4.mp3",
+      "music": "ReelAudio-14.mp3",
       "description": "Sleek icy blue tones featuring modern backdrop frosting"
     },
     {
@@ -273,7 +273,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-2.mp3",
+      "music": "ReelAudio-15.mp3",
       "description": "Soft ethereal pastel mood with floating blur transitions"
     },
     {
@@ -291,7 +291,7 @@
       "vignette": false,
       "collage": false,
       "quality": "medium",
-      "music": "ReelAudio-10.mp3",
+      "music": "ReelAudio-16.mp3",
       "description": "High-octane fast cuts with intense flash effects"
     },
     {
@@ -309,7 +309,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-13.mp3",
+      "music": "ReelAudio-17.mp3",
       "description": "Classic sepia presentation with modern framed depth"
     },
     {
@@ -329,7 +329,7 @@
       "collageType": "grid",
       "imagesPerCollage": 4,
       "quality": "high",
-      "music": "ReelAudio-2.mp3",
+      "music": "ReelAudio-1.mp3",
       "description": "Stunning 2x2 grid set against an ambient frosted background"
     },
     {
@@ -347,7 +347,7 @@
       "vignette": false,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-5.mp3",
+      "music": "ReelAudio-2.mp3",
       "description": "Punchy transitions combined with striking high-dynamic-range scaling"
     },
     {
@@ -365,7 +365,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-9.mp3",
+      "music": "ReelAudio-3.mp3",
       "description": "Top-tier cinematic narrative style with buttery smooth scaling and blur depth"
     },
     {
@@ -383,7 +383,7 @@
       "vignette": false,
       "collage": false,
       "quality": "medium",
-      "music": "ReelAudio-10.mp3",
+      "music": "ReelAudio-4.mp3",
       "description": "Ultra fast clean cuts without filters for a crisp high-speed photo stream"
     },
     {
@@ -401,7 +401,7 @@
       "vignette": false,
       "collage": false,
       "quality": "medium",
-      "music": "ReelAudio-10.mp3",
+      "music": "ReelAudio-5.mp3",
       "description": "⚡ Super fast cuts - 1.2s per image"
     },
     {
@@ -419,7 +419,7 @@
       "vignette": false,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-5.mp3",
+      "music": "ReelAudio-6.mp3",
       "description": "🎲 3D cube rotation and flip effects"
     },
     {
@@ -437,7 +437,7 @@
       "vignette": false,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-10.mp3",
+      "music": "ReelAudio-7.mp3",
       "description": "🎵 Images pulse and change with music beat"
     },
     {
@@ -455,7 +455,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-9.mp3",
+      "music": "ReelAudio-8.mp3",
       "description": "🖤 Classic black & white with vintage feel"
     },
     {
@@ -473,7 +473,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-1.mp3",
+      "music": "ReelAudio-9.mp3",
       "description": "🎥 Smooth sliding transitions with varied directions"
     },
     {
@@ -509,7 +509,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-14.mp3",
+      "music": "ReelAudio-11.mp3",
       "description": "🎞️ Classic vintage film look with sepia and grain"
     },
     {
@@ -527,7 +527,7 @@
       "vignette": true,
       "collage": false,
       "quality": "high",
-      "music": "ReelAudio-9.mp3",
+      "music": "ReelAudio-12.mp3",
       "description": "🎥 Cinematic slow motion with zoom effects"
     },
     {
@@ -545,7 +545,7 @@
       "vignette": false,
       "collage": false,
       "quality": "medium",
-      "music": "ReelAudio-10.mp3",
+      "music": "ReelAudio-13.mp3",
       "description": "⚡ Fast-slow zoom motion effect"
     },
     {
@@ -562,12 +562,12 @@
       "colorGrades": ["cinematic", "warm", "golden", "vibrant"],
       "vignette": true,
       "collage": true,
-      "collageType": "vertical",
+      "collageType": "horizontal",
       "imagesPerCollage": 3,
       "gap": 10,
       "quality": "high",
-      "music": "ReelAudio-1.mp3",
-      "description": "📱 3 photos vertically stacked with smooth slide transitions"
+      "music": "ReelAudio-14.mp3",
+      "description": "📱 3 photos in horizontal row with smooth slide transitions"
     },
     {
       "id": "circle_collage_001",
@@ -583,12 +583,174 @@
       "colorGrades": ["cinematic", "pastel", "rose", "warm"],
       "vignette": true,
       "collage": true,
-      "collageType": "circle",
+      "collageType": "horizontal",
       "imagesPerCollage": 3,
       "gap": 20,
       "quality": "high",
       "music": "ReelAudio-15.mp3",
-      "description": "⭕ 3 circular photos with dreamy dissolves"
+      "description": "⭕ 3 photos in horizontal row with dreamy dissolves"
+    },
+    {
+      "id": "nm_001",
+      "name": "🌀 Morphing Liquid Flow",
+      "minPhotos": 3,
+      "maxPhotos": 5,
+      "width": 1080,
+      "height": 1920,
+      "slideDuration": 4.5,
+      "transitionDuration": 1.2,
+      "transitions": ["morphBlob", "liquidSwipe", "waveDistort", "fluidFlow"],
+      "effects": ["liquidMetal", "chromaticAberration", "iridescent", "holographic"],
+      "colorGrades": ["iridescent", "holographic", "prism", "aurora"],
+      "vignette": true,
+      "collage": false,
+      "quality": "high",
+      "music": "ReelAudio-16.mp3",
+      "description": "🌀 Organic blob morphing transitions with iridescent liquid flow"
+    },
+    {
+      "id": "nm_002",
+      "name": "🌊 Ripple Wave Cascade",
+      "minPhotos": 4,
+      "maxPhotos": 8,
+      "width": 1080,
+      "height": 1920,
+      "slideDuration": 3.8,
+      "transitionDuration": 0.9,
+      "transitions": ["rippleExpand", "waveCascade", "waterRipple", "splash"],
+      "effects": ["waterDistort", "rippleReflect", "caustics", "underwater"],
+      "colorGrades": ["ocean", "aqua", "deepBlue", "teal"],
+      "vignette": false,
+      "collage": false,
+      "quality": "high",
+      "music": "ReelAudio-17.mp3",
+      "description": "🌊 Water ripple transitions with underwater caustic effects"
+    },
+    {
+      "id": "nm_003",
+      "name": "✨ Stardust Particle Burst",
+      "minPhotos": 3,
+      "maxPhotos": 6,
+      "width": 1080,
+      "height": 1920,
+      "slideDuration": 4.0,
+      "transitionDuration": 1.0,
+      "transitions": ["particleBurst", "starExplode", "dustSettle", "cosmicSwipe"],
+      "effects": ["particleTrail", "starGlow", "nebula", "cosmicDust"],
+      "colorGrades": ["cosmic", "nebula", "stardust", "galaxy"],
+      "vignette": true,
+      "collage": false,
+      "quality": "high",
+      "music": "ReelAudio-1.mp3",
+      "description": "✨ Particle explosion transitions with cosmic stardust trails"
+    },
+    {
+      "id": "nm_004",
+      "name": "🔥 Ember Rise",
+      "minPhotos": 3,
+      "maxPhotos": 6,
+      "width": 1080,
+      "height": 1920,
+      "slideDuration": 3.5,
+      "transitionDuration": 0.8,
+      "transitions": ["emberRise", "flameSwipe", "sparkShower", "burnReveal"],
+      "effects": ["fireGlow", "emberParticles", "heatDistort", "smokeWisp"],
+      "colorGrades": ["inferno", "crimson", "amber", "blaze"],
+      "vignette": true,
+      "collage": false,
+      "quality": "high",
+      "music": "ReelAudio-2.mp3",
+      "description": "🔥 Ember and flame transitions with heat distortion effects"
+    },
+    {
+      "id": "nm_005",
+      "name": "❄️ Frost Shatter",
+      "minPhotos": 3,
+      "maxPhotos": 6,
+      "width": 1080,
+      "height": 1920,
+      "slideDuration": 4.2,
+      "transitionDuration": 0.7,
+      "transitions": ["iceShatter", "frostReveal", "crystalGrow", "snowGlide"],
+      "effects": ["frostBite", "crystalShine", "iceGlow", "snowBloom"],
+      "colorGrades": ["arctic", "ice", "crystal", "frost"],
+      "vignette": false,
+      "collage": false,
+      "quality": "high",
+      "music": "ReelAudio-3.mp3",
+      "description": "❄️ Ice shatter and crystal growth transitions with frost effects"
+    },
+    {
+      "id": "nm_006",
+      "name": "🌈 Prism Light Split",
+      "minPhotos": 3,
+      "maxPhotos": 5,
+      "width": 1080,
+      "height": 1920,
+      "slideDuration": 4.0,
+      "transitionDuration": 1.1,
+      "transitions": ["prismSplit", "rainbowSwipe", "lightBend", "spectrumFlow"],
+      "effects": ["prismDistort", "rainbowGlow", "lightLeak", "spectrum"],
+      "colorGrades": ["prism", "rainbow", "spectrum", "iridescent"],
+      "vignette": false,
+      "collage": false,
+      "quality": "high",
+      "music": "ReelAudio-4.mp3",
+      "description": "🌈 Light prism splits and rainbow transitions with spectrum effects"
+    },
+    {
+      "id": "nm_007",
+      "name": "🌿 Organic Leaf Unfold",
+      "minPhotos": 3,
+      "maxPhotos": 5,
+      "width": 1080,
+      "height": 1920,
+      "slideDuration": 5.0,
+      "transitionDuration": 1.3,
+      "transitions": ["leafUnfold", "vineGrow", "petalBloom", "branchReveal"],
+      "effects": ["botanical", "chlorophyll", "sunlight", "dewDrop"],
+      "colorGrades": ["forest", "moss", "emerald", "spring"],
+      "vignette": true,
+      "collage": false,
+      "quality": "high",
+      "music": "ReelAudio-5.mp3",
+      "description": "🌿 Organic growth transitions with botanical light effects"
+    },
+    {
+      "id": "nm_008",
+      "name": "🌀 Tunnel Vortex",
+      "minPhotos": 4,
+      "maxPhotos": 8,
+      "width": 1080,
+      "height": 1920,
+      "slideDuration": 3.0,
+      "transitionDuration": 0.6,
+      "transitions": ["vortexSpin", "tunnelZoom", "spiralFlow", "helixTwist"],
+      "effects": ["vortexDistort", "motionBlur", "depthTunnel", "spinGlow"],
+      "colorGrades": ["neon", "cyber", "dramatic", "vibrant"],
+      "vignette": false,
+      "collage": false,
+      "quality": "medium",
+      "music": "ReelAudio-6.mp3",
+      "description": "🌀 Spiral vortex transitions with tunnel zoom effects"
+    },
+    {
+      "id": "nm_009",
+      "name": "🖌️ Paint Splash Reveal",
+      "minPhotos": 3,
+      "maxPhotos": 6,
+      "width": 1080,
+      "height": 1920,
+      "slideDuration": 4.5,
+      "transitionDuration": 1.0,
+      "transitions": ["paintSplash", "inkDrop", "brushStroke", "colorExplode"],
+      "effects": ["watercolor", "paintDistort", "pigmentGlow", "artistic"],
+      "colorGrades": ["artistic", "watercolor", "pastel", "vibrant"],
+      "vignette": false,
+      "collage": false,
+      "quality": "high",
+      "music": "ReelAudio-7.mp3",
+      "description": "🖌️ Artistic paint splash and watercolor transitions"
     }
   ],
   "defaultTemplate": "cc_001"

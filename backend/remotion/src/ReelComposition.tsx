@@ -23,7 +23,7 @@ const EFFECT_STYLES: Record<string, EffectFn> = {
     return { transform: `scale(${scale})` };
   },
   
-  // 🌟 TANISHA - Basic Zoom Effects (Add karna hai)
+  // 🌟 TANISHA - Basic Zoom Effects
   'zoom-in': (frame, duration) => ({
     transform: `scale(${interpolate(frame, [0, duration], [1.0, 1.25], { extrapolateRight: 'clamp' })})`,
   }),
@@ -43,7 +43,7 @@ const EFFECT_STYLES: Record<string, EffectFn> = {
     transform: `scale(${interpolate(frame, [0, 10, duration], [1, 1.18, 1.25], { extrapolateRight: 'clamp' })})`,
   }),
 
-  // 🌟 TANISHA - Slide Effects (Add karna hai)
+  // 🌟 TANISHA - Slide Effects
   'slide-left': (frame, duration) => ({
     transform: `translateX(${interpolate(frame, [0, Math.min(15, duration)], [-100, 0], { extrapolateRight: 'clamp' })}%)`,
   }),
@@ -59,8 +59,20 @@ const EFFECT_STYLES: Record<string, EffectFn> = {
   'slide': (frame, duration) => ({
     transform: `translateX(${interpolate(frame, [0, duration], [-100, 0], { extrapolateRight: 'clamp' })}%)`,
   }),
+  'smoothleft': (frame, duration) => ({
+    transform: `translateX(${interpolate(frame, [0, Math.min(20, duration)], [100, 0], { extrapolateRight: 'clamp' })}%)`,
+  }),
+  'smoothright': (frame, duration) => ({
+    transform: `translateX(${interpolate(frame, [0, Math.min(20, duration)], [-100, 0], { extrapolateRight: 'clamp' })}%)`,
+  }),
+  'smoothup': (frame, duration) => ({
+    transform: `translateY(${interpolate(frame, [0, Math.min(20, duration)], [100, 0], { extrapolateRight: 'clamp' })}%)`,
+  }),
+  'smoothdown': (frame, duration) => ({
+    transform: `translateY(${interpolate(frame, [0, Math.min(20, duration)], [-100, 0], { extrapolateRight: 'clamp' })}%)`,
+  }),
 
-  // 🌟 TANISHA - 3D Effects (Add karna hai)
+  // 🌟 TANISHA - 3D Effects
   'cube': (frame, duration) => ({
     transform: `perspective(1000px) rotateY(${interpolate(frame, [0, Math.min(15, duration)], [90, 0], { extrapolateRight: 'clamp' })}deg) scale(0.9)`,
   }),
@@ -72,6 +84,51 @@ const EFFECT_STYLES: Record<string, EffectFn> = {
   }),
   '3d': (frame, duration) => ({
     transform: `perspective(800px) rotateY(${30 * Math.sin((frame / duration) * Math.PI * 2)})`,
+  }),
+
+  // 🌟 NEW - Glow & Shine Effects
+  'glow': (frame, duration) => ({
+    filter: `brightness(${1 + 0.2 * Math.sin(frame * 0.05)}) saturate(1.3)`,
+    boxShadow: `0 0 ${30 + 20 * Math.sin(frame * 0.03)}px rgba(255,215,0,${0.3 + 0.2 * Math.sin(frame * 0.04)})`,
+  }),
+  'shine': (frame) => ({
+    filter: `brightness(${1 + 0.15 * Math.sin(frame * 0.08)})`,
+  }),
+  'glamour': (frame, duration) => ({
+    filter: `brightness(1.1) saturate(1.2) contrast(1.05) blur(${0.5 * Math.sin(frame * 0.02)}px)`,
+  }),
+
+  // 🌟 NEW - Wipe Effects
+  'wipeleft': (frame, duration) => ({
+    clipPath: `inset(0 ${100 - interpolate(frame, [0, Math.min(15, duration)], [0, 100], { extrapolateRight: 'clamp' })}% 0 0)`,
+  }),
+  'wiperight': (frame, duration) => ({
+    clipPath: `inset(0 0 0 ${interpolate(frame, [0, Math.min(15, duration)], [100, 0], { extrapolateRight: 'clamp' })}%)`,
+  }),
+  'wipeup': (frame, duration) => ({
+    clipPath: `inset(${100 - interpolate(frame, [0, Math.min(15, duration)], [0, 100], { extrapolateRight: 'clamp' })}% 0 0 0)`,
+  }),
+  'wipedown': (frame, duration) => ({
+    clipPath: `inset(0 0 ${100 - interpolate(frame, [0, Math.min(15, duration)], [0, 100], { extrapolateRight: 'clamp' })}% 0)`,
+  }),
+
+  // 🌟 NEW - Special Effects
+  'blur': (frame, duration) => ({
+    filter: `blur(${interpolate(frame, [0, Math.min(10, duration)], [15, 0], { extrapolateRight: 'clamp' })}px)`,
+  }),
+  'blurreveal': (frame, duration) => ({
+    filter: `blur(${interpolate(frame, [0, Math.min(15, duration)], [20, 0], { extrapolateRight: 'clamp' })})`,
+    opacity: interpolate(frame, [0, Math.min(10, duration)], [0.3, 1], { extrapolateRight: 'clamp' }),
+  }),
+  'sparkle': (frame) => ({
+    filter: `brightness(${1 + 0.1 * Math.sin(frame * 0.1)}) saturate(${1 + 0.2 * Math.sin(frame * 0.07)})`,
+  }),
+  'pop': (frame, duration) => ({
+    transform: `scale(${interpolate(frame, [0, Math.min(8, duration), duration], [1.3, 1.0, 1.0], { extrapolateRight: 'clamp' })})`,
+    opacity: interpolate(frame, [0, Math.min(5, duration)], [0, 1], { extrapolateRight: 'clamp' }),
+  }),
+  'paint': (frame, duration) => ({
+    filter: `sepia(${interpolate(frame, [0, duration * 0.3], [0, 0.5])}) contrast(${1 + 0.1 * Math.sin(frame * 0.02)})`,
   }),
 
   // 🌟 TUMHARA - Color Grades (Superior)
@@ -117,7 +174,7 @@ const EFFECT_STYLES: Record<string, EffectFn> = {
   'warmGlow': () => ({ filter: 'brightness(1.08) saturate(1.25) sepia(0.25)' }),
   'sepiaGlow': () => ({ filter: 'sepia(0.85) brightness(1.02)' }),
   
-  // 🌟 TANISHA - Missing Effects (Add karna hai)
+  // 🌟 TANISHA - Missing Effects
   'film-grain': (frame) => ({
     filter: `contrast(1.1) brightness(0.98) saturate(0.9)`,
     opacity: 0.95 + 0.05 * Math.sin(frame * 0.5),
@@ -129,6 +186,51 @@ const EFFECT_STYLES: Record<string, EffectFn> = {
     filter: frame % 25 < 3 ? 'scale(0.5)' : 'none',
     transform: frame % 25 < 3 ? 'scale(2)' : 'scale(1)',
   }),
+
+  // 🌟 NEW COLOR GRADES
+  'golden-hour': () => ({ filter: 'sepia(0.4) saturate(1.2) brightness(1.1) hue-rotate(-8deg)' }),
+  'sunset': () => ({ filter: 'sepia(0.5) saturate(1.3) brightness(0.9) hue-rotate(340deg)' }),
+  'aurora': () => ({ filter: 'brightness(1.1) saturate(1.3) hue-rotate(160deg)' }),
+  'prism': () => ({ filter: 'saturate(1.4) brightness(1.05) hue-rotate(20deg)' }),
+  'iridescent': () => ({ filter: 'saturate(1.5) brightness(1.1) hue-rotate(45deg)' }),
+  'arctic': () => ({ filter: 'brightness(1.05) saturate(0.8) hue-rotate(200deg)' }),
+  'ice': () => ({ filter: 'brightness(1.1) saturate(0.7) hue-rotate(190deg) contrast(1.1)' }),
+  'crystal': () => ({ filter: 'brightness(1.15) saturate(1.1) contrast(1.1) hue-rotate(10deg)' }),
+  'forest': () => ({ filter: 'sepia(0.2) saturate(1.1) brightness(0.95) hue-rotate(30deg)' }),
+  'moss': () => ({ filter: 'sepia(0.3) saturate(0.9) brightness(0.9) hue-rotate(40deg)' }),
+  'emerald': () => ({ filter: 'brightness(0.95) saturate(1.3) hue-rotate(30deg)' }),
+  'spring': () => ({ filter: 'brightness(1.05) saturate(1.2) hue-rotate(350deg)' }),
+  'deepBlue': () => ({ filter: 'brightness(0.9) saturate(1.2) hue-rotate(210deg)' }),
+  'teal': () => ({ filter: 'brightness(0.95) saturate(1.1) hue-rotate(175deg)' }),
+  'aqua': () => ({ filter: 'brightness(1.0) saturate(1.2) hue-rotate(185deg)' }),
+  'ocean': () => ({ filter: 'brightness(0.9) saturate(1.3) hue-rotate(195deg) contrast(1.1)' }),
+  'blaze': () => ({ filter: 'sepia(0.6) saturate(1.4) brightness(1.05) hue-rotate(-10deg)' }),
+  'amber': () => ({ filter: 'sepia(0.5) saturate(1.3) brightness(1.05) hue-rotate(-5deg)' }),
+  'crimson': () => ({ filter: 'sepia(0.7) saturate(1.2) brightness(0.85) hue-rotate(330deg)' }),
+  'inferno': () => ({ filter: 'sepia(0.8) saturate(1.3) brightness(1.1) hue-rotate(-15deg)' }),
+  'retro': () => ({ filter: 'sepia(0.5) contrast(0.9) brightness(0.95)' }),
+  'cyber': () => ({ filter: 'brightness(1.2) saturate(1.5) hue-rotate(15deg) contrast(1.1)' }),
+  'electric': () => ({ filter: 'brightness(1.2) saturate(1.6) hue-rotate(0deg) contrast(1.2)' }),
+  'plasma': () => ({ filter: 'brightness(1.3) saturate(1.7) hue-rotate(5deg) contrast(1.1)' }),
+  'neonBlue': () => ({ filter: 'brightness(1.2) saturate(1.5) hue-rotate(210deg)' }),
+  'holographic': () => ({ filter: 'saturate(1.6) brightness(1.15) hue-rotate(30deg)' }),
+  'galaxy': () => ({ filter: 'saturate(1.4) brightness(1.05) hue-rotate(280deg)' }),
+  'deepSpace': () => ({ filter: 'brightness(0.9) saturate(1.2) contrast(1.2) hue-rotate(250deg)' }),
+  'deepPurple': () => ({ filter: 'saturate(1.3) brightness(0.9) hue-rotate(280deg)' }),
+  'purpleHaze': () => ({ filter: 'saturate(1.2) brightness(1.05) hue-rotate(300deg)' }),
+  'softDream': () => ({ filter: 'brightness(1.1) saturate(0.7) blur(0.3px)' }),
+  'fog': () => ({ filter: 'brightness(1.05) saturate(0.6) contrast(0.9)' }),
+  'highContrast': () => ({ filter: 'contrast(1.4) brightness(0.95)' }),
+  'monochrome': () => ({ filter: 'grayscale(1) contrast(1.2)' }),
+  'bioGreen': () => ({ filter: 'brightness(1.0) saturate(1.3) hue-rotate(20deg)' }),
+  'retroWave': () => ({ filter: 'brightness(1.15) saturate(1.4) hue-rotate(330deg)' }),
+  'vaporwave': () => ({ filter: 'brightness(1.1) saturate(1.5) hue-rotate(280deg)' }),
+  'clear': () => ({ filter: 'brightness(1.05) saturate(0.9) contrast(1.05)' }),
+  'geometric': () => ({ filter: 'contrast(1.2) saturate(1.1) brightness(1.0)' }),
+  'kaleido': () => ({ filter: 'saturate(1.4) brightness(1.05) hue-rotate(15deg)' }),
+  'retroGlow': () => ({ filter: 'sepia(0.3) saturate(1.2) brightness(1.05) blur(0.2px)' }),
+  'magical': () => ({ filter: 'brightness(1.15) saturate(1.3) hue-rotate(300deg)' }),
+  'tropical': () => ({ filter: 'sepia(0.2) saturate(1.5) brightness(1.1) hue-rotate(350deg)' }),
 };
 
 // ============================================================
@@ -199,11 +301,91 @@ const getTransitionStyle = (transitionName: string, frame: number): React.CSSPro
     return { transform: `translateX(${progress}px)` };
   }
 
+  // 🌟 NEW TRANSITIONS
+  
+  // Blur Reveal
+  if (transitionName === 'blurreveal') {
+    const blur = interpolate(frame, [0, 18], [25, 0], { extrapolateRight: 'clamp' });
+    const opacity = interpolate(frame, [0, 12], [0, 1], { extrapolateRight: 'clamp' });
+    return { filter: `blur(${blur}px)`, opacity };
+  }
+
+  // Glow Effect
+  if (transitionName === 'glow') {
+    const brightness = 1 + 0.3 * Math.sin(frame * 0.05);
+    return { 
+      filter: `brightness(${brightness}) saturate(1.4)`,
+      boxShadow: `0 0 ${30 + 20 * Math.sin(frame * 0.04)}px rgba(255,215,0,${0.2 + 0.2 * Math.sin(frame * 0.03)})`,
+    };
+  }
+
+  // Sparkle
+  if (transitionName === 'sparkle') {
+    return {
+      filter: `brightness(${1 + 0.15 * Math.sin(frame * 0.12)}) saturate(${1 + 0.25 * Math.sin(frame * 0.08)})`,
+    };
+  }
+
+  // Pop
+  if (transitionName === 'pop') {
+    const scale = interpolate(frame, [0, 10, 20], [1.3, 0.95, 1.0], { extrapolateRight: 'clamp' });
+    const opacity = interpolate(frame, [0, 8], [0, 1], { extrapolateRight: 'clamp' });
+    return { transform: `scale(${scale})`, opacity };
+  }
+
+  // Paint
+  if (transitionName === 'paint') {
+    return {
+      filter: `sepia(${interpolate(frame, [0, 15], [0, 0.4])}) contrast(${1 + 0.1 * Math.sin(frame * 0.02)})`,
+    };
+  }
+
+  // Wave Transitions
+  if (transitionName.includes('wave')) {
+    const progress = interpolate(frame, [0, 25], [0, 100], { extrapolateRight: 'clamp' });
+    if (transitionName === 'waveleft') {
+      return { clipPath: `inset(0 ${100 - progress}% 0 0)` };
+    }
+    if (transitionName === 'waveright') {
+      return { clipPath: `inset(0 0 0 ${100 - progress}%)` };
+    }
+    if (transitionName === 'waveup') {
+      return { clipPath: `inset(${100 - progress}% 0 0 0)` };
+    }
+    if (transitionName === 'wavedown') {
+      return { clipPath: `inset(0 0 ${100 - progress}% 0)` };
+    }
+  }
+
+  // Smooth Transitions
+  if (transitionName === 'smoothleft' && !transitionName.includes('wipe')) {
+    const x = interpolate(frame, [0, 20], [200, 0], { extrapolateRight: 'clamp' });
+    return { transform: `translateX(${x}px)` };
+  }
+  if (transitionName === 'smoothright' && !transitionName.includes('wipe')) {
+    const x = interpolate(frame, [0, 20], [-200, 0], { extrapolateRight: 'clamp' });
+    return { transform: `translateX(${x}px)` };
+  }
+  if (transitionName === 'smoothup') {
+    const y = interpolate(frame, [0, 20], [200, 0], { extrapolateRight: 'clamp' });
+    return { transform: `translateY(${y}px)` };
+  }
+  if (transitionName === 'smoothdown') {
+    const y = interpolate(frame, [0, 20], [-200, 0], { extrapolateRight: 'clamp' });
+    return { transform: `translateY(${y}px)` };
+  }
+
+  // Blur
+  if (transitionName === 'blur') {
+    const blur = interpolate(frame, [0, 15], [20, 0], { extrapolateRight: 'clamp' });
+    return { filter: `blur(${blur}px)` };
+  }
+
   return {};
 };
 
 // ============================================================
-// 🔥 COLLAGE COMPONENTS (TUMHARA - Keep as is)
+// 🔥 COLLAGE COMPONENTS
 // ============================================================
 interface ThreePhotoCollageSlideProps {
   images: string[];
@@ -244,7 +426,7 @@ const ThreePhotoCollageSlide: React.FC<ThreePhotoCollageSlideProps> = ({ images,
 };
 
 // ============================================================
-// 🔥 GRID COLLAGE COMPONENT (TUMHARA)
+// 🔥 GRID COLLAGE COMPONENT
 // ============================================================
 interface GridCollageSlideProps {
   images: string[];
@@ -279,7 +461,7 @@ const GridCollageSlide: React.FC<GridCollageSlideProps> = ({ images, vignette })
 };
 
 // ============================================================
-// 🔥 HORIZONTAL COLLAGE COMPONENT (TUMHARA)
+// 🔥 HORIZONTAL COLLAGE COMPONENT
 // ============================================================
 interface HorizontalCollageSlideProps {
   images: string[];
@@ -311,7 +493,154 @@ const HorizontalCollageSlide: React.FC<HorizontalCollageSlideProps> = ({ images,
 };
 
 // ============================================================
-// 🔥 IMAGE WITH EFFECTS COMPONENT (TUMHARA - Superior)
+// 🔥 NEW - VERTICAL COLLAGE COMPONENT
+// ============================================================
+interface VerticalCollageSlideProps {
+  images: string[];
+  vignette?: boolean;
+  gap?: number;
+}
+
+const VerticalCollageSlide: React.FC<VerticalCollageSlideProps> = ({ 
+  images, 
+  vignette, 
+  gap = 10 
+}) => {
+  const frame = useCurrentFrame();
+  const displayImages = images.slice(0, 3);
+  const heightPerImage = (1920 - (displayImages.length - 1) * gap) / displayImages.length;
+  
+  return (
+    <div style={{ 
+      position: 'relative', 
+      width: '1080px', 
+      height: '1920px', 
+      overflow: 'hidden', 
+      backgroundColor: '#111' 
+    }}>
+      {displayImages.map((img, idx) => {
+        const yOffset = idx * (heightPerImage + gap);
+        const slideIn = interpolate(frame, [idx * 5, idx * 5 + 20], [200, 0], { 
+          extrapolateRight: 'clamp' 
+        });
+        return (
+          <div key={idx} style={{ 
+            transform: `translateX(${idx % 2 === 0 ? -slideIn : slideIn}px)`,
+            position: 'absolute', 
+            top: yOffset, 
+            width: '1080px', 
+            height: heightPerImage,
+            padding: gap/2,
+          }}>
+            <img 
+              src={img} 
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'cover', 
+                borderRadius: '12px' 
+              }} 
+              alt={`Vertical ${idx}`} 
+            />
+          </div>
+        );
+      })}
+      {vignette && (
+        <div style={{
+          position: 'absolute', 
+          top: 0, 
+          left: 0, 
+          width: '100%', 
+          height: '100%',
+          background: 'radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%)',
+          pointerEvents: 'none',
+        }} />
+      )}
+    </div>
+  );
+};
+
+// ============================================================
+// 🔥 NEW - CIRCLE COLLAGE COMPONENT
+// ============================================================
+interface CircleCollageSlideProps {
+  images: string[];
+  vignette?: boolean;
+  gap?: number;
+}
+
+const CircleCollageSlide: React.FC<CircleCollageSlideProps> = ({ 
+  images, 
+  vignette, 
+  gap = 20 
+}) => {
+  const frame = useCurrentFrame();
+  const radius = 400;
+  const centerX = 540;
+  const centerY = 960;
+  const displayImages = images.slice(0, 3);
+  
+  return (
+    <div style={{ 
+      position: 'relative', 
+      width: '1080px', 
+      height: '1920px', 
+      overflow: 'hidden', 
+      backgroundColor: '#111' 
+    }}>
+      {displayImages.map((img, idx) => {
+        const angle = (idx / 3) * Math.PI * 2 - Math.PI / 2;
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+        const scale = interpolate(frame, [idx * 8, idx * 8 + 20], [0.5, 1], { 
+          extrapolateRight: 'clamp' 
+        });
+        const opacity = interpolate(frame, [idx * 8, idx * 8 + 15], [0, 1], { 
+          extrapolateRight: 'clamp' 
+        });
+        
+        return (
+          <div key={idx} style={{
+            position: 'absolute',
+            left: x - 150,
+            top: y - 150,
+            width: 300,
+            height: 300,
+            borderRadius: '50%',
+            overflow: 'hidden',
+            transform: `scale(${scale})`,
+            opacity,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+          }}>
+            <img 
+              src={img} 
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'cover' 
+              }} 
+              alt={`Circle ${idx}`} 
+            />
+          </div>
+        );
+      })}
+      {vignette && (
+        <div style={{
+          position: 'absolute', 
+          top: 0, 
+          left: 0, 
+          width: '100%', 
+          height: '100%',
+          background: 'radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%)',
+          pointerEvents: 'none',
+        }} />
+      )}
+    </div>
+  );
+};
+
+// ============================================================
+// 🔥 IMAGE WITH EFFECTS COMPONENT
 // ============================================================
 interface ReelImageProps {
   src: string;
@@ -321,6 +650,7 @@ interface ReelImageProps {
   durationInFrames: number;
   vignette?: boolean;
   effectsList?: string[];
+  blurBackground?: boolean; // ✅ NEW
 }
 
 const ReelImage: React.FC<ReelImageProps> = ({ 
@@ -330,11 +660,13 @@ const ReelImage: React.FC<ReelImageProps> = ({
   transitionName = 'none',
   durationInFrames,
   vignette = false,
-  effectsList = []
+  effectsList = [],
+  blurBackground = false, // ✅ NEW
 }) => {
   const frame = useCurrentFrame();
   
-  const hasGlassBlurBg = effectsList.includes('glassBlurBg');
+  // ✅ UPDATED: Check for blurBackground prop OR glassBlurBg effect
+  const hasGlassBlurBg = blurBackground || effectsList.includes('glassBlurBg');
 
   const effectFn: EffectFn = EFFECT_STYLES[effectName] || EFFECT_STYLES['none'];
   const effectStyle = effectFn(frame, durationInFrames);
@@ -402,7 +734,7 @@ const ReelImage: React.FC<ReelImageProps> = ({
 };
 
 // ============================================================
-// 🔥 MAIN COMPOSITION (TUMHARA - Keep as is)
+// 🔥 MAIN COMPOSITION
 // ============================================================
 export const ReelComposition: React.FC<ReelProps> = ({ images, template }) => {
   const { 
@@ -415,6 +747,8 @@ export const ReelComposition: React.FC<ReelProps> = ({ images, template }) => {
     vignette = false, 
     collageType,
     collage = false,
+    blurBackground = false, // ✅ NEW
+    gap = 10, // ✅ NEW
   } = template || {};
   
   const durationInFrames = Math.round(slideDuration * 30);
@@ -452,6 +786,26 @@ export const ReelComposition: React.FC<ReelProps> = ({ images, template }) => {
         </AbsoluteFill>
       );
     }
+    // ✅ NEW: Vertical Collage
+    if (collageType === 'vertical' && images.length >= 3) {
+      return (
+        <AbsoluteFill style={{ backgroundColor: 'black', width, height }}>
+          <Sequence from={0} durationInFrames={durationInFrames}>
+            <VerticalCollageSlide images={images} vignette={vignette} gap={gap} />
+          </Sequence>
+        </AbsoluteFill>
+      );
+    }
+    // ✅ NEW: Circle Collage
+    if (collageType === 'circle' && images.length >= 3) {
+      return (
+        <AbsoluteFill style={{ backgroundColor: 'black', width, height }}>
+          <Sequence from={0} durationInFrames={durationInFrames}>
+            <CircleCollageSlide images={images} vignette={vignette} gap={gap} />
+          </Sequence>
+        </AbsoluteFill>
+      );
+    }
   }
 
   return (
@@ -476,6 +830,7 @@ export const ReelComposition: React.FC<ReelProps> = ({ images, template }) => {
               durationInFrames={durationInFrames}
               vignette={vignette}
               effectsList={effects}
+              blurBackground={blurBackground} // ✅ NEW
             />
           </Sequence>
         );

@@ -9,7 +9,7 @@ const reelRoutes = require('./routes/reel');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // ---------- 1. FOLDERS CREATE KARO ----------
 const uploadDir = process.env.UPLOAD_DIR || './uploads/temp';

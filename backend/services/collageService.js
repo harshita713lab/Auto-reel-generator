@@ -3,14 +3,14 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
 /**
- * Create collages from multiple images - ROW WISE (horizontal)
+ * Create collages from multiple images - ROW WISE
  */
 exports.createCollage = async (imagePaths, template) => {
   const collageImages = [];
   const width = template.width || 1080;
   const height = template.height || 1920;
-  const collageType = template.collageType || 'horizontal';
   const imagesPerCollage = template.imagesPerCollage || 2;
+  const collageType = template.collageType || 'horizontal';
 
   // Group images into collage frames
   const collageGroups = [];
@@ -25,19 +25,21 @@ exports.createCollage = async (imagePaths, template) => {
     const outputPath = path.join(path.dirname(group[0]), outputName);
 
     if (group.length === 1) {
-      // Single image - just resize
       await sharp(group[0])
         .resize(width, height, { fit: 'cover' })
         .toFile(outputPath);
     } else if (group.length === 2) {
-      // ✅ ROW WISE: 2 images side by side (horizontal)
-      await createHorizontalCollage(group, outputPath, width, height);
+      // ✅ 2 images - side by side (50% each)
+      await createTwoRowCollage(group, outputPath, width, height);
     } else if (group.length === 3) {
-      // ✅ ROW WISE: 3 images in a row
-      await createThreeHorizontalCollage(group, outputPath, width, height);
+      // ✅ 3 images - all in one row (33.33% each)
+      await createThreeRowCollage(group, outputPath, width, height);
     } else if (group.length === 4) {
-      // ✅ ROW WISE: 4 images in a row (2x2 grid)
-      await createFourGridCollage(group, outputPath, width, height);
+      // ✅ 4 images - 2x2 grid (2 rows, 2 columns)
+      await createFourRowCollage(group, outputPath, width, height);
+    } else if (group.length >= 5) {
+      // ✅ 5+ images - 3 columns grid
+      await createMultiRowCollage(group, outputPath, width, height);
     }
 
     collageImages.push(outputPath);
@@ -47,50 +49,17 @@ exports.createCollage = async (imagePaths, template) => {
 };
 
 // ============================================================
-// ✅ 2 IMAGES - SIDE BY SIDE (HORIZONTAL ROW)
+// ✅ 2 IMAGES - SIDE BY SIDE (50% - 50%)
 // ============================================================
-async function createHorizontalCollage(images, outputPath, width, height) {
+async function createTwoRowCollage(images, outputPath, width, height) {
   const halfWidth = Math.floor(width / 2);
   
-  const leftImage = await sharp(images[0])
-    .resize(halfWidth, height, { fit: 'cover' })
-    .toBuffer();
-  
-  const rightImage = await sharp(images[1])
-    .resize(halfWidth, height, { fit: 'cover' })
-    .toBuffer();
-  
-  await sharp({
-    create: {
-      width: width,
-      height: height,
-      channels: 3,
-      background: { r: 0, g: 0, b: 0 }
-    }
-  })
-  .composite([
-    { input: leftImage, left: 0, top: 0 },
-    { input: rightImage, left: halfWidth, top: 0 }
-  ])
-  .toFile(outputPath);
-}
-
-// ============================================================
-// ✅ 3 IMAGES - ALL IN ONE ROW (HORIZONTAL)
-// ============================================================
-async function createThreeHorizontalCollage(images, outputPath, width, height) {
-  const thirdWidth = Math.floor(width / 3);
-  
   const img1 = await sharp(images[0])
-    .resize(thirdWidth, height, { fit: 'cover' })
+    .resize(halfWidth, height, { fit: 'cover' })
     .toBuffer();
   
   const img2 = await sharp(images[1])
-    .resize(thirdWidth, height, { fit: 'cover' })
-    .toBuffer();
-  
-  const img3 = await sharp(images[2])
-    .resize(thirdWidth, height, { fit: 'cover' })
+    .resize(halfWidth, height, { fit: 'cover' })
     .toBuffer();
   
   await sharp({
@@ -103,16 +72,41 @@ async function createThreeHorizontalCollage(images, outputPath, width, height) {
   })
   .composite([
     { input: img1, left: 0, top: 0 },
-    { input: img2, left: thirdWidth, top: 0 },
-    { input: img3, left: thirdWidth * 2, top: 0 }
+    { input: img2, left: halfWidth, top: 0 }
   ])
   .toFile(outputPath);
 }
 
 // ============================================================
-// ✅ 4 IMAGES - 2x2 GRID (2 ROWS, 2 COLUMNS)
+// ✅ 3 IMAGES - ALL IN ONE ROW (33.33% each)
 // ============================================================
-async function createFourGridCollage(images, outputPath, width, height) {
+async function createThreeRowCollage(images, outputPath, width, height) {
+  const thirdWidth = Math.floor(width / 3);
+  
+  const imagesBuffer = await Promise.all(
+    images.map(img => sharp(img).resize(thirdWidth, height, { fit: 'cover' }).toBuffer())
+  );
+  
+  await sharp({
+    create: {
+      width: width,
+      height: height,
+      channels: 3,
+      background: { r: 0, g: 0, b: 0 }
+    }
+  })
+  .composite([
+    { input: imagesBuffer[0], left: 0, top: 0 },
+    { input: imagesBuffer[1], left: thirdWidth, top: 0 },
+    { input: imagesBuffer[2], left: thirdWidth * 2, top: 0 }
+  ])
+  .toFile(outputPath);
+}
+
+// ============================================================
+// ✅ 4 IMAGES - 2x2 GRID (2 ROWS x 2 COLUMNS)
+// ============================================================
+async function createFourRowCollage(images, outputPath, width, height) {
   const halfWidth = Math.floor(width / 2);
   const halfHeight = Math.floor(height / 2);
   
@@ -138,23 +132,24 @@ async function createFourGridCollage(images, outputPath, width, height) {
 }
 
 // ============================================================
-// ✅ 5+ IMAGES - 3x2 or more grid
+// ✅ 5+ IMAGES - 3 COLUMNS GRID (Dynamic rows)
 // ============================================================
-async function createMultiGridCollage(images, outputPath, width, height) {
+async function createMultiRowCollage(images, outputPath, width, height) {
   const numImages = images.length;
   const cols = Math.min(3, numImages);
   const rows = Math.ceil(numImages / cols);
+  const gap = 4;
   
-  const cellWidth = Math.floor(width / cols);
-  const cellHeight = Math.floor(height / rows);
+  const cellWidth = Math.floor((width - gap * (cols + 1)) / cols);
+  const cellHeight = Math.floor((height - gap * (rows + 1)) / rows);
   
   const composites = [];
   
   for (let i = 0; i < numImages; i++) {
     const row = Math.floor(i / cols);
     const col = i % cols;
-    const left = col * cellWidth;
-    const top = row * cellHeight;
+    const left = gap + col * (cellWidth + gap);
+    const top = gap + row * (cellHeight + gap);
     
     const imgBuffer = await sharp(images[i])
       .resize(cellWidth, cellHeight, { fit: 'cover' })
@@ -168,7 +163,7 @@ async function createMultiGridCollage(images, outputPath, width, height) {
       width: width,
       height: height,
       channels: 3,
-      background: { r: 0, g: 0, b: 0 }
+      background: { r: 10, g: 10, b: 15 }
     }
   })
   .composite(composites)
