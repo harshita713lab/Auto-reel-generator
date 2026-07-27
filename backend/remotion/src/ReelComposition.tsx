@@ -15,9 +15,98 @@ const EFFECT_STYLES: Record<string, EffectFn> = {
   
   // 🌟 TUMHARA - Advanced Zoom Effects
 
+  'heroSlideLeft': (frame, duration) => {
+  const progress = frame / duration;
+
+  const x = interpolate(
+    frame,
+    [0, duration],
+    [160, 0],
+    { extrapolateRight: 'clamp' }
+  );
+
+  const scale =
+    progress < 0.6
+      ? interpolate(frame, [0, duration * 0.6], [1.0, 1.18])
+      : interpolate(frame, [duration * 0.6, duration], [1.18, 1.05]);
+
+  const blur = interpolate(
+    frame,
+    [0, duration * 0.25],
+    [25, 0],
+    { extrapolateRight: 'clamp' }
+  );
+
+  const opacity = interpolate(
+    frame,
+    [0, duration * 0.15],
+    [0, 1],
+    { extrapolateRight: 'clamp' }
+  );
+
+  const circle = interpolate(
+    frame,
+    [0, duration * 0.35],
+    [0, 150],
+    { extrapolateRight: 'clamp' }
+  );
+
+  return {
+    opacity,
+    transform: `translateX(${x}px) scale(${scale})`,
+    filter: `blur(${blur}px)`,
+    clipPath: `circle(${circle}% at 50% 50%)`,
+  };
+},
+'heroSlideRight': (frame, duration) => {
+  const progress = frame / duration;
+
+  const x = interpolate(
+    frame,
+    [0, duration],
+    [-160, 0],
+    { extrapolateRight: 'clamp' }
+  );
+
+  const scale =
+    progress < 0.6
+      ? interpolate(frame, [0, duration * 0.6], [1.0, 1.18])
+      : interpolate(frame, [duration * 0.6, duration], [1.18, 1.05]);
+
+  const blur = interpolate(
+    frame,
+    [0, duration * 0.25],
+    [25, 0],
+    { extrapolateRight: 'clamp' }
+  );
+
+  const opacity = interpolate(
+    frame,
+    [0, duration * 0.15],
+    [0, 1],
+    { extrapolateRight: 'clamp' }
+  );
+
+  const circle = interpolate(
+    frame,
+    [0, duration * 0.35],
+    [0, 150],
+    { extrapolateRight: 'clamp' }
+  );
+
+  return {
+    opacity,
+    transform: `translateX(${x}px) scale(${scale})`,
+    filter: `blur(${blur}px)`,
+    clipPath: `circle(${circle}% at 50% 50%)`,
+  };
+},
 
 
-  
+
+
+
+
   'zoomin': (frame, duration) => {
     const scale = interpolate(frame, [0, duration * 0.1, duration * 0.9, duration], [0.8, 1.15, 1.15, 1.0]);
     return { transform: `scale(${scale})` };
@@ -246,6 +335,8 @@ const EFFECT_STYLES: Record<string, EffectFn> = {
   'retroGlow': () => ({ filter: 'sepia(0.3) saturate(1.2) brightness(1.05) blur(0.2px)' }),
   'magical': () => ({ filter: 'brightness(1.15) saturate(1.3) hue-rotate(300deg)' }),
   'tropical': () => ({ filter: 'sepia(0.2) saturate(1.5) brightness(1.1) hue-rotate(350deg)' }),
+
+
 };
 
 // ============================================================

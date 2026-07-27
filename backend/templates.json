@@ -42,12 +42,46 @@
   "blurBackground": true,
   "vignette": true,
   "collage": true,
-  "collageType": "horizontal",
+  "collageType": "vertical",
   "imagesPerCollage": 3,
   "gap": 15,
   "quality": "high",
   "music": "ReelAudio-12.mp3",
   "description": "🎬 3 images side-by-side row collage with slide entry, background blur, gap, followed by solo sequential views."
+},
+{
+  "id": "reel_016",
+  "name": "🏎️ Turbo Speed Reel",
+  "minPhotos": 4,
+  "maxPhotos": 4,
+
+  "slideDuration": 3,
+  "transitionDuration": 0.3,
+
+  "transitions": [
+    "speedBlurOut",
+    "speedBlurOut",
+    "speedBlurOut",
+    "speedBlurOut"
+  ],
+
+  "effects": [
+    "motionStreak",
+    "heroSlideLeft",
+    "heroSlideRight",
+    "flashWhite"
+  ],
+
+  "colorGrades": [
+    "vibrant",
+    "dramatic",
+    "neon",
+    "cinematic"
+  ],
+
+  "blurBackground": true,
+
+  "music": "ReelAudio-16.mp3"
 },
     {
       "id": "reel_002",

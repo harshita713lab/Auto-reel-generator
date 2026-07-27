@@ -302,6 +302,7 @@ const EFFECT_STYLES = {
 // ============================================================
 // 🔥 REMOTION RENDER (TANISHA - Advanced mapping)
 // ============================================================
+// 🎬 REMOTION RENDER (Video with effects) - FIXED VERSION
 function renderWithRemotion(
   imagePaths,
   template,
@@ -357,23 +358,14 @@ const colorGrades = Array.isArray(template.colorGrades)
       height: template.height || 1920,
       slideDuration: slideDuration,
       transitionDuration: template.transitionDuration || 0.6,
-      transitions: mappedTransitions,
-      effects: mappedEffects,
-      colorGrades: mappedColorGrades,
+      transitions: transitions.slice(0, numImages - 1),
+      effects: effects.slice(0, numImages),
+      colorGrades: template.colorGrades || [],
       vignette: template.vignette || false,
       totalDuration: numImages * slideDuration,
       numImages: numImages,
     };
 
-    console.log(`   📋 Mapped Effects: ${mappedEffects.join(", ")}`);
-    console.log(
-      `   📋 Mapped Transitions: ${mappedTransitions.join(", ") || "none"}`,
-    );
-    console.log(
-      `   📋 Mapped Color Grades: ${mappedColorGrades.filter(Boolean).join(", ") || "none"}`,
-    );
-
-    // Serve images via HTTP
     const port = process.env.PORT || 5000;
     const serverBaseUrl = `http://localhost:${port}`;
     const imageUrls = imagePaths.map((imgPath) => {
@@ -395,80 +387,31 @@ const colorGrades = Array.isArray(template.colorGrades)
     const remotionDir = path.join(__dirname, "../remotion");
     const renderScript = path.join(remotionDir, "render.js");
 
-    // ✅ TANISHA: Add GPU flags for Remotion
-    const gpuFlags = [];
-    if (isGpuEnabled && videoEncoder === "h264_nvenc") {
-      gpuFlags.push("--hardware-acceleration=if-possible");
+    // ✅ FIX: Use exec instead of spawn
+    const { exec } = require('child_process');
+    const command = `node "${renderScript}" "${tempDataPath}" "${tempOutputPath}"`;
 
-      // Platform-specific GPU flags
-      if (process.platform === "win32") {
-        gpuFlags.push("--gl=angle");
-      } else if (process.platform === "linux") {
-        gpuFlags.push("--gl=angle-egl");
-        gpuFlags.push("--chrome-mode=chrome-for-testing");
-      } else if (process.platform === "darwin") {
-        gpuFlags.push("--gl=angle");
+    console.log(`   🚀 Command: ${command}`);
+
+    exec(command, { 
+      cwd: remotionDir, 
+      maxBuffer: 1024 * 1024 * 10,
+      shell: 'cmd.exe'
+    }, (error, stdout, stderr) => {
+      if (fs.existsSync(tempDataPath)) {
+        fs.unlinkSync(tempDataPath);
+        console.log(`   🗑️ Temp data file cleaned up`);
       }
 
-      gpuFlags.push("--codec=h264");
-      gpuFlags.push("--pixel-format=yuv420p");
-    }
-
-    const args = [
-      `"${renderScript}"`,
-      `"${tempDataPath}"`,
-      `"${tempOutputPath}"`,
-      ...gpuFlags,
-    ];
-
-    console.log(
-      `   🚀 Command: node ${path.basename(renderScript)} ${gpuFlags.join(" ")}`,
-    );
-
-    const { spawn } = require("child_process");
-    const child = spawn("node", args, {
-      cwd: remotionDir,
-      stdio: "pipe",
-      shell: true,
-      windowsVerbatimArguments: true,
-      env: {
-        ...process.env,
-        NODE_OPTIONS: "--max-old-space-size=8192",
-        GPU_ENABLED: "true",
-      }, // ✅ TUMHARA
-    });
-
-    let stdoutData = "",
-      stderrData = "";
-
-    child.stdout.on("data", (data) => {
-      const output = data.toString();
-      stdoutData += output;
-      console.log(output.trim());
-    });
-
-    child.stderr.on("data", (data) => {
-      const output = data.toString();
-      stderrData += output;
-      console.error(output.trim());
-    });
-
-    child.on("close", (code) => {
-      if (fs.existsSync(tempDataPath)) fs.unlinkSync(tempDataPath);
-      if (code !== 0) {
-        console.error(`   ❌ Remotion render exited with code ${code}`);
-        console.error(`   ❌ Stderr: ${stderrData}`);
-        return reject(
-          new Error(`Remotion render failed with code ${code}: ${stderrData}`),
-        );
+      if (error) {
+        console.error(`   ❌ Remotion render failed:`, error);
+        console.error(`   ❌ Stderr:`, stderr);
+        return reject(new Error(`Remotion render failed: ${error.message}`));
       }
+
+      console.log(stdout);
       console.log(`   ✅ Remotion render completed!`);
       resolve();
-    });
-
-    child.on("error", (err) => {
-      console.error(`   ❌ Remotion process error: ${err.message}`);
-      reject(err);
     });
   });
 }
@@ -485,7 +428,9 @@ function addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath) {
 
     console.log(`\n🎵 FFMPEG MUSIC ADD:`);
     console.log(`   ├── Music Path: ${musicPath || "None"}`);
-    console.log(`   ├── Music File: ${hasMusic ? path.basename(musicPath) : "No Music"}`);
+    console.log(
+      `   ├── Music File: ${hasMusic ? path.basename(musicPath) : "No Music"}`,
+    );
     console.log(`   ├── Temp Video: ${path.basename(tempVideoPath)}`);
     console.log(`   └── Output: ${path.basename(outputPath)}`);
 
@@ -501,7 +446,7 @@ function addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath) {
     console.log(`   🎬 Adding music with loop & FFmpeg...`);
 
     const { exec } = require("child_process");
-    
+
     // ✅ Use ffmpeg-static
     let ffmpegBinary = "ffmpeg";
     try {
@@ -514,9 +459,9 @@ function addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath) {
       console.log(`   ⚠️ ffmpeg-static not found, using system ffmpeg`);
     }
 
-    const tempPath = tempVideoPath.replace(/\\/g, '/');
-    const musicPathEscaped = musicPath.replace(/\\/g, '/');
-    const outPath = outputPath.replace(/\\/g, '/');
+    const tempPath = tempVideoPath.replace(/\\/g, "/");
+    const musicPathEscaped = musicPath.replace(/\\/g, "/");
+    const outPath = outputPath.replace(/\\/g, "/");
 
     // ✅ Fixed: use ffmpegBinary + optional audio map
     const cmd = `"${ffmpegBinary}" -i "${tempPath}" -stream_loop -1 -i "${musicPathEscaped}" -y -map 0:v:0 -map 1:a? -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 192k -shortest "${outPath}"`;
@@ -529,14 +474,18 @@ function addMusicWithFFmpeg(tempVideoPath, musicPath, outputPath) {
         console.error(`   📝 Stderr: ${stderr}`);
         return reject(error);
       }
-      
+
       if (stderr) console.log(`   📝 FFmpeg output: ${stderr}`);
-      
+
       if (fs.existsSync(tempVideoPath)) {
-        try { fs.unlinkSync(tempVideoPath); } catch (e) {}
-        console.log(`   🗑️ Temp file cleaned up: ${path.basename(tempVideoPath)}`);
+        try {
+          fs.unlinkSync(tempVideoPath);
+        } catch (e) {}
+        console.log(
+          `   🗑️ Temp file cleaned up: ${path.basename(tempVideoPath)}`,
+        );
       }
-      
+
       console.log(`   ✅ Final video with music ready!`);
       resolve();
     });

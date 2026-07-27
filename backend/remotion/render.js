@@ -5,28 +5,19 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import fs from 'fs';
 import os from 'os';
-import { spawnSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // ============================================================
-// 🔥 COMMAND LINE ARGUMENTS PARSING (TANISHA)
+// 🔥 COMMAND LINE ARGUMENTS PARSING
 // ============================================================
 const args = process.argv.slice(2);
 const dataFilePath = args[0]?.replace(/^"|"$/g, '');
 const outputPath = args[1]?.replace(/^"|"$/g, '');
 
-// ✅ TANISHA: Parse GPU flags
-const gpuFlags = args.slice(2);
-const hardwareAcceleration = gpuFlags.includes('--hardware-acceleration=if-possible') 
-  ? 'if-possible' 
-  : 'disabled';
-const glFlag = gpuFlags.find(flag => flag.startsWith('--gl='))?.replace('--gl=', '') || 'swiftshader';
-const codec = gpuFlags.includes('--codec=h265') ? 'h265' : 'h264';
 if (!dataFilePath || !outputPath) {
-    console.error('❌ Usage: node render.js <dataFilePath> <outputPath> [flags]');
-    console.error('   Flags: --hardware-acceleration=if-possible --gl=angle --codec=h264');
+    console.error('❌ Usage: node render.js <dataFilePath> <outputPath>');
     process.exit(1);
 }
 
@@ -48,28 +39,32 @@ console.log(`📸 Rendering ${images.length} images with Remotion...`);
 console.log(`📐 Template: ${template.name || 'Unnamed'}`);
 console.log(`⏱️ Duration: ${template.totalDuration || images.length * template.slideDuration}s`);
 console.log(`🎨 Effects: ${template.effects?.join(', ') || 'none'}`);
-console.log(`🎨 Color Grades: ${template.colorGrades?.filter(Boolean).join(', ') || 'none'}`);
 console.log(`🎬 Transitions: ${template.transitions?.join(', ') || 'none'}`);
-console.log(`🚀 GPU Acceleration: ${hardwareAcceleration}`);
-console.log(`🖥️ GL Renderer: ${glFlag}`);
-console.log(`🎮 Codec: ${codec}`);
 
 // ============================================================
-// 🔥 CHECK GPU ENCODER (TANISHA)
+// 🔥 DISABLE GPU - SOFTWARE ENCODING (FIX FOR EBADF)
 // ============================================================
-function checkGpuEncoder() {
-    try {
-        const result = spawnSync('ffmpeg', ['-encoders'], { encoding: 'utf8' });
-        if (result.stdout && result.stdout.includes('h264_nvenc')) {
-            console.log('🚀 GPU Acceleration Detected: Using h264_nvenc');
-            return { codec: 'h264', encoder: 'h264_nvenc' };
-        }
-    } catch (e) {}
-    console.log('💻 Using CPU Encoder (libx264)');
-    return { codec: 'h264', encoder: undefined };
-}
+console.log(`💻 Using Software Encoding (libx264) - GPU Disabled`);
 
-const gpuConfig = checkGpuEncoder();
+// Chromium options with GPU DISABLED
+const chromiumOptions = {
+    enableGpu: false,              // ✅ GPU OFF
+    hardwareAcceleration: false,    // ✅ Hardware acceleration OFF
+    gl: 'swiftshader',             // ✅ Software renderer
+    args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',            // ✅ Disable GPU
+        '--disable-software-rasterizer',
+        '--disable-accelerated-2d-canvas',
+        '--disable-accelerated-video-decode',
+        '--disable-gpu-sandbox',
+        '--use-gl=swiftshader',     // ✅ Software GL
+        '--single-process',
+        '--max_old_space_size=8192',
+    ],
+};
 
 // ============================================================
 // 🔥 MAIN RENDER FUNCTION
@@ -95,45 +90,17 @@ try {
             totalDuration: template.totalDuration || images.length * template.slideDuration,
             numImages: images.length,
         },
+        chromiumOptions: chromiumOptions,  // ✅ Add this
+        offthreadVideoServer: false,       // ✅ IMPORTANT: Prevent offthread process
     });
     console.log(`🎬 Composition selected: ${composition.id}`);
 
-    // ============================================================
-    // ✅ TUMHARA: Advanced GPU Chromium Options
-    // ============================================================
-    const chromiumOptions = {
-        enableGpu: true,
-        hardwareAcceleration: true,
-        gl: glFlag, // ✅ TANISHA: Dynamic GL flag
-        args: [
-            '--enable-gpu',
-            '--enable-hardware-overlays',
-            '--enable-accelerated-2d-canvas',
-            '--enable-accelerated-video-decode',
-            '--enable-gpu-rasterization',
-            '--enable-zero-copy',
-            '--ignore-gpu-blocklist',
-            '--disable-gpu-sandbox',
-            '--disable-software-rasterizer',
-            '--use-gl=egl',
-            '--use-cmd-decoder=validating',
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--memory-pressure-off',
-            '--max_old_space_size=8192',
-            '--disable-dev-shm-usage',
-        ],
-    };
-
-    console.log(`🎮 GPU Acceleration: ENABLED`);
-
-    // ============================================================
-    // ✅ TUMHARA + TANISHA: Render Options
-    // ============================================================
+    // Step 3: Render the media - SOFTWARE ENCODING
     const renderOptions = {
         composition,
         serveUrl: serveUrl,
-        codec: codec, // ✅ TANISHA: Dynamic codec
+        codec: 'h264',
+        encoder: 'libx264',              // ✅ Software encoder (FIX)
         outputLocation: outputPath,
         inputProps: {
             images: images,
@@ -144,20 +111,13 @@ try {
         pixelFormat: 'yuv420p',
         imageFormat: 'jpeg',
         jpegQuality: 80,
-        concurrency: Math.min(4, os.cpus().length), // ✅ TUMHARA: Dynamic concurrency
-        hardwareAcceleration: hardwareAcceleration, // ✅ TANISHA
+        concurrency: 1,                  // ✅ Single process (more stable)
         chromiumOptions: chromiumOptions,
-        timeoutInMilliseconds: 300000, // ✅ TUMHARA: 5 min timeout
-        framesPerLambda: 20, // ✅ TUMHARA: Better performance
+        offthreadVideoServer: false,     // ✅ CRITICAL: Prevents EBADF error
+        timeoutInMilliseconds: 300000,
+        gpuAcceleration: false,          // ✅ GPU OFF
     };
 
-    // ✅ TANISHA: Add custom encoder if available
-    if (gpuConfig.encoder) {
-        renderOptions.customEncoder = gpuConfig.encoder;
-        console.log(`🎬 Using custom encoder: ${gpuConfig.encoder}`);
-    }
-
-    // Step 3: Render the media
     await renderMedia(renderOptions);
 
     console.log(`✅ Remotion rendered successfully: ${outputPath}`);
