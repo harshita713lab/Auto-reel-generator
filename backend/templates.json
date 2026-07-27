@@ -1,240 +1,213 @@
 {
   "templates": [
     {
-      "id": "reel_fast_04",
-      "name": "🏎️ Turbo Velocity Reel",
+      "id": "template_01",
+      "name": "🌟 Single Spotlight",
       "minPhotos": 1,
       "maxPhotos": 1,
       "width": 1080,
       "height": 1920,
-      "slideDuration": 1.6,
-      "transitionDuration": 0.2,
-      "transitions": [
-        "speedBlurOut"
-      ],
-      "effects": [
-        "zoomInOut"
-      ],
-      "colorGrades": [
-        "hdr",
-        "cool",
-        "cinematic"
-      ],
-      "blurBackground": true,
-      "vignette": false,
+      "slideDuration": 6.0,
+      "transitionDuration": 1.0,
+      "transitions": ["cinematicZoom"],
+      "effects": ["zoomin"],
+      "colorGrades": ["cinematic"],
+      "vignette": true,
       "collage": false,
+      "blurBackground": true,
       "quality": "high",
-      "music": "ReelAudio-13.mp3",
-      "description": "Turbo reel with Zoom In, Zoom Out and blurred background"
+      "music": "ReelAudio-1.mp3",
+      "description": "✨ Single image with cinematic zoom and dramatic lighting"
     },
-{
-  "id": "reel_collage_row_01",
-  "name": "🎬 Dynamic Row Collage & Solo Reel",
-  "minPhotos": 3,
-  "maxPhotos": 3,
-  "width": 1080,
-  "height": 1920,
-  "slideDuration": 2.5,
-  "transitionDuration": 0.5,
-  "transitions": ["slideLeft", "slideRight", "fade"],
-  "effects": ["zoomIn", "panAndZoom"],
-  "colorGrades": ["vibrant", "hdr"],
-  "blurBackground": true,
-  "vignette": true,
-  "collage": true,
-  "collageType": "vertical",
-  "imagesPerCollage": 3,
-  "gap": 15,
-  "quality": "high",
-  "music": "ReelAudio-12.mp3",
-  "description": "🎬 3 images side-by-side row collage with slide entry, background blur, gap, followed by solo sequential views."
-},
-{
-  "id": "reel_016",
-  "name": "🏎️ Turbo Speed Reel",
-  "minPhotos": 4,
-  "maxPhotos": 4,
-
-  "slideDuration": 3,
-  "transitionDuration": 0.3,
-
-  "transitions": [
-    "speedBlurOut",
-    "speedBlurOut",
-    "speedBlurOut",
-    "speedBlurOut"
-  ],
-
-  "effects": [
-    "motionStreak",
-    "heroSlideLeft",
-    "heroSlideRight",
-    "flashWhite"
-  ],
-
-  "colorGrades": [
-    "vibrant",
-    "dramatic",
-    "neon",
-    "cinematic"
-  ],
-
-  "blurBackground": true,
-
-  "music": "ReelAudio-16.mp3"
-},
     {
-      "id": "reel_002",
-      "name": "💥 Cyber Glitch Reel",
-      "minPhotos": 4,
-      "maxPhotos": 4,
+      "id": "template_02",
+      "name": "🎭 Dual Vision",
+      "minPhotos": 2,
+      "maxPhotos": 2,
       "width": 1080,
       "height": 1920,
-      "slideDuration": 3.8,
-      "transitionDuration": 0.4,
-      "transitions": "glitchHoriz",
-      "effects": [
-        "scanLines",
-        "chromaticAberration",
-        "neonPulse"
-      ],
-      "colorGrades": [
-        "neon",
-        "cyber",
-        "dramatic"
-      ],
-      "vignette": false,
+      "slideDuration": 5.0,
+      "transitionDuration": 0.8,
+      "transitions": ["smoothleft", "smoothright"],
+      "effects": ["zoomin", "zoomout"],
+      "colorGrades": ["golden", "cinematic"],
+      "vignette": true,
       "collage": false,
+      "blurBackground": true,
+      "quality": "high",
       "music": "ReelAudio-2.mp3",
-      "description": "💻 Cyberpunk glitch reel with RGB effects"
+      "description": "🎭 Two images with smooth slide transitions and golden cinematic tones"
     },
     {
-      "id": "reel_004",
-      "name": "📱 Grid Pop Reel",
+      "id": "template_03",
+      "name": "🎪 Triple Pulse",
+      "minPhotos": 3,
+      "maxPhotos": 3,
+      "width": 1080,
+      "height": 1920,
+      "slideDuration": 4.5,
+      "transitionDuration": 0.7,
+      "transitions": ["pop", "pulse", "glitchFlash"],
+      "effects": ["pulse", "zoom-pulse", "popup"],
+      "colorGrades": ["vibrant", "neon", "dramatic"],
+      "vignette": false,
+      "collage": false,
+      "blurBackground": true,
+      "quality": "high",
+      "music": "ReelAudio-3.mp3",
+      "description": "🎪 Three images with pulse effects and vibrant neon colors"
+    },
+    {
+      "id": "template_04",
+      "name": "🎨 3-Photo Collage Grid",
+      "minPhotos": 3,
+      "maxPhotos": 3,
+      "width": 1080,
+      "height": 1920,
+      "slideDuration": 5.0,
+      "transitionDuration": 0.8,
+      "transitions": ["fade", "dissolve", "dreamyFade"],
+      "effects": ["cinematic", "dreamy", "softfocus"],
+      "colorGrades": ["pastel", "rose", "golden"],
+      "vignette": true,
+      "collage": true,
+      "collageType": "three",
+      "imagesPerCollage": 3,
+      "gap": 10,
+      "blurBackground": true,
+      "quality": "high",
+      "music": "ReelAudio-4.mp3",
+      "description": "🎨 3 images in horizontal row with dreamy pastel colors"
+    },
+    {
+      "id": "template_05",
+      "name": "🎬 4-Photo Grid Showcase",
       "minPhotos": 4,
       "maxPhotos": 4,
       "width": 1080,
       "height": 1920,
       "slideDuration": 4.0,
       "transitionDuration": 0.6,
-      "transitions": "bounceIn",
-      "effects": [
-        "popHighlight",
-        "shadowDrop",
-        "scalePulse"
-      ],
-      "colorGrades": [
-        "vibrant",
-        "hdr",
-        "golden"
-      ],
+      "transitions": ["smoothBounce", "parallaxSlide", "cinematicZoom", "smoothRotate"],
+      "effects": ["popup", "hdr", "vibrant", "zoomin"],
+      "colorGrades": ["hdr", "vibrant", "golden", "cinematic"],
       "vignette": false,
       "collage": true,
       "collageType": "grid",
       "imagesPerCollage": 4,
-      "music": "ReelAudio-4.mp3",
-      "description": "📱 Bouncy grid reel with spring animations"
+      "gap": 12,
+      "blurBackground": true,
+      "quality": "high",
+      "music": "ReelAudio-5.mp3",
+      "description": "🎬 4 images in 2x2 grid with dynamic bounce transitions"
     },
     {
-      "id": "reel_006",
-      "name": "🌀 3D Parallax Reel",
+      "id": "template_06",
+      "name": "🌈 4-Photo Collage Flow",
       "minPhotos": 4,
       "maxPhotos": 4,
       "width": 1080,
       "height": 1920,
-      "slideDuration": 4.2,
+      "slideDuration": 4.5,
       "transitionDuration": 0.7,
-      "transitions": "parallaxLeft",
-      "effects": [
-        "3DDepth",
-        "motionBlur",
-        "perspective"
-      ],
-      "colorGrades": [
-        "cool",
-        "cinematic",
-        "teal"
-      ],
+      "transitions": ["waveleft", "waveright", "waveup", "wavedown"],
+      "effects": ["glow", "shine", "sparkle", "glamour"],
+      "colorGrades": ["iridescent", "prism", "aurora", "holographic"],
       "vignette": true,
-      "collage": false,
+      "collage": true,
+      "collageType": "grid",
+      "imagesPerCollage": 4,
+      "gap": 10,
+      "blurBackground": true,
+      "quality": "high",
       "music": "ReelAudio-6.mp3",
-      "description": "🌀 3D parallax reel with depth effects"
+      "description": "🌈 4 images with wave transitions and iridescent glow effects"
     },
     {
-      "id": "reel_009",
-      "name": "⚡ Neon Pulse Reel",
-      "minPhotos": 4,
-      "maxPhotos": 4,
+      "id": "template_07",
+      "name": "🌀 5-Image Vertical Story",
+      "minPhotos": 5,
+      "maxPhotos": 5,
       "width": 1080,
       "height": 1920,
       "slideDuration": 3.5,
-      "transitionDuration": 0.5,
-      "transitions": "neonStrike",
-      "effects": [
-        "neonGlow",
-        "electricity",
-        "pulseWave"
-      ],
-      "colorGrades": [
-        "neon",
-        "vibrant",
-        "cyber"
-      ],
-      "vignette": false,
-      "collage": false,
-      "music": "ReelAudio-9.mp3",
-      "description": "⚡ Electric neon pulse reel"
-    },
-    {
-      "id": "reel_013",
-      "name": "🌟 HDR Surge Reel",
-      "minPhotos": 4,
-      "maxPhotos": 4,
-      "width": 1080,
-      "height": 1920,
-      "slideDuration": 3.8,
       "transitionDuration": 0.6,
-      "transitions": "hdrBoom",
-      "effects": [
-        "hdrTone",
-        "clarityBoost",
-        "vibrance"
-      ],
-      "colorGrades": [
-        "hdr",
-        "vibrant",
-        "dramatic"
-      ],
-      "vignette": false,
+      "transitions": ["slideup", "slidedown", "slideleft", "slideright", "fade"],
+      "effects": ["zoomin", "zoomout", "pulse", "flash", "film-grain"],
+      "colorGrades": ["cinematic", "warm", "cool", "golden", "vintage"],
+      "vignette": true,
       "collage": false,
-      "music": "ReelAudio-13.mp3",
-      "description": "🌟 Punchy HDR reel with energy"
+      "blurBackground": true,
+      "quality": "high",
+      "music": "ReelAudio-7.mp3",
+      "description": "🌀 5 images with directional slides and cinematic color grading"
     },
     {
-      "id": "reel_016",
-      "name": "🏎️ Turbo Speed Reel",
-      "minPhotos": 4,
-      "maxPhotos": 4,
+      "id": "template_08",
+      "name": "🌟 6-Image Fast Cut",
+      "minPhotos": 6,
+      "maxPhotos": 6,
       "width": 1080,
       "height": 1920,
       "slideDuration": 3.0,
-      "transitionDuration": 0.3,
-      "transitions": "speedBlur",
-      "effects": [
-        "motionStreak",
-        "speedLines",
-        "flashWhite"
-      ],
-      "colorGrades": [
-        "vibrant",
-        "dramatic",
-        "neon"
-      ],
+      "transitionDuration": 0.4,
+      "transitions": ["fastWipe", "glitchFlash", "pixelize", "blurreveal", "pop", "sparkle"],
+      "effects": ["glitch", "flash", "pixelize", "neonglow", "cyberNeon", "vibrant"],
+      "colorGrades": ["neon", "cyber", "electric", "plasma", "neonBlue", "vibrant"],
       "vignette": false,
       "collage": false,
-      "music": "ReelAudio-16.mp3",
-      "description": "🏎️ High speed turbo reel"
+      "blurBackground": true,
+      "quality": "medium",
+      "music": "ReelAudio-8.mp3",
+      "description": "🌟 Fast-paced 6-image montage with glitch and cyber effects"
+    },
+    {
+      "id": "template_09",
+      "name": "🎭 7-Image Vintage Story",
+      "minPhotos": 7,
+      "maxPhotos": 7,
+      "width": 1080,
+      "height": 1920,
+      "slideDuration": 3.2,
+      "transitionDuration": 0.6,
+      "transitions": ["dissolve", "fade", "dreamyFade", "dissolve", "fade", "dreamyFade", "cinematicZoom"],
+      "effects": ["vintage", "sepia", "film-grain", "vintage", "sepia", "film-grain", "cinematic"],
+      "colorGrades": ["vintage", "sepia", "retro", "vintage", "sepia", "retro", "cinematic"],
+      "vignette": true,
+      "collage": false,
+      "blurBackground": true,
+      "quality": "high",
+      "music": "ReelAudio-9.mp3",
+      "description": "🎭 7 images with vintage film grain and sepia tones"
+    },
+    {
+      "id": "template_10",
+      "name": "🚀 8-10 Image Epic Montage",
+      "minPhotos": 8,
+      "maxPhotos": 10,
+      "width": 1080,
+      "height": 1920,
+      "slideDuration": 2.8,
+      "transitionDuration": 0.5,
+      "transitions": [
+        "cinematicZoom", "smoothRotate", "parallaxSlide", "smoothBounce",
+        "glitchFlash", "fastWipe", "blurreveal", "pixelize", "pop", "sparkle"
+      ],
+      "effects": [
+        "zoomin", "zoomout", "pulse", "popup", "glow", "shine", 
+        "sparkle", "glamour", "hdr", "cinematic"
+      ],
+      "colorGrades": [
+        "cinematic", "golden", "vibrant", "hdr", "neon", 
+        "dramatic", "warm", "cool", "prism", "iridescent"
+      ],
+      "vignette": true,
+      "collage": false,
+      "blurBackground": true,
+      "quality": "medium",
+      "music": "ReelAudio-10.mp3",
+      "description": "🚀 Epic 8-10 image montage with varied cinematic effects"
     }
   ],
-  "defaultTemplate": "reel_001"
+  "defaultTemplate": "template_05"
 }

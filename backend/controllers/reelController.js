@@ -7,7 +7,6 @@ const imageService = require("../services/imageService");
 const Reel = require("../models/Reel");
 
 const generatedDir = process.env.GENERATED_DIR || "./generated/reels";
-// ✅ FIX: Music directory ko backend/music pe point karo (relative to __dirname)
 const musicDir = path.resolve(__dirname, "..", "music");
 const TEMPLATES_FILE = path.join(__dirname, "../templates.json");
 
@@ -15,12 +14,20 @@ if (!fs.existsSync(generatedDir))
   fs.mkdirSync(generatedDir, { recursive: true });
 if (!fs.existsSync(musicDir)) fs.mkdirSync(musicDir, { recursive: true });
 
-// ✅ Template rotation tracker
-let templateHistory = [];
-let templateIndex = -1;
+// ============================================================
+// ✅ HELPER: Safe array conversion
+// ============================================================
+const makeArray = (val) => {
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string" && val !== "") return [val];
+  return ["none"];
+};
+
+// ============================================================
+// ✅ TEMPLATE MANAGEMENT (SIMPLIFIED)
+// ============================================================
 let allTemplates = [];
 
-// ✅ Load templates from backend/templates.json
 function loadTemplates() {
   try {
     const rawData = fs.readFileSync(TEMPLATES_FILE, "utf8");
@@ -32,9 +39,7 @@ function loadTemplates() {
     } else {
       allTemplates = data;
     }
-    console.log(
-      `📋 Loaded ${allTemplates.length} templates from ${TEMPLATES_FILE}`,
-    );
+    console.log(`📋 Loaded ${allTemplates.length} templates`);
     return allTemplates;
   } catch (error) {
     console.error("❌ Error loading templates:", error.message);
@@ -43,80 +48,54 @@ function loadTemplates() {
   }
 }
 
-// ✅ Get template that matches EXACT photo count with rotation
-function getTemplateByExactPhotoCount(imageCount) {
+// ✅ SIMPLIFIED: Get template by ID or matching photo count
+function getTemplateForImages(imageCount, requestedId = null) {
   if (allTemplates.length === 0) loadTemplates();
 
-  let matchingTemplates = allTemplates.filter(
-    (t) => t.minPhotos === imageCount && t.maxPhotos === imageCount,
-  );
+  // If specific template requested, try to find it
+  if (requestedId) {
+    const template = allTemplates.find((t) => t.id === requestedId);
+    if (template) {
+      console.log(`🎯 Using requested template: ${template.name}`);
+      return template;
+    }
+    console.log(`⚠️ Template ${requestedId} not found, using fallback`);
+  }
+
+  // Find matching templates by photo count
+  let matchingTemplates = allTemplates.filter((t) => {
+    const min = t.minPhotos || 1;
+    const max = t.maxPhotos || 999;
+    return imageCount >= min && imageCount <= max;
+  });
 
   if (matchingTemplates.length === 0) {
-    matchingTemplates = allTemplates.filter(
-      (t) =>
-        (!t.minPhotos || imageCount >= t.minPhotos) &&
-        (!t.maxPhotos || imageCount <= t.maxPhotos),
-    );
     console.log(
-      `⚠️ No exact match, using range filter (${matchingTemplates.length} templates)`,
+      `⚠️ No template matches ${imageCount} photos, using all templates`,
     );
-  }
-
-  if (matchingTemplates.length === 0) {
     matchingTemplates = allTemplates;
-    console.log(`⚠️ No match found, using all templates`);
   }
 
+  // ✅ Random selection (no rotation complexity)
+  const selected =
+    matchingTemplates[Math.floor(Math.random() * matchingTemplates.length)];
   console.log(
-    `📋 Found ${matchingTemplates.length} templates for ${imageCount} photos`,
+    `🎯 Selected: ${selected.name} (${selected.id}) for ${imageCount} photos`,
   );
-
-  if (
-    templateHistory.length === 0 ||
-    templateHistory.length >= matchingTemplates.length
-  ) {
-    templateHistory = matchingTemplates.sort(() => Math.random() - 0.5);
-    templateIndex = -1;
-    console.log("🔄 Refreshed template queue");
-  }
-
-  templateIndex++;
-  const selected = templateHistory[templateIndex % templateHistory.length];
-
-  console.log(
-    `🎯 Template ${templateIndex + 1}/${templateHistory.length}: ${selected.name}`,
-  );
-  console.log(`📸 Fixed photos: ${selected.minPhotos}-${selected.maxPhotos}`);
-
   return selected;
 }
 
-// ✅ Reset rotation
-function resetTemplateRotation() {
-  templateHistory = [];
-  templateIndex = -1;
-  loadTemplates();
-  console.log("🔄 Template rotation reset");
-}
+// Load templates on startup
+loadTemplates();
 
-resetTemplateRotation();
-
-// ============================================
-// ✅ GET ALL TEMPLATES (ADD THIS!)
-// ============================================
+// ============================================================
+// ✅ GET ALL TEMPLATES
+// ============================================================
 exports.getAllTemplates = async (req, res) => {
   try {
     const rawData = fs.readFileSync(TEMPLATES_FILE, "utf8");
     const data = JSON.parse(rawData);
-
-    let templates = [];
-    if (Array.isArray(data)) {
-      templates = data;
-    } else if (data.templates) {
-      templates = data.templates;
-    } else {
-      templates = data;
-    }
+    let templates = Array.isArray(data) ? data : data.templates || data;
 
     res.status(200).json({
       success: true,
@@ -129,16 +108,11 @@ exports.getAllTemplates = async (req, res) => {
   }
 };
 
-// ============================================
-// ✅ GENERATE REEL (With Remotion + FFmpeg)
-// ============================================
+// ============================================================
+// ✅ GENERATE REEL
+// ============================================================
 exports.generateReel = async (req, res) => {
   try {
-    const makeArray = (val) => {
-      if (Array.isArray(val)) return val;
-      if (typeof val === "string") return [val];
-      return ["none"];
-    };
     console.log("\n╔═══════════════════════════════════════════════════╗");
     console.log("║         🎬  REEL GENERATION STARTED             ║");
     console.log("╚═══════════════════════════════════════════════════╝");
@@ -152,11 +126,8 @@ exports.generateReel = async (req, res) => {
     const photoCount = images.length;
     console.log(`\n📸 INPUT DETAILS:`);
     console.log(`   ├── Total Images: ${photoCount}`);
-    console.log(`   ├── Template ID Requested: ${templateId || "auto-rotate"}`);
-    console.log(`   ├── Image Paths: ${images.length} files`);
-    images.forEach((img, i) => {
-      console.log(`   │   └── Image ${i + 1}: ${path.basename(img)}`);
-    });
+    console.log(`   ├── Template ID: ${templateId || "auto"}`);
+    console.log(`   └── Images: ${images.length} files`);
 
     // ✅ Convert to absolute paths
     const absolutePaths = images.map((img) => {
@@ -164,47 +135,23 @@ exports.generateReel = async (req, res) => {
       return path.join(process.cwd(), img);
     });
 
-    // ✅ Use requested templateId OR auto-rotate based on photo count
-    let selectedTemplate = null;
-    if (templateId) {
-      if (allTemplates.length === 0) loadTemplates();
-      selectedTemplate = allTemplates.find((t) => t.id === templateId);
-      if (selectedTemplate) {
-        console.log(
-          `\n🎯 Using selected template: ${selectedTemplate.name} (${templateId})`,
-        );
-      } else {
-        console.log(
-          `\n⚠️ Template ${templateId} not found, falling back to auto-rotate`,
-        );
-        selectedTemplate = getTemplateByExactPhotoCount(photoCount);
-      }
-    } else {
-      selectedTemplate = getTemplateByExactPhotoCount(photoCount);
-    }
+    // ✅ Get template
+    const selectedTemplate = getTemplateForImages(photoCount, templateId);
 
     console.log(`\n📐 TEMPLATE DETAILS:`);
     console.log(`   ├── ID: ${selectedTemplate.id}`);
     console.log(`   ├── Name: ${selectedTemplate.name}`);
     console.log(
-      `   ├── Photos: ${selectedTemplate.minPhotos}-${selectedTemplate.maxPhotos}`,
-    );
-
-    // Safe handling for transitions, effects, and colorGrades (Array or String)
-    const getSafeString = (val) => {
-      if (Array.isArray(val)) return val.join(", ");
-      if (typeof val === "string") return val;
-      return "none";
-    };
-
-    console.log(
-      `   ├── Transitions: ${getSafeString(selectedTemplate.transitions || "fade")}`,
+      `   ├── Photos: ${selectedTemplate.minPhotos || 1}-${selectedTemplate.maxPhotos || 999}`,
     );
     console.log(
-      `   ├── Effects: ${getSafeString(selectedTemplate.effects || "none")}`,
+      `   ├── Transitions: ${makeArray(selectedTemplate.transitions).join(", ")}`,
     );
     console.log(
-      `   ├── Color Grades: ${getSafeString(selectedTemplate.colorGrades || "none")}`,
+      `   ├── Effects: ${makeArray(selectedTemplate.effects).join(", ")}`,
+    );
+    console.log(
+      `   ├── Color Grades: ${makeArray(selectedTemplate.colorGrades).join(", ")}`,
     );
     console.log(
       `   ├── Vignette: ${selectedTemplate.vignette ? "✅ Yes" : "❌ No"}`,
@@ -213,35 +160,25 @@ exports.generateReel = async (req, res) => {
       `   ├── Collage: ${selectedTemplate.collage ? "✅ Yes" : "❌ No"}`,
     );
     console.log(
-      `   ├── Collage Type: ${selectedTemplate.collageType || "vertical"}`,
+      `   ├── Collage Type: ${selectedTemplate.collageType || "none"}`,
     );
     console.log(`   └── Quality: ${selectedTemplate.quality || "high"}`);
 
-    // ✅ Get music - ALWAYS pick a RANDOM song for each video (so har video me alag song ho)
+    // ✅ Get random music
     let musicPath = "";
     let musicFileName = "No Music";
 
     console.log(`\n🎵 Looking for MP3 files in: ${musicDir}`);
     const files = fs.readdirSync(musicDir).filter((f) => f.endsWith(".mp3"));
     console.log(`   🎵 MP3 files found: ${files.length}`);
-    files.forEach((f, i) => console.log(`   │   ${i + 1}. ${f}`));
 
     if (files.length > 0) {
-      // ✅ ALWAYS pick a random song - har video me alag alag song
       const randomFile = files[Math.floor(Math.random() * files.length)];
       musicPath = path.join(musicDir, randomFile);
       musicFileName = randomFile;
-      console.log(`\n🎵 MUSIC DETAILS:`);
-      console.log(
-        `   ├── Source: Random (${files.length} MP3 files available)`,
-      );
-      console.log(`   ├── File: ${randomFile}`);
-      console.log(`   ├── Path: ${musicPath}`);
-      console.log(`   └── Status: ✅ Found`);
+      console.log(`   ✅ Using: ${randomFile}`);
     } else {
-      console.log(`\n🎵 MUSIC DETAILS:`);
-      console.log(`   ├── Source: None`);
-      console.log(`   └── Status: ⚠️ No MP3 files found in music folder`);
+      console.log(`   ⚠️ No MP3 files found`);
     }
 
     const outputFilename = `reel_${uuidv4()}.mp4`;
@@ -249,7 +186,7 @@ exports.generateReel = async (req, res) => {
     const absoluteOutputPath = path.join(process.cwd(), outputPath);
 
     // ============================================================
-    // 🔥 CALCULATE DURATION (Min 16s - Max 33s)
+    // 🔥 DURATION CALCULATION (16s - 33s)
     // ============================================================
     const MIN_DURATION = 16.0;
     const MAX_DURATION = 33.0;
@@ -257,55 +194,40 @@ exports.generateReel = async (req, res) => {
     let estimatedTotal = photoCount * slideDuration;
 
     console.log(`\n⏱️ DURATION CALCULATION:`);
-    console.log(`   ├── Original Slide Duration: ${slideDuration}s`);
+    console.log(`   ├── Slide Duration: ${slideDuration}s`);
     console.log(`   ├── Images: ${photoCount}`);
-    console.log(`   ├── Estimated Total: ${estimatedTotal.toFixed(2)}s`);
-    console.log(`   ├── Minimum Required: ${MIN_DURATION}s`);
-    console.log(`   └── Maximum Allowed: ${MAX_DURATION}s`);
+    console.log(`   ├── Estimated: ${estimatedTotal.toFixed(2)}s`);
+    console.log(`   ├── Min: ${MIN_DURATION}s`);
+    console.log(`   └── Max: ${MAX_DURATION}s`);
 
     if (estimatedTotal < MIN_DURATION) {
       slideDuration = MIN_DURATION / photoCount;
-      console.log(
-        `\n📌 ADJUSTMENT: Increased to ${slideDuration.toFixed(2)}s (to meet ${MIN_DURATION}s minimum)`,
-      );
+      console.log(`   📌 Adjusted to ${slideDuration.toFixed(2)}s (min)`);
     } else if (estimatedTotal > MAX_DURATION) {
       slideDuration = MAX_DURATION / photoCount;
-      console.log(
-        `\n📌 ADJUSTMENT: Decreased to ${slideDuration.toFixed(2)}s (to stay under ${MAX_DURATION}s maximum)`,
-      );
+      console.log(`   📌 Adjusted to ${slideDuration.toFixed(2)}s (max)`);
     } else {
-      console.log(
-        `\n✅ No adjustment needed (within ${MIN_DURATION}s - ${MAX_DURATION}s range)`,
-      );
+      console.log(`   ✅ Within range`);
     }
 
     const totalDuration = photoCount * slideDuration;
-    console.log(`\n⏱️ FINAL DURATION:`);
-    console.log(`   ├── Slide Duration: ${slideDuration.toFixed(2)}s`);
-    console.log(`   ├── Total Duration: ${totalDuration.toFixed(2)}s`);
-    console.log(`   └── Status: ✅ Valid`);
+    console.log(`   ✅ Final: ${totalDuration.toFixed(2)}s`);
 
-    // ✅ Process images with updated slide duration
-
+    // ✅ Process images with duration
     const templateWithDuration = {
       ...selectedTemplate,
       slideDuration: slideDuration,
-      transitions: makeArray(selectedTemplate.transitions || "fade"),
-      effects: makeArray(selectedTemplate.effects || "none"),
-      colorGrades: makeArray(selectedTemplate.colorGrades || "none"),
+      transitions: makeArray(selectedTemplate.transitions),
+      effects: makeArray(selectedTemplate.effects),
+      colorGrades: makeArray(selectedTemplate.colorGrades),
     };
 
     console.log(`\n🖼️ IMAGE PROCESSING:`);
-    console.log(`   ├── Starting image processing...`);
-    console.log(`   └── Applying template: ${selectedTemplate.name}`);
-
     let processedImages = await imageService.processImages(
       absolutePaths,
       templateWithDuration,
     );
-    console.log(
-      `   ✅ ${processedImages.length} images processed successfully`,
-    );
+    console.log(`   ✅ ${processedImages.length} images processed`);
 
     // ============================================================
     // 🔥 COLLAGE CREATION
@@ -317,15 +239,12 @@ exports.generateReel = async (req, res) => {
         `   ├── Images per collage: ${selectedTemplate.imagesPerCollage || 3}`,
       );
       console.log(`   └── Creating collage...`);
-
-      // ✅ Check collage type
-      if (selectedTemplate.collageType === "circle") {
-        processedImages = await collageService.createCircleCollage(
+      if (selectedTemplate.collage) {
+        processedImages = await collageService.createCollage(
           processedImages,
           selectedTemplate,
         );
       } else {
-        // ✅ Default vertical collage
         processedImages = await collageService.createCollage(
           processedImages,
           selectedTemplate,
@@ -333,46 +252,24 @@ exports.generateReel = async (req, res) => {
       }
 
       console.log(`   ✅ ${processedImages.length} collage images created`);
-
-      // ✅ Log individual collage details
-      processedImages.forEach((img, i) => {
-        console.log(`   │   └── Collage ${i + 1}: ${path.basename(img)}`);
-      });
     }
 
     // ============================================================
-    // 🔥 GENERATE VIDEO WITH REMOTION + FFMPEG
+    // 🔥 GENERATE VIDEO
     // ============================================================
-    console.log(`\n╔═══════════════════════════════════════════════════╗`);
-    console.log(`║         🎬  VIDEO GENERATION PIPELINE           ║`);
-    console.log(`╚═══════════════════════════════════════════════════╝`);
-    console.log(`\n📊 PIPELINE SUMMARY:`);
+    console.log(`\n🚀 GENERATING VIDEO:`);
     console.log(`   ├── Images: ${processedImages.length}`);
     console.log(`   ├── Music: ${musicFileName}`);
-    console.log(`   ├── Music Path: ${musicPath || "None"}`);
     console.log(`   ├── Template: ${selectedTemplate.name}`);
-    console.log(`   ├── Slide Duration: ${slideDuration.toFixed(2)}s`);
-    console.log(`   ├── Total Duration: ${totalDuration.toFixed(2)}s`);
-
+    console.log(`   ├── Duration: ${totalDuration.toFixed(2)}s`);
     console.log(
-      `   ├── Transitions: ${makeArray(selectedTemplate.transitions || "fade")
-        .slice(0, 5)
-        .join(", ")}`,
+      `   ├── Transitions: ${makeArray(selectedTemplate.transitions).slice(0, 5).join(", ")}`,
     );
     console.log(
-      `   ├── Effects: ${makeArray(selectedTemplate.effects || "none")
-        .slice(0, 5)
-        .join(", ")}`,
+      `   ├── Effects: ${makeArray(selectedTemplate.effects).slice(0, 5).join(", ")}`,
     );
     console.log(`   └── Output: ${outputFilename}`);
 
-    console.log(`\n🚀 STARTING GENERATION:`);
-    console.log(
-      `   ├── Phase 1: 🎬 Remotion rendering (effects + transitions)`,
-    );
-    console.log(`   └── Phase 2: 🎵 FFmpeg adding music`);
-
-    // 🔥 Generate video with Remotion + FFmpeg
     await videoService.createReel(
       processedImages,
       musicPath,
@@ -384,14 +281,12 @@ exports.generateReel = async (req, res) => {
       throw new Error("Video file was not created!");
     }
 
-    // ✅ Get file size
     const stats = fs.statSync(absoluteOutputPath);
     const fileSizeMB = (stats.size / 1024 / 1024).toFixed(2);
 
-    console.log(`\n✅ VIDEO GENERATION COMPLETED:`);
+    console.log(`\n✅ VIDEO GENERATED:`);
     console.log(`   ├── File: ${outputFilename}`);
     console.log(`   ├── Size: ${fileSizeMB} MB`);
-    console.log(`   ├── Duration: ${totalDuration.toFixed(2)}s`);
     console.log(`   └── Status: ✅ Success`);
 
     // ✅ Save to MongoDB
@@ -405,28 +300,15 @@ exports.generateReel = async (req, res) => {
     });
     await newReel.save();
 
-    const remaining = templateHistory.length - templateIndex - 1;
-
-    console.log(`\n╔═══════════════════════════════════════════════════╗`);
-    console.log(`║         ✅  REEL GENERATION COMPLETED           ║`);
-    console.log(`╚═══════════════════════════════════════════════════╝`);
-    console.log(`\n📋 FINAL DETAILS:`);
-    console.log(`   ├── Reel ID: ${newReel._id}`);
+    console.log(`\n✅ REEL SAVED:`);
+    console.log(`   ├── ID: ${newReel._id}`);
     console.log(`   ├── URL: /generated/${outputFilename}`);
     console.log(`   ├── Template: ${selectedTemplate.name}`);
-    console.log(`   ├── Music: ${musicFileName}`);
-    console.log(`   ├── Duration: ${totalDuration.toFixed(2)}s`);
-    console.log(`   ├── Images: ${photoCount}`);
-    console.log(
-      `   └── Template Progress: ${templateIndex + 1}/${templateHistory.length} (${remaining} remaining)`,
-    );
-    console.log(`\n╔═══════════════════════════════════════════════════╗`);
-    console.log(`║         🎬  READY FOR DOWNLOAD                  ║`);
-    console.log(`╚═══════════════════════════════════════════════════╝\n`);
+    console.log(`   └── Music: ${musicFileName}`);
 
     res.status(200).json({
       success: true,
-      message: "✅ Reel generated with Remotion + FFmpeg!",
+      message: "✅ Reel generated successfully!",
       url: `/generated/${outputFilename}`,
       reelId: newReel._id,
       usedTemplate: selectedTemplate.name,
@@ -435,35 +317,28 @@ exports.generateReel = async (req, res) => {
       photoCount: images.length,
       duration: totalDuration.toFixed(2),
       fileSizeMB: fileSizeMB,
-      templateProgress: {
-        current: templateIndex + 1,
-        total: templateHistory.length,
-        remaining: remaining,
-      },
       templateDetails: {
         id: selectedTemplate.id,
         name: selectedTemplate.name,
-        fixedPhotos: `${selectedTemplate.minPhotos}-${selectedTemplate.maxPhotos}`,
         slideDuration: slideDuration.toFixed(2),
-        transitions: selectedTemplate.transitions || ["fade"],
-        effects: selectedTemplate.effects || ["none"],
-        colorGrades: selectedTemplate.colorGrades || ["none"],
+        transitions: makeArray(selectedTemplate.transitions),
+        effects: makeArray(selectedTemplate.effects),
+        colorGrades: makeArray(selectedTemplate.colorGrades),
         collage: selectedTemplate.collage || false,
-        collageType: selectedTemplate.collageType || "vertical",
+        collageType: selectedTemplate.collageType || "none",
       },
     });
   } catch (error) {
-    console.error(`\n❌ ERROR IN REEL GENERATION:`);
+    console.error(`\n❌ ERROR:`);
     console.error(`   ├── Message: ${error.message}`);
-    console.error(`   ├── Stack: ${error.stack}`);
-    console.error(`   └── Time: ${new Date().toISOString()}`);
+    console.error(`   └── Stack: ${error.stack}`);
     res.status(500).json({ error: error.message });
   }
 };
 
-// ============================================
+// ============================================================
 // ✅ GET ALL REELS
-// ============================================
+// ============================================================
 exports.getAllReels = async (req, res) => {
   try {
     const reels = await Reel.find().sort({ createdAt: -1 }).limit(50);
@@ -474,9 +349,9 @@ exports.getAllReels = async (req, res) => {
   }
 };
 
-// ============================================
+// ============================================================
 // ✅ GET LATEST REEL
-// ============================================
+// ============================================================
 exports.getLatestReel = async (req, res) => {
   try {
     const latestReel = await Reel.findOne().sort({ createdAt: -1 });
@@ -488,18 +363,20 @@ exports.getLatestReel = async (req, res) => {
   }
 };
 
-// ============================================
+// ============================================================
 // ✅ DELETE REEL
-// ============================================
+// ============================================================
 exports.deleteReel = async (req, res) => {
   try {
     const { id } = req.params;
     const reel = await Reel.findById(id);
     if (!reel) return res.status(404).json({ error: "Reel not found" });
 
+    // Delete video file
     const videoPath = path.join(__dirname, "..", reel.videoUrl);
     if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
 
+    // Delete image files
     if (reel.imagePaths) {
       reel.imagePaths.forEach((imgPath) => {
         const fullPath = path.join(__dirname, "..", imgPath);
@@ -516,19 +393,3 @@ exports.deleteReel = async (req, res) => {
     res.status(500).json({ error: "Failed to delete reel" });
   }
 };
-
-// ============================================
-// ✅ GENERATE REEL (Shotstack - placeholder)
-// ============================================
-exports.generateReelWithShotstack = async (req, res) => {
-  res.status(501).json({ error: "Shotstack not implemented" });
-};
-
-// ✅ Export for testing
-exports.getTemplateQueue = () => ({
-  history: templateHistory,
-  currentIndex: templateIndex,
-  remaining: templateHistory.length - templateIndex - 1,
-  total: templateHistory.length,
-});
-exports.resetTemplateRotation = resetTemplateRotation;

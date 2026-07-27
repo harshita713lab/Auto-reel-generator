@@ -4,13 +4,12 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import fs from 'fs';
-import os from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // ============================================================
-// 🔥 COMMAND LINE ARGUMENTS PARSING
+// ✅ COMMAND LINE ARGUMENTS
 // ============================================================
 const args = process.argv.slice(2);
 const dataFilePath = args[0]?.replace(/^"|"$/g, '');
@@ -22,7 +21,7 @@ if (!dataFilePath || !outputPath) {
 }
 
 // ============================================================
-// 🔥 READ DATA FROM FILE
+// ✅ READ DATA
 // ============================================================
 let data;
 try {
@@ -35,54 +34,54 @@ try {
 
 const { images, template } = data;
 
-console.log(`📸 Rendering ${images.length} images with Remotion...`);
-console.log(`📐 Template: ${template.name || 'Unnamed'}`);
-console.log(`⏱️ Duration: ${template.totalDuration || images.length * template.slideDuration}s`);
-console.log(`🎨 Effects: ${template.effects?.join(', ') || 'none'}`);
-console.log(`🎬 Transitions: ${template.transitions?.join(', ') || 'none'}`);
+console.log(`\n╔═══════════════════════════════════════════════════╗`);
+console.log(`║         🎬  REMOTION RENDER STARTED             ║`);
+console.log(`╚═══════════════════════════════════════════════════╝`);
+console.log(`   ├── Images: ${images.length}`);
+console.log(`   ├── Template: ${template.name || 'Unnamed'}`);
+console.log(`   ├── Duration: ${template.totalDuration || images.length * template.slideDuration}s`);
+console.log(`   ├── Effects: ${template.effects?.join(', ') || 'none'}`);
+console.log(`   ├── Transitions: ${template.transitions?.join(', ') || 'none'}`);
+console.log(`   └── Output: ${path.basename(outputPath)}`);
 
 // ============================================================
-// 🔥 DISABLE GPU - SOFTWARE ENCODING (FIX FOR EBADF)
+// ✅ STABLE CHROMIUM OPTIONS (GPU DISABLED - Prevents EBADF)
 // ============================================================
-console.log(`💻 Using Software Encoding (libx264) - GPU Disabled`);
-
-// Chromium options with GPU DISABLED
 const chromiumOptions = {
-    enableGpu: false,              // ✅ GPU OFF
-    hardwareAcceleration: false,    // ✅ Hardware acceleration OFF
-    gl: 'swiftshader',             // ✅ Software renderer
+    enableGpu: false,
+    hardwareAcceleration: false,
+    gl: 'swiftshader',
     args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-gpu',            // ✅ Disable GPU
+        '--disable-gpu',
         '--disable-software-rasterizer',
         '--disable-accelerated-2d-canvas',
         '--disable-accelerated-video-decode',
         '--disable-gpu-sandbox',
-        '--use-gl=swiftshader',     // ✅ Software GL
+        '--use-gl=swiftshader',
         '--single-process',
         '--max_old_space_size=8192',
     ],
 };
 
 // ============================================================
-// 🔥 MAIN RENDER FUNCTION
+// ✅ MAIN RENDER FUNCTION
 // ============================================================
 try {
-    // Step 1: Bundle the Remotion project
+    // Step 1: Bundle
+    console.log(`\n📦 Bundling Remotion project...`);
     const bundleLocation = await bundle({
         entryPoint: path.join(__dirname, 'src/index.tsx'),
         webpackOverride: (config) => config,
     });
-    console.log(`📦 Bundle created at: ${bundleLocation}`);
+    console.log(`   ✅ Bundle created`);
 
-    const serveUrl = bundleLocation;
-    console.log(`🔗 Serve URL: ${serveUrl}`);
-
-    // Step 2: Select the composition
+    // Step 2: Select composition
+    console.log(`\n🎬 Selecting composition...`);
     const composition = await selectComposition({
-        serveUrl: serveUrl,
+        serveUrl: bundleLocation,
         id: 'ReelComposition',
         inputProps: {
             images: images,
@@ -90,17 +89,18 @@ try {
             totalDuration: template.totalDuration || images.length * template.slideDuration,
             numImages: images.length,
         },
-        chromiumOptions: chromiumOptions,  // ✅ Add this
-        offthreadVideoServer: false,       // ✅ IMPORTANT: Prevent offthread process
+        chromiumOptions: chromiumOptions,
+        offthreadVideoServer: false,
     });
-    console.log(`🎬 Composition selected: ${composition.id}`);
+    console.log(`   ✅ Composition selected: ${composition.id}`);
 
-    // Step 3: Render the media - SOFTWARE ENCODING
+    // Step 3: Render
+    console.log(`\n🎬 Rendering video...`);
     const renderOptions = {
         composition,
-        serveUrl: serveUrl,
+        serveUrl: bundleLocation,
         codec: 'h264',
-        encoder: 'libx264',              // ✅ Software encoder (FIX)
+        encoder: 'libx264',              // CPU encoding (stable)
         outputLocation: outputPath,
         inputProps: {
             images: images,
@@ -111,18 +111,31 @@ try {
         pixelFormat: 'yuv420p',
         imageFormat: 'jpeg',
         jpegQuality: 80,
-        concurrency: 1,                  // ✅ Single process (more stable)
+        concurrency: 1,                  // Single process (stable)
         chromiumOptions: chromiumOptions,
-        offthreadVideoServer: false,     // ✅ CRITICAL: Prevents EBADF error
+        offthreadVideoServer: false,     // Prevents EBADF
         timeoutInMilliseconds: 300000,
-        gpuAcceleration: false,          // ✅ GPU OFF
+        gpuAcceleration: false,          // GPU OFF
     };
 
     await renderMedia(renderOptions);
 
-    console.log(`✅ Remotion rendered successfully: ${outputPath}`);
+    // ✅ Verify output
+    if (fs.existsSync(outputPath)) {
+        const stats = fs.statSync(outputPath);
+        const fileSizeMB = (stats.size / 1024 / 1024).toFixed(2);
+        console.log(`\n╔═══════════════════════════════════════════════════╗`);
+        console.log(`║         ✅  REMOTION RENDER COMPLETED           ║`);
+        console.log(`╚═══════════════════════════════════════════════════╝`);
+        console.log(`   ├── File: ${path.basename(outputPath)}`);
+        console.log(`   ├── Size: ${fileSizeMB} MB`);
+        console.log(`   └── Status: ✅ Success`);
+    }
+
     process.exit(0);
 } catch (err) {
-    console.error('❌ Remotion render failed:', err);
+    console.error(`\n❌ Remotion render failed:`);
+    console.error(`   ├── Message: ${err.message}`);
+    console.error(`   └── Stack: ${err.stack}`);
     process.exit(1);
 }
