@@ -14,14 +14,29 @@ const EFFECT_STYLES: Record<string, EffectFn> = {
   'none': () => ({}),
   
   // 🌟 TUMHARA - Advanced Zoom Effects
+
+
+
+  
   'zoomin': (frame, duration) => {
     const scale = interpolate(frame, [0, duration * 0.1, duration * 0.9, duration], [0.8, 1.15, 1.15, 1.0]);
     return { transform: `scale(${scale})` };
   },
-  'zoomout': (frame, duration) => {
-    const scale = interpolate(frame, [0, duration * 0.1, duration * 0.9, duration], [1.2, 1.0, 1.0, 1.05]);
-    return { transform: `scale(${scale})` };
-  },
+'zoomInOut': (frame, duration) => {
+  const half = duration / 2;
+
+  const scale =
+    frame < half
+      ? interpolate(frame,[0,half],[1,1.18])
+      : interpolate(frame,[half,duration],[1.18,1.05]);
+
+  const rotate =
+      Math.sin(frame*0.03)*0.6;
+
+  return{
+      transform:`scale(${scale}) rotate(${rotate}deg)`
+  };
+},
   
   // 🌟 TANISHA - Basic Zoom Effects
   'zoom-in': (frame, duration) => ({

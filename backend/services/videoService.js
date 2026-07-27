@@ -4,6 +4,7 @@ const path = require("path");
 const fs = require("fs");
 const ffmpeg = require("fluent-ffmpeg");
 const crypto = require("crypto");
+const { createCollage } = require('./collageService'); // Apne collage.js ka sahi path dein
 
 // ============================================================
 // ✅ CACHE SYSTEM (TUMHARA)
@@ -309,8 +310,17 @@ function renderWithRemotion(
 ) {
   return new Promise((resolve, reject) => {
     const numImages = imagePaths.length;
-    const effects = template.effects || ["zoomin"];
-    const transitions = template.transitions || ["fade"];
+const effects = Array.isArray(template.effects)
+  ? template.effects
+  : [template.effects || "zoomin"];
+
+const transitions = Array.isArray(template.transitions)
+  ? template.transitions
+  : [template.transitions || "fade"];
+
+const colorGrades = Array.isArray(template.colorGrades)
+  ? template.colorGrades
+  : [template.colorGrades].filter(Boolean);
 
     console.log(`\n🎬 REMOTION RENDER:`);
     console.log(`   ├── Images: ${numImages}`);
@@ -323,7 +333,7 @@ function renderWithRemotion(
     console.log(`   └── Status: Rendering...`);
 
     // ✅ TANISHA: Properly map color grades to each image
-    const colorGrades = template.colorGrades || [];
+ 
     const mappedColorGrades = [];
     for (let i = 0; i < numImages; i++) {
       mappedColorGrades.push(colorGrades[i % colorGrades.length] || null);
@@ -574,21 +584,41 @@ exports.createReel = async (imagePaths, musicPath, template, outputPath) => {
       throw new Error("No valid images found!");
     }
 
-    const numImages = validImages.length;
+    
 
+
+    // 🔥 FIX: Agar template mein collage true hai, toh images ko collage mein convert karein!
+    let processedImages = validImages;
+    if (template.collage && typeof createCollage === 'function') {
+      console.log(`\n🧩 COLLAGE DETECTED: Creating ${template.collageType || 'horizontal'} collage...`);
+      processedImages = await createCollage(validImages, template);
+      console.log(`    ✅ Collage created successfully. Total frames for Remotion: ${processedImages.length}`);
+    }
+
+    const numImages = processedImages.length;
     // ✅ TANISHA: Template details
     console.log(`\n📐 TEMPLATE DETAILS:`);
     console.log(`   ├── Name: ${template.name || "Unnamed"}`);
     console.log(`   ├── ID: ${template.id || "N/A"}`);
     console.log(`   ├── Width: ${template.width || 1080}`);
     console.log(`   ├── Height: ${template.height || 1920}`);
-    console.log(
-      `   ├── Transitions: ${(template.transitions || ["fade"]).join(", ")}`,
-    );
-    console.log(`   ├── Effects: ${(template.effects || ["none"]).join(", ")}`);
-    console.log(
-      `   ├── Color Grades: ${(template.colorGrades || ["none"]).join(", ")}`,
-    );
+ 
+const formatList = (val) => {
+  if (Array.isArray(val)) return val.join(", ");
+
+  if (typeof val === "string")
+    return val;
+
+  if (val == null)
+    return "none";
+
+  return String(val);
+};
+    console.log(`   ├── Transitions: ${formatList(template.transitions || "fade")}`);
+    console.log(`   ├── Effects: ${formatList(template.effects || "none")}`);
+console.log(
+  `   ├── Color Grades: ${formatList(template.colorGrades || "none")}`
+);
     console.log(`   └── Vignette: ${template.vignette ? "Yes" : "No"}`);
 
     const { slideDuration, totalDuration } = calculateDuration(
@@ -616,7 +646,7 @@ exports.createReel = async (imagePaths, musicPath, template, outputPath) => {
     }
 
     await renderWithRemotion(
-      validImages,
+      processedImages,
       template,
       slideDuration,
       tempVideoPath,

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify'; // ✅ Import
 import 'react-toastify/dist/ReactToastify.css';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://localhost:5000/api';
 
 function ReelsGrid() {
     const [reels, setReels] = useState([]);
@@ -30,7 +30,7 @@ function ReelsGrid() {
 
     const handleDownload = async (videoUrl, filename) => {
         try {
-            const fullUrl = `http://localhost:3000${videoUrl}`;
+            const fullUrl = `http://localhost:5000${videoUrl}`;
             const response = await fetch(fullUrl);
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
@@ -94,7 +94,7 @@ function ReelsGrid() {
                             muted 
                             style={{ width: '100%', borderRadius: '8px' }}
                         >
-                            <source src={`http://localhost:3000${reel.videoUrl}`} type="video/mp4" />
+                            <source src={`http://localhost:5000${reel.videoUrl}`} type="video/mp4" />
                         </video>
                     </div>
                     <div className="reel-info">

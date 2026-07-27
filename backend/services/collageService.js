@@ -10,7 +10,7 @@ exports.createCollage = async (imagePaths, template) => {
   const width = template.width || 1080;
   const height = template.height || 1920;
   const imagesPerCollage = template.imagesPerCollage || 2;
-  const collageType = template.collageType || 'horizontal';
+  const collageType = template.collageType || 'vertical'; // 'vertical' or 'horizontal'
 
   // Group images into collage frames
   const collageGroups = [];

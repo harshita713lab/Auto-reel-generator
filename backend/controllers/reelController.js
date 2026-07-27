@@ -121,6 +121,11 @@ exports.getAllTemplates = async (req, res) => {
 // ============================================
 exports.generateReel = async (req, res) => {
   try {
+      const makeArray = (val) => {
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string') return [val];
+      return ['none'];
+    };
     console.log('\n╔═══════════════════════════════════════════════════╗');
     console.log('║         🎬  REEL GENERATION STARTED             ║');
     console.log('╚═══════════════════════════════════════════════════╝');
@@ -161,13 +166,21 @@ exports.generateReel = async (req, res) => {
       selectedTemplate = getTemplateByExactPhotoCount(photoCount);
     }
     
-    console.log(`\n📐 TEMPLATE DETAILS:`);
+console.log(`\n📐 TEMPLATE DETAILS:`);
     console.log(`   ├── ID: ${selectedTemplate.id}`);
     console.log(`   ├── Name: ${selectedTemplate.name}`);
     console.log(`   ├── Photos: ${selectedTemplate.minPhotos}-${selectedTemplate.maxPhotos}`);
-    console.log(`   ├── Transitions: ${(selectedTemplate.transitions || ['fade']).join(', ')}`);
-    console.log(`   ├── Effects: ${(selectedTemplate.effects || ['none']).join(', ')}`);
-    console.log(`   ├── Color Grades: ${(selectedTemplate.colorGrades || ['none']).join(', ')}`);
+    
+    // Safe handling for transitions, effects, and colorGrades (Array or String)
+    const getSafeString = (val) => {
+      if (Array.isArray(val)) return val.join(', ');
+      if (typeof val === 'string') return val;
+      return 'none';
+    };
+
+    console.log(`   ├── Transitions: ${getSafeString(selectedTemplate.transitions || 'fade')}`);
+    console.log(`   ├── Effects: ${getSafeString(selectedTemplate.effects || 'none')}`);
+    console.log(`   ├── Color Grades: ${getSafeString(selectedTemplate.colorGrades || 'none')}`);
     console.log(`   ├── Vignette: ${selectedTemplate.vignette ? '✅ Yes' : '❌ No'}`);
     console.log(`   ├── Collage: ${selectedTemplate.collage ? '✅ Yes' : '❌ No'}`);
     console.log(`   ├── Collage Type: ${selectedTemplate.collageType || 'vertical'}`);
@@ -234,10 +247,14 @@ exports.generateReel = async (req, res) => {
     console.log(`   └── Status: ✅ Valid`);
 
     // ✅ Process images with updated slide duration
-    const templateWithDuration = {
-      ...selectedTemplate,
-      slideDuration: slideDuration
-    };
+  
+  const templateWithDuration = {
+  ...selectedTemplate,
+  slideDuration: slideDuration,
+  transitions: makeArray(selectedTemplate.transitions || "fade"),
+  effects: makeArray(selectedTemplate.effects || "none"),
+  colorGrades: makeArray(selectedTemplate.colorGrades || "none"),
+};
     
     console.log(`\n🖼️ IMAGE PROCESSING:`);
     console.log(`   ├── Starting image processing...`);
@@ -278,8 +295,10 @@ exports.generateReel = async (req, res) => {
     console.log(`   ├── Template: ${selectedTemplate.name}`);
     console.log(`   ├── Slide Duration: ${slideDuration.toFixed(2)}s`);
     console.log(`   ├── Total Duration: ${totalDuration.toFixed(2)}s`);
-    console.log(`   ├── Transitions: ${(selectedTemplate.transitions || ['fade']).slice(0, 5).join(', ')}`);
-    console.log(`   ├── Effects: ${(selectedTemplate.effects || ['none']).slice(0, 5).join(', ')}`);
+
+
+    console.log(`   ├── Transitions: ${makeArray(selectedTemplate.transitions || 'fade').slice(0, 5).join(', ')}`);
+    console.log(`   ├── Effects: ${makeArray(selectedTemplate.effects || 'none').slice(0, 5).join(', ')}`);
     console.log(`   └── Output: ${outputFilename}`);
 
     console.log(`\n🚀 STARTING GENERATION:`);
