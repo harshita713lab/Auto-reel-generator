@@ -3,9 +3,13 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const fs = require('fs');
-const connectDB = require('./config');
-const uploadRoutes = require('./routes/upload');
-const reelRoutes = require('./routes/reel');
+const connectDB = require('./src/config/db');
+const uploadRoutes = require('./src/routes/uploadRoutes');
+const reelRoutes = require('./src/routes/reelRoutes');
+const templateRoutes = require('./src/routes/templateRoutes');
+const renderRoutes = require('./src/routes/renderRoutes');
+const musicRoutes = require('./src/routes/musicRoutes');
+const healthRoutes = require('./src/routes/healthRoutes');
 const cors = require('cors');
 
 const app = express();
@@ -14,8 +18,8 @@ const PORT = process.env.PORT || 5000;
 // ============================================================
 // ✅ 1. FOLDERS CREATE KARO
 // ============================================================
-const uploadDir = process.env.UPLOAD_DIR || './uploads/temp';
-const generatedDir = process.env.GENERATED_DIR || './generated/reels';
+const uploadDir = path.join(__dirname, 'uploads/temp');
+const generatedDir = path.join(__dirname, 'generated/reels');
 const publicDir = path.join(__dirname, 'public');
 
 // ✅ FIXED: Proper static folder serving
@@ -24,9 +28,9 @@ if (!fs.existsSync(generatedDir)) fs.mkdirSync(generatedDir, { recursive: true }
 if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
 
 // ✅ FIXED: Better static file serving
-app.use('/uploads/temp', express.static(path.join(__dirname, 'uploads/temp')));
+app.use('/uploads/temp', express.static(uploadDir));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/generated', express.static(path.join(__dirname, 'generated/reels')));
+app.use('/generated', express.static(generatedDir));
 app.use('/public', express.static(publicDir));
 
 // ============================================================
@@ -42,7 +46,7 @@ app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
 // Static: Frontend public files
-app.use(express.static(path.join(__dirname, '../frontend/public')));
+app.use(express.static(path.join(__dirname, '../Frontend/public')));
 
 // ============================================================
 // ✅ 4. ROUTES
@@ -65,6 +69,10 @@ app.get('/', (req, res) => {
 // ✅ API Routes
 app.use('/api/upload', uploadRoutes);
 app.use('/api/reel', reelRoutes);
+app.use('/api/templates', templateRoutes);
+app.use('/api/render', renderRoutes);
+app.use('/api/music', musicRoutes);
+app.use('/api/health', healthRoutes);
 
 // ✅ Test API route
 app.get('/api/test', (req, res) => {

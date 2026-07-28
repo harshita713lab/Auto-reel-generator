@@ -1,9 +1,8 @@
 import { Composition } from 'remotion';
-import { ReelComposition } from './ReelComposition';
-import type { ReelProps } from './types';
+import { WeddingComposition } from './compositions/Wedding/WeddingComposition';
 
 // 🔥 Default props for preview
-const defaultProps: ReelProps = {
+const defaultProps = {
   images: [],
   template: {
     name: 'Default Template',
@@ -24,14 +23,14 @@ export const Root: React.FC = () => {
   return (
     <Composition
       id="ReelComposition"
-      component={ReelComposition as any}
+      component={WeddingComposition as any}
       fps={30}
       width={1080}
       height={1920}
       defaultProps={defaultProps}
       // 🔥 FIX: props ko pehle 'unknown' mein cast kiya taaki TypeScript error na de
       calculateMetadata={async ({ props }) => {
-        const typedProps = props as unknown as ReelProps;
+        const typedProps = props as unknown as typeof defaultProps;
         
         const duration = typedProps.totalDuration || (typedProps.images.length * (typedProps.template?.slideDuration || 3));
         const fps = 30;
