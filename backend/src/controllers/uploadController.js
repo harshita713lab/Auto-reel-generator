@@ -52,13 +52,14 @@ exports.uploadImages = async (req, res) => {
       }
     }
 
+    // ✅ FIX: Send `files` & `data` directly as array so Frontend extracts it seamlessly
     res.json({
       success: true,
-      data: {
-        uploaded: uploadedFiles,
-        errors: errors,
-        total: uploadedFiles.length,
-      },
+      files: uploadedFiles, // 👈 Frontend uploadData.files ise padhega
+      data: uploadedFiles,  // 👈 Fallback support
+      uploaded: uploadedFiles,
+      errors: errors,
+      total: uploadedFiles.length,
       message: `${uploadedFiles.length} images uploaded successfully`,
     });
   } catch (error) {
@@ -113,9 +114,10 @@ async function processUploadedImage(file) {
     return {
       filename,
       originalName: file.originalname,
-      path: imagePath,
+      path: imagePath.replace(/\\/g, '/'), // Normalizing slash for cross-platform
+      url: `/uploads/images/${filename}`,
       thumbnail: thumbnailFilename,
-      thumbnailPath,
+      thumbnailPath: thumbnailPath.replace(/\\/g, '/'),
       size: optimized.buffer.length,
       width: info.width,
       height: info.height,
@@ -177,7 +179,6 @@ exports.uploadMultipleImages = async (req, res) => {
           size: file.size,
         };
 
-        // Optimize if requested
         if (optimize === 'true') {
           const optimized = await optimizeImages.optimizeImage(file.path, {
             maxWidth: IMAGE_CONFIG.MAX_WIDTH,
@@ -190,25 +191,23 @@ exports.uploadMultipleImages = async (req, res) => {
           await fs.writeFile(savePath, optimized.buffer);
           
           processed.filename = filename;
-          processed.path = savePath;
+          processed.path = savePath.replace(/\\/g, '/');
+          processed.url = `/uploads/images/${filename}`;
           processed.optimizedSize = optimized.buffer.length;
           processed.width = optimized.width;
           processed.height = optimized.height;
 
-          // Generate thumbnail
           if (generateThumbnails === 'true') {
             const thumbnail = await thumbnailService.generateThumbnail(optimized.buffer);
             const thumbFilename = `thumb_${Date.now()}_${file.originalname}`;
             const thumbPath = path.join(DIRECTORIES.THUMBNAILS, thumbFilename);
             await fs.writeFile(thumbPath, thumbnail.buffer);
             processed.thumbnail = thumbFilename;
-            processed.thumbnailPath = thumbPath;
+            processed.thumbnailPath = thumbPath.replace(/\\/g, '/');
           }
         }
 
-        // Clean up temp file
         await fs.unlink(file.path).catch(() => {});
-
         results.push(processed);
       } catch (error) {
         results.push({
@@ -224,6 +223,7 @@ exports.uploadMultipleImages = async (req, res) => {
 
     res.json({
       success: true,
+      files: successful, // 👈 Added direct `files` key
       data: {
         successful,
         failed,
@@ -322,11 +322,9 @@ exports.deleteImage = async (req, res) => {
   try {
     const { filename } = req.params;
     
-    // Delete main image
     const imagePath = path.join(DIRECTORIES.IMAGES, filename);
     await fileService.deleteFile(imagePath);
 
-    // Delete thumbnail if exists
     const thumbPath = path.join(DIRECTORIES.THUMBNAILS, `thumb_${filename}`);
     await fileService.deleteFile(thumbPath).catch(() => {});
 
@@ -381,7 +379,6 @@ exports.getUploadHistory = async (req, res) => {
       IMAGE_CONFIG.ALLOWED_EXTENSIONS.includes(f.split('.').pop().toLowerCase())
     );
 
-    // Get file stats
     const fileData = await Promise.all(
       imageFiles.map(async (filename) => {
         const filePath = path.join(DIRECTORIES.IMAGES, filename);
@@ -392,7 +389,6 @@ exports.getUploadHistory = async (req, res) => {
           size: stats.size,
           createdAt: stats.birthtime,
           modifiedAt: stats.mtime,
-          // Check if thumbnail exists
           hasThumbnail: await fs.access(
             path.join(DIRECTORIES.THUMBNAILS, `thumb_${filename}`)
           ).then(() => true).catch(() => false),
@@ -400,10 +396,8 @@ exports.getUploadHistory = async (req, res) => {
       })
     );
 
-    // Sort by modified date descending
     fileData.sort((a, b) => b.modifiedAt - a.modifiedAt);
 
-    // Paginate
     const start = (parseInt(page) - 1) * parseInt(limit);
     const end = start + parseInt(limit);
     const paginated = fileData.slice(start, end);
