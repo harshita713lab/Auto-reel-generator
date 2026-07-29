@@ -4,7 +4,7 @@ const TemplateSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    unique: true,
+    unique: true,  // ✅ This automatically creates an index
     trim: true,
   },
   displayName: {
@@ -233,8 +233,12 @@ const TemplateSchema = new mongoose.Schema({
   },
 });
 
-// Indexes
-TemplateSchema.index({ name: 1 });
+// ============================================================
+// ✅ INDEXES - DUPLICATE REMOVED!
+// ============================================================
+// ❌ REMOVED: TemplateSchema.index({ name: 1 }); 
+// ✅ Because 'unique: true' on 'name' field already creates index
+// ============================================================
 TemplateSchema.index({ category: 1 });
 TemplateSchema.index({ popularity: -1 });
 TemplateSchema.index({ isActive: 1 });

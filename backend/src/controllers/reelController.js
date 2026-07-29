@@ -1,12 +1,36 @@
 const path = require('path');
 const fs = require('fs').promises;
 const Reel = require('../models/Reel');
-const Project = require('../models/Project');
 const Template = require('../models/Template');
 const templateService = require('../services/template/templateService');
 const renderService = require('../services/video/renderService');
 const logger = require('../utils/logger');
 const { RENDER_CONFIG } = require('../config/constants');
+
+/**
+ * Get Latest Reel (For Frontend LatestReel Component)
+ */
+exports.getLatestReel = async (req, res) => {
+  try {
+    const latestReel = await Reel.findOne().sort({ createdAt: -1 });
+
+    if (!latestReel) {
+      return res.status(200).json({ success: false, message: 'No reels found' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      reel: latestReel,
+    });
+  } catch (error) {
+    logger.error('Error fetching latest reel:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal Server Error',
+      message: error.message,
+    });
+  }
+};
 
 /**
  * Create a new reel
@@ -92,12 +116,12 @@ exports.createReel = async (req, res) => {
 exports.getAllReels = async (req, res) => {
   try {
     const { page = 1, limit = 20, status } = req.query;
-    
+
     const query = {};
     if (status) query.status = status;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    
+
     const [reels, total] = await Promise.all([
       Reel.find(query)
         .populate('template', 'name category')
@@ -110,7 +134,7 @@ exports.getAllReels = async (req, res) => {
 
     res.json({
       success: true,
-      data: reels,
+      reels: reels || [],
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -125,13 +149,6 @@ exports.getAllReels = async (req, res) => {
       message: error.message,
     });
   }
-};
-
-/**
- * Get single reel by ID (alias for routes)
- */
-exports.getReel = async (req, res) => {
-  return exports.getReelById(req, res);
 };
 
 /**
@@ -157,6 +174,8 @@ exports.getReelById = async (req, res) => {
   }
 };
 
+exports.getReel = exports.getReelById;
+
 /**
  * Update reel
  */
@@ -169,21 +188,18 @@ exports.updateReel = async (req, res) => {
       return res.status(404).json({ error: 'Reel not found' });
     }
 
-    // Prevent updates to rendering/rendered reels
     if (reel.status === 'rendering' || reel.status === 'rendered') {
       return res.status(400).json({
         error: 'Cannot update reel while rendering or already rendered',
       });
     }
 
-    // Update fields
-    Object.keys(updates).forEach(key => {
+    Object.keys(updates).forEach((key) => {
       if (key !== '_id' && key !== '__v') {
         reel[key] = updates[key];
       }
     });
 
-    // Reset status to draft
     reel.status = 'draft';
     await reel.save();
 
@@ -213,9 +229,7 @@ exports.deleteReel = async (req, res) => {
       return res.status(404).json({ error: 'Reel not found' });
     }
 
-    // Delete output files if rendered
     if (reel.outputPath) {
-      // Clean up files
       await renderService.cleanupReel(reel);
     }
 
@@ -246,7 +260,6 @@ exports.getPreview = async (req, res) => {
       return res.status(404).json({ error: 'Reel not found' });
     }
 
-    // Generate preview if not exists
     if (!reel.previewPath) {
       await renderService.generatePreview(reel);
     }
@@ -281,13 +294,11 @@ exports.processReel = async (req, res) => {
       return res.status(400).json({ error: 'Reel is already being processed' });
     }
 
-    // Update status to queued
     reel.status = 'queued';
     reel.progress = 0;
     await reel.save();
 
-    // Start processing asynchronously
-    renderService.renderReel(reel).catch(err => {
+    renderService.renderReel(reel).catch((err) => {
       logger.error('Reel processing failed:', err);
       reel.status = 'failed';
       reel.error = err.message;
@@ -322,12 +333,10 @@ exports.renderReel = async (req, res) => {
       return res.status(400).json({ error: 'Reel is already being rendered' });
     }
 
-    // Update status
     reel.status = 'rendering';
     reel.progress = 0;
     await reel.save();
 
-    // Start render
     const result = await renderService.renderReel(reel);
 
     reel.status = 'rendered';
@@ -346,8 +355,7 @@ exports.renderReel = async (req, res) => {
     });
   } catch (error) {
     logger.error('Failed to render reel:', error);
-    
-    // Update reel status to failed
+
     try {
       const reel = await Reel.findById(req.params.id);
       if (reel) {
@@ -380,15 +388,13 @@ exports.downloadReel = async (req, res) => {
       return res.status(400).json({ error: 'Reel has not been rendered yet' });
     }
 
-    // Check if file exists
     try {
       await fs.access(reel.outputPath);
     } catch {
       return res.status(404).json({ error: 'Output file not found' });
     }
 
-    // Increment download count
-    reel.downloadCount += 1;
+    reel.downloadCount = (reel.downloadCount || 0) + 1;
     await reel.save();
 
     res.download(reel.outputPath, `${reel.title}.mp4`);
