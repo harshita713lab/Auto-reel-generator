@@ -10,6 +10,15 @@ class FFmpegService {
   }
 
   /**
+   * Execute raw FFmpeg arguments (Fix for controller execute error)
+   * @param {string[]} args 
+   * @returns {Promise<any>}
+   */
+  async execute(args) {
+    return await ffmpegConfig.execute(args);
+  }
+
+  /**
    * Concatenate videos
    * @param {string[]} videos - Array of video paths
    * @param {string} outputPath - Output path

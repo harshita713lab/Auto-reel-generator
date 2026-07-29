@@ -37,9 +37,6 @@ exports.getLatestReel = async (req, res) => {
 /**
  * Create a new reel
  */
-/**
- * Create a new reel
- */
 exports.createReel = async (req, res) => {
   try {
     const {
@@ -95,9 +92,8 @@ exports.createReel = async (req, res) => {
       duration || RENDER_CONFIG.DEFAULT_SCENE_DURATION * images.length;
     const sceneDuration = totalDuration / images.length;
 
-    // 4. Safely format images array to match ImageSchema (filename, path, order required)
+    // 4. Safely format images array to match ImageSchema
     const formattedImages = images.map((img, index) => {
-      // Agar img object hai jisme path/filename hai:
       if (typeof img === "object" && img !== null) {
         const imagePath = img.path || img.url || "";
         const fileName = img.filename || imagePath.split("/").pop() || `image_${index}.jpg`;
@@ -113,7 +109,6 @@ exports.createReel = async (req, res) => {
         };
       }
 
-      // Agar img direct String (URL/Path) hai:
       const imagePath = String(img);
       const fileName = imagePath.split("/").pop() || `image_${index}.jpg`;
 
@@ -127,11 +122,19 @@ exports.createReel = async (req, res) => {
       };
     });
 
-    // 5. Build Reel Document Data
+    // 5. Select Music File and Resolve Path
+    const musicFileName = typeof musicId === 'string' && musicId.endsWith('.mp3') 
+      ? musicId 
+      : 'ReelAudio-1.mp3';
+
+    const selectedAudioPath = path.join(__dirname, '../../assets/music', musicFileName);
+
+    // 6. Build Reel Document Data
     const reelData = {
       title: title || "Untitled Reel",
       images: formattedImages,
       music: musicId && musicId.match(/^[0-9a-fA-F]{24}$/) ? musicId : null,
+      audioPath: selectedAudioPath,
       duration: totalDuration,
       config: {
         ...config,
@@ -144,7 +147,6 @@ exports.createReel = async (req, res) => {
       templateId: templateId || "simple_1",
     };
 
-    // Attach ObjectId template reference only if valid MongoDB document was found
     if (template && template._id) {
       reelData.template = template._id;
     }
@@ -154,36 +156,37 @@ exports.createReel = async (req, res) => {
 
     logger.info(`Reel document created: ${reel.title} (${reel._id}). Starting render...`);
 
-    // 6. Trigger rendering process (synchronously for simplicity, ideally this would be queued)
+    // 7. Trigger rendering process
     reel.status = 'rendering';
     reel.progress = 0;
-    await reel.save(); // Save status change
+    await reel.save();
 
     let renderResult;
     try {
-      renderResult = await renderService.renderReel(reel); // Call the actual rendering service
+      renderResult = await renderService.renderReel(reel, {
+        audioPath: selectedAudioPath
+      });
 
-      // Update reel with render results
       reel.status = 'rendered';
       reel.progress = 100;
       reel.outputPath = renderResult.outputPath;
       reel.previewPath = renderResult.previewPath;
       reel.thumbnailPath = renderResult.thumbnailPath;
       reel.renderedAt = new Date();
-      await reel.save(); // Save final render status and paths
+      await reel.save();
 
       logger.info(`Reel rendering completed: ${reel.title} (${reel._id})`);
     } catch (renderError) {
       logger.error(`Reel rendering failed for ${reel._id}:`, renderError);
       reel.status = 'failed';
       reel.error = renderError.message;
-      await reel.save(); // Save failed status
-      throw renderError; // Re-throw to be caught by the outer catch block
+      await reel.save();
+      throw renderError;
     }
 
     return res.status(201).json({
       success: true,
-      data: reel, // Return the fully updated reel object
+      data: reel,
       message: "Reel created and rendered successfully",
     });
   } catch (error) {
