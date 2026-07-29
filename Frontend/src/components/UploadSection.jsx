@@ -62,8 +62,8 @@ function UploadSection() {
 
     const handleSubmit = async () => {
         // ✅ Minimum 1 photo required
-        if (images.length < 1) {
-            toast.warning('⚠️ Please upload at least 1 image');
+        if (images.length < 2) { // Changed from 1 to 2 to match backend RENDER_CONFIG.MIN_IMAGES
+            toast.warning('⚠️ Please upload at least 2 images');
             return;
         }
 
@@ -128,7 +128,7 @@ function UploadSection() {
             setStatus('✅ Reel Ready!');
             
             setReelData({
-                downloadUrl: reelData.url || reelData.videoUrl,
+                downloadUrl: reelData.outputPath, // Use outputPath directly from the returned reel object
                 music: reelData.usedMusic || 'Upbeat',
                 template: reelData.usedTemplate || 'Auto',
                 reelId: reelData.reelId || reelData.renderId,
@@ -218,8 +218,8 @@ function UploadSection() {
                         >
                             {loading ? 'Creating...' : `🚀 Create Reel (${images.length} images)`}
                         </button>
-
-                        {images.length > 0 && images.length < 1 && (
+                        {/* This condition `images.length > 0 && images.length < 1` is always false. Changed to reflect minimum image requirement. */}
+                        {images.length > 0 && images.length < 2 && ( 
                             <p className="hint">Need at least 1 image</p>
                         )}
                         

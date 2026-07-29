@@ -152,12 +152,39 @@ exports.createReel = async (req, res) => {
     const reel = new Reel(reelData);
     await reel.save();
 
-    logger.info(`Reel created: ${reel.title} (${reel._id})`);
+    logger.info(`Reel document created: ${reel.title} (${reel._id}). Starting render...`);
+
+    // 6. Trigger rendering process (synchronously for simplicity, ideally this would be queued)
+    reel.status = 'rendering';
+    reel.progress = 0;
+    await reel.save(); // Save status change
+
+    let renderResult;
+    try {
+      renderResult = await renderService.renderReel(reel); // Call the actual rendering service
+
+      // Update reel with render results
+      reel.status = 'rendered';
+      reel.progress = 100;
+      reel.outputPath = renderResult.outputPath;
+      reel.previewPath = renderResult.previewPath;
+      reel.thumbnailPath = renderResult.thumbnailPath;
+      reel.renderedAt = new Date();
+      await reel.save(); // Save final render status and paths
+
+      logger.info(`Reel rendering completed: ${reel.title} (${reel._id})`);
+    } catch (renderError) {
+      logger.error(`Reel rendering failed for ${reel._id}:`, renderError);
+      reel.status = 'failed';
+      reel.error = renderError.message;
+      await reel.save(); // Save failed status
+      throw renderError; // Re-throw to be caught by the outer catch block
+    }
 
     return res.status(201).json({
       success: true,
-      data: reel,
-      message: "Reel created successfully",
+      data: reel, // Return the fully updated reel object
+      message: "Reel created and rendered successfully",
     });
   } catch (error) {
     logger.error("Failed to create reel:", error);

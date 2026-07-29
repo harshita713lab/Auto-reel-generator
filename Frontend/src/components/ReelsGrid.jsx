@@ -92,9 +92,9 @@ function ReelsGrid() {
                         <video 
                             controls 
                             muted 
-                            style={{ width: '100%', borderRadius: '8px' }}
+                            style={{ width: '100%', borderRadius: '8px' }} // Assuming reel.outputPath is the correct URL
                         >
-                            <source src={`http://localhost:5000${reel.videoUrl}`} type="video/mp4" />
+                            <source src={`http://localhost:5000${reel.outputPath}`} type="video/mp4" />
                         </video>
                     </div>
                     <div className="reel-info">
@@ -107,7 +107,7 @@ function ReelsGrid() {
                         </div>
                         <div className="reel-actions">
                             <button 
-                                onClick={() => handleDownload(reel.videoUrl, `reel_${reel._id}.mp4`)}
+                                onClick={() => handleDownload(reel.outputPath, `reel_${reel._id}.mp4`)} // Use reel.outputPath for download
                                 className="download-btn-small"
                             >
                                 📥 Download
