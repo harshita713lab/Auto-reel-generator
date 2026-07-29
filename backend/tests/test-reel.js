@@ -11,17 +11,18 @@ async function testReelController() {
     await mongoose.connect(process.env.MONGODB_URI);
 
     // Mock Express Request & Response
+    // Mock Express Request & Response
     const req = {
       body: {
         title: 'Automation Test Reel',
         templateId: 'simple_1',
         images: [
           {
-            path: 'uploads/temp/sample1.jpg',
+            path: 'https://picsum.photos/800/1200',
             filename: 'sample1.jpg',
           },
           {
-            path: 'uploads/temp/sample2.jpg',
+            path: 'https://picsum.photos/800/1201',
             filename: 'sample2.jpg',
           },
         ],
