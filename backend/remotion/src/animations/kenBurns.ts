@@ -1,7 +1,9 @@
 import { Easing } from 'remotion';
 
-interface KenBurnsParams {
+// ✅ Interface update kiya - scale property add ki
+export interface KenBurnsParams {
   progress: number;
+  scale?: number;
   startScale?: number;
   endScale?: number;
   startX?: number;
@@ -19,12 +21,12 @@ export const kenBurns = ({
   endX = 10,
   endY = 10
 }: KenBurnsParams) => {
-  const scale = startScale + (endScale - startScale) * progress;
+  const currentScale = startScale + (endScale - startScale) * progress;
   const x = startX + (endX - startX) * progress;
   const y = startY + (endY - startY) * progress;
   
   return {
-    scale,
+    scale: currentScale,
     translateX: x,
     translateY: y,
     easing: Easing.bezier(0.42, 0, 0.58, 1),
@@ -32,8 +34,9 @@ export const kenBurns = ({
 };
 
 export const kenBurnsZoomIn = ({ progress, scale = 1.3 }: KenBurnsParams) => {
+  const currentScale = 1 + (scale - 1) * progress;
   return {
-    scale: 1 + (scale - 1) * progress,
+    scale: currentScale,
     translateX: Math.sin(progress * Math.PI * 2) * 5,
     translateY: Math.cos(progress * Math.PI * 2) * 5,
     easing: Easing.bezier(0.42, 0, 0.58, 1),
@@ -41,8 +44,9 @@ export const kenBurnsZoomIn = ({ progress, scale = 1.3 }: KenBurnsParams) => {
 };
 
 export const kenBurnsZoomOut = ({ progress, scale = 1.3 }: KenBurnsParams) => {
+  const currentScale = scale - (scale - 1) * progress;
   return {
-    scale: scale - (scale - 1) * progress,
+    scale: currentScale,
     translateX: Math.sin((1 - progress) * Math.PI * 2) * 5,
     translateY: Math.cos((1 - progress) * Math.PI * 2) * 5,
     easing: Easing.bezier(0.42, 0, 0.58, 1),

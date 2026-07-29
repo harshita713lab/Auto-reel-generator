@@ -79,7 +79,8 @@ function UploadSection() {
             setProgress(30);
             setStatus('Uploading images...');
             
-            const uploadRes = await fetch(`${API_URL}/upload`, {
+            // ✅ FIX HERE: Changed `${API_URL}/upload` to `${API_URL}/upload/images`
+            const uploadRes = await fetch(`${API_URL}/upload/images`, {
                 method: 'POST',
                 body: formData
             });
@@ -98,13 +99,20 @@ function UploadSection() {
                 ? `${API_URL}/reel/generate-shotstack`
                 : `${API_URL}/reel/generate`;
 
+            // ✅ Safe Extraction: check multiple keys for uploaded files
+            const uploadedImagesList = uploadData.files || uploadData.data || uploadData.images || [];
+
+            if (!uploadedImagesList || uploadedImagesList.length === 0) {
+                throw new Error('Images upload to ho gayi par response me files data nahi mila.');
+            }
+
             const reelRes = await fetch(generateUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    images: uploadData.files,
+                    images: uploadedImagesList, // 👈 uploadData.files ki jagah yeh use karein
                     templateId: selectedTemplateId
                 })
             });
