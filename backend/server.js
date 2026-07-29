@@ -27,10 +27,11 @@ if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 if (!fs.existsSync(generatedDir)) fs.mkdirSync(generatedDir, { recursive: true });
 if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
 
-// ✅ FIXED: Better static file serving
+// Static file serving alignment for Frontend & Backend
 app.use('/uploads/temp', express.static(uploadDir));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/generated', express.static(generatedDir));
+app.use('/output', express.static(path.join(__dirname, 'output')));
 app.use('/public', express.static(publicDir));
 
 // ============================================================

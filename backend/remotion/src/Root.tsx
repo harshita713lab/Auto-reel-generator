@@ -1,7 +1,36 @@
-import { Composition } from 'remotion';
-import { WeddingComposition } from './compositions/Wedding/WeddingComposition';
+import React from 'react';
+import { Composition, AbsoluteFill, Sequence } from 'remotion';
+import { AnimatedImage } from './components/AnimatedImage';
 
-// 🔥 Default props for preview
+const DefaultComposition: React.FC<any> = ({ images = [], template = {} }) => {
+  const slideDuration = template.slideDuration || 3;
+  const fps = 30;
+  const slideFrames = Math.round(slideDuration * fps);
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: template.backgroundColor || '#000000' }}>
+      {images.map((img: any, index: number) => {
+        const imageSrc = typeof img === 'string' ? img : img.path || img.url;
+        const animation = (typeof img === 'object' && img.animation) || 'kenBurns';
+
+        return (
+          <Sequence
+            key={index}
+            from={index * slideFrames}
+            durationInFrames={slideFrames}
+          >
+            <AnimatedImage
+              src={imageSrc}
+              durationInFrames={slideFrames}
+              animation={animation}
+            />
+          </Sequence>
+        );
+      })}
+    </AbsoluteFill>
+  );
+};
+
 const defaultProps = {
   images: [],
   template: {
@@ -9,34 +38,27 @@ const defaultProps = {
     width: 1080,
     height: 1920,
     slideDuration: 3,
-    transitionDuration: 0.5,
-    transitions: ['fade'],
-    effects: ['none'],
-    colorGrades: [],
-    vignette: false,
   },
   totalDuration: 15,
-  numImages: 5,
 };
 
 export const Root: React.FC = () => {
   return (
     <Composition
       id="ReelComposition"
-      component={WeddingComposition as any}
+      component={DefaultComposition}
       fps={30}
       width={1080}
       height={1920}
       defaultProps={defaultProps}
-      // 🔥 FIX: props ko pehle 'unknown' mein cast kiya taaki TypeScript error na de
       calculateMetadata={async ({ props }) => {
-        const typedProps = props as unknown as typeof defaultProps;
-        
-        const duration = typedProps.totalDuration || (typedProps.images.length * (typedProps.template?.slideDuration || 3));
-        const fps = 30;
+        const typedProps = props as any;
+        const imgCount = typedProps.images?.length || 1;
+        const slideDur = typedProps.template?.slideDuration || 3;
+        const duration = typedProps.totalDuration || imgCount * slideDur;
 
         return {
-          durationInFrames: Math.round(duration * fps),
+          durationInFrames: Math.max(30, Math.round(duration * 30)),
         };
       }}
     />

@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const logger = require('../utils/logger');
 const env = require('./env');
 const { DIRECTORIES, VIDEO_CONFIG } = require('./constants');
@@ -12,47 +13,31 @@ class RemotionConfig {
     this.timeout = 30 * 60 * 1000;
   }
 
-  getRenderCommand(compositionId, options = {}) {
+  async render(compositionId, options = {}) {
     const {
       inputProps = {},
-      outputPath = path.join(this.outputDir, `render_${Date.now()}.mp4`),
-      width = VIDEO_CONFIG.WIDTH,
-      height = VIDEO_CONFIG.HEIGHT,
-      fps = VIDEO_CONFIG.FPS,
-      codec = 'h264',
-      audioCodec = 'aac',
-      pixelFormat = 'yuv420p',
-      concurrency = this.concurrency,
+      outputPath = path.join(this.outputDir, `reel_${Date.now()}.mp4`),
     } = options;
 
-    const props = { ...inputProps, width, height, fps };
+    // Direct temp JSON file create karo render.js ke expected structure ke according
+    const tempJsonPath = path.join(DIRECTORIES.TEMP, `render_data_${Date.now()}.json`);
+    
+    // Ensure directories exist
+    if (!fs.existsSync(DIRECTORIES.TEMP)) fs.mkdirSync(DIRECTORIES.TEMP, { recursive: true });
+    if (!fs.existsSync(this.outputDir)) fs.mkdirSync(this.outputDir, { recursive: true });
 
-    return {
-      command: 'node',
-      args: [
-        path.join(this.remotionRoot, 'render.js'),
-        '--composition', compositionId,
-        '--output', outputPath,
-        '--width', String(width),
-        '--height', String(height),
-        '--fps', String(fps),
-        '--codec', codec,
-        '--audio-codec', audioCodec,
-        '--pixel-format', pixelFormat,
-        '--concurrency', String(concurrency),
-        '--props', JSON.stringify(props),
-      ],
-      outputPath,
+    const payload = {
+      images: inputProps.images || [],
+      template: inputProps.template || { name: 'Default', slideDuration: 3, effects: ['none'], transitions: ['fade'] },
     };
-  }
 
-  async render(compositionId, options = {}) {
-    const { command, args, outputPath } = this.getRenderCommand(compositionId, options);
-    
-    logger.info(`Starting Remotion render for composition: ${compositionId}`);
-    
+    fs.writeFileSync(tempJsonPath, JSON.stringify(payload, null, 2));
+
+    logger.info(`Starting Remotion render process... Input: ${tempJsonPath}`);
+
     return new Promise((resolve, reject) => {
-      const child = require('child_process').spawn(command, args, {
+      const { spawn } = require('child_process');
+      const child = spawn('node', ['render.js', tempJsonPath, outputPath], {
         cwd: this.remotionRoot,
         timeout: this.timeout,
         stdio: 'pipe',
@@ -72,26 +57,22 @@ class RemotionConfig {
       });
 
       child.on('error', (error) => {
+        // Cleanup temp file
+        if (fs.existsSync(tempJsonPath)) fs.unlinkSync(tempJsonPath);
         reject(new Error(`Remotion process error: ${error.message}`));
       });
 
       child.on('close', (code) => {
+        // Cleanup temp json
+        if (fs.existsSync(tempJsonPath)) fs.unlinkSync(tempJsonPath);
+
         if (code === 0) {
           resolve({ outputPath, stdout, stderr });
         } else {
-          reject(new Error(`Remotion exited with code ${code}: ${stderr}`));
+          reject(new Error(`Remotion render exited with code ${code}: ${stderr}`));
         }
       });
     });
-  }
-
-  getCompositionPath(compositionName) {
-    return path.join(this.remotionSrc, 'compositions', compositionName, 'index.tsx');
-  }
-
-  validateCompositionName(name) {
-    const validNames = ['Wedding', 'Birthday', 'Travel', 'Fashion', 'LoveStory', 'Memories'];
-    return validNames.includes(name) ? name : 'Memories';
   }
 }
 

@@ -4,6 +4,10 @@
     "dev": "nodemon server.js",
     "dev:debug": "nodemon --inspect server.js",
     "test": "NODE_ENV=test jest",
+    "test:db": "node tests/test-db.js",
+    "test:reel": "node tests/test-reel.js",
+    "test:remotion": "node tests/test-remotion.js",
+    "test:all": "node tests/test-db.js && node tests/test-reel.js && node tests/test-remotion.js",
     "lint": "eslint src/**/*.js",
     "format": "prettier --write src/**/*.js"
   },
