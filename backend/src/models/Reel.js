@@ -3,11 +3,11 @@ const mongoose = require('mongoose');
 const ImageSchema = new mongoose.Schema({
   filename: {
     type: String,
-    required: true,
+    required: false, // 👈 Strict error se bachne ke liye false kiya
   },
   path: {
     type: String,
-    required: true,
+    required: [true, 'Image path is required'],
   },
   thumbnail: {
     type: String,
@@ -30,6 +30,7 @@ const ImageSchema = new mongoose.Schema({
   order: {
     type: Number,
     required: true,
+    default: 0,
     min: 0,
   },
   animation: {
@@ -73,7 +74,11 @@ const ReelSchema = new mongoose.Schema({
   template: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Template',
-    required: true,
+    required: false, // 👈 CastError avoid karne ke liye false
+  },
+  templateId: {
+    type: String, // Backup identifier for string-based templates like "simple_1"
+    default: 'simple_1',
   },
   images: [ImageSchema],
   music: {
@@ -96,7 +101,7 @@ const ReelSchema = new mongoose.Schema({
   duration: {
     type: Number,
     required: true,
-    min: 3,
+    min: 1, // 👈 Updated: Min duration 1 second, agar choti clip hui
     max: 300,
   },
   width: {
@@ -214,8 +219,8 @@ const ReelSchema = new mongoose.Schema({
   },
 });
 
-// Indexes
-ReelSchema.index({ template: 1, createdAt: -1 });
+// Indexes (Added sparse: true for null templates)
+ReelSchema.index({ template: 1, createdAt: -1 }, { sparse: true });
 ReelSchema.index({ status: 1 });
 ReelSchema.index({ duration: 1 });
 ReelSchema.index({ createdAt: -1 });
@@ -260,7 +265,6 @@ ReelSchema.methods.removeImage = function(imageId) {
   const index = this.images.findIndex(img => img._id.toString() === imageId);
   if (index !== -1) {
     this.images.splice(index, 1);
-    // Update orders
     this.images.forEach((img, idx) => {
       img.order = idx;
     });
@@ -279,13 +283,11 @@ ReelSchema.methods.reorderImages = function(imageOrder) {
       newOrder.push(image);
     }
   }
-  // Add any remaining images
   for (const img of this.images) {
     if (!newOrder.includes(img)) {
       newOrder.push(img);
     }
   }
-  // Update order
   newOrder.forEach((img, idx) => {
     img.order = idx;
   });

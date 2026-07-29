@@ -3,24 +3,29 @@ const router = express.Router();
 const reelController = require('../controllers/reelController');
 
 // ============================================================
-// 1. SPECIFIC ROUTES (Inhe hamesha sabse UPAR rakhein)
+// 1. STATIC & GENERAL ROUTES (Must be defined FIRST)
 // ============================================================
 router.get('/latest', reelController.getLatestReel);
 router.get('/all', reelController.getAllReels);
 
-// Agar koi static endpoint hai jaise templates ya status:
+// Static endpoint for templates test
 router.get('/templates', (req, res) => res.json({ success: true, templates: [] }));
 
+// Creation Endpoints (Place before dynamic :id routes)
+router.post('/generate', reelController.createReel);
+router.post('/', reelController.createReel);
+
 // ============================================================
-// 2. DYNAMIC ROUTES / DYNAMIC ID (Inhe NICHE rakhein)
+// 2. DYNAMIC ROUTES (:id Parameters)
 // ============================================================
+// Fetch single reel
 router.get('/:id', reelController.getReel);
+
+// Update / Delete reel
 router.put('/:id', reelController.updateReel);
 router.delete('/:id', reelController.deleteReel);
 
-// Process & Render
-router.post('/generate', reelController.createReel);
-router.post('/', reelController.createReel);
+// Action endpoints on specific reel
 router.post('/:id/process', reelController.processReel);
 router.post('/:id/render', reelController.renderReel);
 router.get('/:id/status', reelController.getReelStatus);
