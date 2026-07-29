@@ -170,7 +170,9 @@ exports.createReel = async (req, res) => {
       reel.status = 'rendered';
       reel.progress = 100;
       reel.outputPath = renderResult.outputPath;
+      reel.outputUrl = renderResult.outputUrl || `/output/renders/${path.basename(renderResult.outputPath)}`;
       reel.previewPath = renderResult.previewPath;
+      reel.previewUrl = renderResult.previewUrl || `/output/previews/${path.basename(renderResult.previewPath)}`;
       reel.thumbnailPath = renderResult.thumbnailPath;
       reel.renderedAt = new Date();
       await reel.save();

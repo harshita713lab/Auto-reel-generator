@@ -32,13 +32,48 @@ class RenderService {
       } = options;
 
       // Prepare input props for Remotion
+      // Convert filesystem paths to absolute web URLs for Chromium/Remotion
+      const serverBaseUrl = `http://localhost:${process.env.PORT || 5000}`;
       const inputProps = {
-        images: reel.images.map(img => ({
-          path: img.path,
-          duration: img.duration || 3,
-          animation: img.animation || 'kenBurns',
-          transition: img.transition || 'fade',
-        })),
+        images: reel.images.map(img => {
+          // Use url property if available, otherwise convert filesystem path to web URL
+          let imagePath = img.url || img.path || '';
+
+          // If path is already an absolute URL (starts with http), use as-is
+          if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+            return {
+              path: imagePath,
+              duration: img.duration || 3,
+              animation: img.animation || 'kenBurns',
+              transition: img.transition || 'fade',
+            };
+          }
+
+          // If path is a local filesystem path (starts with drive letter or backslash), convert to web URL
+          if (imagePath.match(/^[a-zA-Z]:\\/) || imagePath.startsWith('\\') || imagePath.match(/^[a-zA-Z]:\//)) {
+            // Extract the part after 'uploads/' to create a proper web path
+            const normalized = imagePath.replace(/\\/g, '/');
+            const uploadsIndex = normalized.indexOf('uploads/');
+            if (uploadsIndex !== -1) {
+              imagePath = '/' + normalized.substring(uploadsIndex);
+            } else {
+              // Fallback: just use the filename
+              imagePath = '/uploads/images/' + normalized.split('/').pop();
+            }
+          }
+
+          // If path is relative (starts with /), make it absolute with the server URL
+          if (imagePath.startsWith('/')) {
+            imagePath = `${serverBaseUrl}${imagePath}`;
+          }
+
+          return {
+            path: imagePath,
+            duration: img.duration || 3,
+            animation: img.animation || 'kenBurns',
+            transition: img.transition || 'fade',
+          };
+        }),
         config: {
           width,
           height,
@@ -104,6 +139,12 @@ class RenderService {
       // Clean up temp files
       await fileService.cleanupTemp();
 
+      // Build web-accessible URLs (relative paths for static serving)
+      const outputFilename = path.basename(finalPath.path);
+      const previewFilename = path.basename(preview.path);
+      const outputUrl = `/output/renders/${outputFilename}`;
+      const previewUrl = `/output/previews/${previewFilename}`;
+
       return {
         path: finalPath.path,
         filename: finalPath.filename,
@@ -115,7 +156,9 @@ class RenderService {
         quality,
         format,
         outputPath: finalPath.path,
+        outputUrl: outputUrl,
         previewPath: preview.path,
+        previewUrl: previewUrl,
         thumbnailPath: preview.path,
         preview: preview,
         url: finalPath.url,

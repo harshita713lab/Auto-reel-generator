@@ -122,16 +122,20 @@ function UploadSection() {
                 throw new Error(error.error || 'Reel generation failed');
             }
 
-            const reelData = await reelRes.json();
+            const reelResponse = await reelRes.json();
 
             setProgress(100);
             setStatus('✅ Reel Ready!');
             
+            // Extract reel data from nested response structure
+            const reelObj = reelResponse.data || reelResponse;
+            const outputUrl = reelObj.outputUrl || `/output/renders/${reelObj.outputPath ? reelObj.outputPath.split('/').pop() || reelObj.outputPath.split('\\').pop() : ''}`;
+            
             setReelData({
-                downloadUrl: reelData.outputPath, // Use outputPath directly from the returned reel object
-                music: reelData.usedMusic || 'Upbeat',
-                template: reelData.usedTemplate || 'Auto',
-                reelId: reelData.reelId || reelData.renderId,
+                downloadUrl: outputUrl,
+                music: reelObj.usedMusic || 'Upbeat',
+                template: reelObj.usedTemplate || 'Auto',
+                reelId: reelObj._id || reelObj.reelId || reelObj.renderId,
                 provider: useShotstack ? 'Shotstack' : 'FFmpeg'
             });
             setLoading(false);

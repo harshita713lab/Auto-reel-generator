@@ -10,20 +10,18 @@ class RemotionConfig {
     this.remotionSrc = path.join(DIRECTORIES.REMOTION, 'src');
     this.outputDir = DIRECTORIES.RENDERS;
     this.concurrency = env.REMOTION_CONCURRENCY || 1;
-    this.timeout = 30 * 60 * 1000;
+    this.timeout = 300 * 1000; // 5 minutes
   }
 
-  // ✅ ADDED: Controller standard validation helper
   validateCompositionName(compositionName) {
     const validCompositions = ['ReelComposition', 'Main', 'Default'];
     if (!compositionName || typeof compositionName !== 'string') {
-      return 'ReelComposition'; // Fallback default composition
+      return 'ReelComposition';
     }
     return validCompositions.includes(compositionName) ? compositionName : 'ReelComposition';
   }
 
   async render(compositionId, options = {}) {
-    // Composition ID ko pehle validate karke safety ensure karein
     const validatedComposition = this.validateCompositionName(compositionId);
 
     const {
@@ -31,10 +29,8 @@ class RemotionConfig {
       outputPath = path.join(this.outputDir, `reel_${Date.now()}.mp4`),
     } = options;
 
-    // Direct temp JSON file create karo render.js ke expected structure ke according
     const tempJsonPath = path.join(DIRECTORIES.TEMP, `render_data_${Date.now()}.json`);
     
-    // Ensure directories exist
     if (!fs.existsSync(DIRECTORIES.TEMP)) fs.mkdirSync(DIRECTORIES.TEMP, { recursive: true });
     if (!fs.existsSync(this.outputDir)) fs.mkdirSync(this.outputDir, { recursive: true });
 
@@ -70,19 +66,25 @@ class RemotionConfig {
       });
 
       child.on('error', (error) => {
-        // Cleanup temp file
         if (fs.existsSync(tempJsonPath)) fs.unlinkSync(tempJsonPath);
         reject(new Error(`Remotion process error: ${error.message}`));
       });
 
       child.on('close', (code) => {
-        // Cleanup temp json
         if (fs.existsSync(tempJsonPath)) fs.unlinkSync(tempJsonPath);
 
         if (code === 0) {
           resolve({ outputPath, stdout, stderr });
         } else {
-          reject(new Error(`Remotion render exited with code ${code}: ${stderr}`));
+          // Remotion's console.error() goes to stderr, console.log() goes to stdout
+          // Combine both to get the full picture of what happened
+          const errorDetail = (stderr || stdout || 'Unknown error (no output)').trim();
+          // Truncate very long errors to avoid huge error messages
+          const truncatedError = errorDetail.length > 2000 
+            ? errorDetail.substring(0, 2000) + '...(truncated)' 
+            : errorDetail;
+          logger.error(`Remotion render failed (code ${code}): ${truncatedError}`);
+          reject(new Error(`Remotion render exited with code ${code}: ${truncatedError}`));
         }
       });
     });
