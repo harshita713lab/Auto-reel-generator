@@ -90,9 +90,9 @@ ProjectSchema.index({ status: 1 });
 ProjectSchema.index({ isTemplate: 1 });
 
 // Update timestamps
-ProjectSchema.pre('save', function(next) {
+// Replace this:
+ProjectSchema.pre('save', function() {
   this.updatedAt = new Date();
-  next();
 });
 
 // Virtual for reel count

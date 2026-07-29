@@ -152,9 +152,9 @@ RenderJobSchema.index({ reelId: 1, status: 1 });
 RenderJobSchema.index({ userId: 1, createdAt: -1 });
 
 // Update timestamps
-RenderJobSchema.pre('save', function(next) {
+// Replace this:
+RenderJobSchema.pre('save', function() {
   this.updatedAt = new Date();
-  next();
 });
 
 // Virtual for elapsed time

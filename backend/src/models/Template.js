@@ -247,9 +247,9 @@ TemplateSchema.index({ tags: 1 });
 TemplateSchema.index({ 'rating.average': -1 });
 
 // Update timestamps
-TemplateSchema.pre('save', function(next) {
+// Replace this:
+TemplateSchema.pre('save', function() {
   this.updatedAt = new Date();
-  next();
 });
 
 // Virtual for effect count

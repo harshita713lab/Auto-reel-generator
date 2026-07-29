@@ -118,11 +118,10 @@ MusicSchema.index({ duration: 1 });
 MusicSchema.index({ createdAt: -1 });
 
 // Update timestamps
-MusicSchema.pre('save', function(next) {
+// Replace this:
+MusicSchema.pre('save', function() {
   this.updatedAt = new Date();
-  next();
 });
-
 // Virtual for formatted duration
 MusicSchema.virtual('formattedDuration').get(function() {
   const minutes = Math.floor(this.duration / 60);

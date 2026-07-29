@@ -13,7 +13,19 @@ class RemotionConfig {
     this.timeout = 30 * 60 * 1000;
   }
 
+  // ✅ ADDED: Controller standard validation helper
+  validateCompositionName(compositionName) {
+    const validCompositions = ['ReelComposition', 'Main', 'Default'];
+    if (!compositionName || typeof compositionName !== 'string') {
+      return 'ReelComposition'; // Fallback default composition
+    }
+    return validCompositions.includes(compositionName) ? compositionName : 'ReelComposition';
+  }
+
   async render(compositionId, options = {}) {
+    // Composition ID ko pehle validate karke safety ensure karein
+    const validatedComposition = this.validateCompositionName(compositionId);
+
     const {
       inputProps = {},
       outputPath = path.join(this.outputDir, `reel_${Date.now()}.mp4`),
@@ -27,6 +39,7 @@ class RemotionConfig {
     if (!fs.existsSync(this.outputDir)) fs.mkdirSync(this.outputDir, { recursive: true });
 
     const payload = {
+      compositionId: validatedComposition,
       images: inputProps.images || [],
       template: inputProps.template || { name: 'Default', slideDuration: 3, effects: ['none'], transitions: ['fade'] },
     };

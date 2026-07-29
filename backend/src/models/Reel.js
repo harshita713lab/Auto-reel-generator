@@ -227,9 +227,9 @@ ReelSchema.index({ createdAt: -1 });
 ReelSchema.index({ 'images.filename': 1 });
 
 // Update timestamps
-ReelSchema.pre('save', function(next) {
+// Replace this:
+ReelSchema.pre('save', function() {
   this.updatedAt = new Date();
-  next();
 });
 
 // Virtual for image count
