@@ -114,6 +114,9 @@ class RenderService {
         fps,
         quality,
         format,
+        outputPath: finalPath.path,
+        previewPath: preview.path,
+        thumbnailPath: preview.path,
         preview: preview,
         url: finalPath.url,
       };
@@ -123,7 +126,7 @@ class RenderService {
     }
   }
 
-  /**
+/**
    * Post-process rendered video
    * @param {string} inputPath - Input video path
    * @param {object} options - Options
@@ -147,7 +150,6 @@ class RenderService {
       const preset = quality === 'high' ? 'medium' : 'fast';
 
       const args = [
-        ffmpegService.ffmpegPath,
         '-i', inputPath,
         '-c:v', 'libx264',
         '-preset', preset,

@@ -43,7 +43,6 @@ class PreviewService {
       const bitrate = quality === 'high' ? '2M' : quality === 'medium' ? '1M' : '500k';
 
       const args = [
-        ffmpegService.ffmpegPath,
         '-i', videoPath,
         '-t', String(previewDuration),
         '-vf', `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,fps=24`,

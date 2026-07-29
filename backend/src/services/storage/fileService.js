@@ -332,6 +332,34 @@ class FileService {
   }
 
   /**
+   * Clean up temp directory files (files older than 1 hour)
+   * @returns {Promise<number>}
+   */
+  async cleanupTemp() {
+    try {
+      const files = await fs.readdir(this.directories.TEMP);
+      const now = Date.now();
+      const maxAge = 60 * 60 * 1000; // 1 hour
+      let deleted = 0;
+
+      for (const file of files) {
+        const filePath = path.join(this.directories.TEMP, file);
+        const stats = await fs.stat(filePath);
+        
+        if (now - stats.mtimeMs > maxAge) {
+          await fs.unlink(filePath);
+          deleted++;
+        }
+      }
+
+      return deleted;
+    } catch (error) {
+      logger.error('Failed to cleanup temp directory:', error);
+      return 0;
+    }
+  }
+
+  /**
    * Clean up old files
    * @param {string} dirPath - Directory path
    * @param {number} maxAge - Max age in milliseconds

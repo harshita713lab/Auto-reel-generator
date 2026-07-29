@@ -6,59 +6,18 @@ const { DIRECTORIES } = require('../../config/constants');
 
 class FFmpegService {
   constructor() {
-    this.tempDir = DIRECTORIES.TEMP;
+    this.tempDir = DIRECTORIES.TEMP || path.join(process.cwd(), 'uploads/temp');
   }
 
   /**
-   * Execute raw FFmpeg arguments (Fix for controller execute error)
-   * @param {string[]} args 
-   * @returns {Promise<any>}
+   * Safe execute helper
    */
   async execute(args) {
     return await ffmpegConfig.execute(args);
   }
 
   /**
-   * Concatenate videos
-   * @param {string[]} videos - Array of video paths
-   * @param {string} outputPath - Output path
-   * @returns {Promise<string>}
-   */
-  async concatVideos(videos, outputPath = null) {
-    try {
-      if (!outputPath) {
-        outputPath = path.join(this.tempDir, `concat_${Date.now()}.mp4`);
-      }
-
-      // Create concat file
-      const concatFile = path.join(this.tempDir, `concat_${Date.now()}.txt`);
-      const concatContent = videos.map(v => `file '${v}'`).join('\n');
-      await fs.writeFile(concatFile, concatContent);
-
-      const args = [
-        ffmpegConfig.ffmpegPath,
-        '-f', 'concat',
-        '-safe', '0',
-        '-i', concatFile,
-        '-c', 'copy',
-        '-y', outputPath,
-      ];
-
-      await ffmpegConfig.execute(args);
-      await fs.unlink(concatFile);
-
-      return outputPath;
-    } catch (error) {
-      throw new Error(`Concat failed: ${error.message}`);
-    }
-  }
-
-  /**
-   * Add audio to video
-   * @param {string} videoPath - Video path
-   * @param {string} audioPath - Audio path
-   * @param {object} options - Options
-   * @returns {Promise<string>}
+   * Add Audio / Combine Video & Audio
    */
   async addAudio(videoPath, audioPath, options = {}) {
     try {
@@ -69,9 +28,10 @@ class FFmpegService {
         outputPath = null,
       } = options;
 
-      if (!outputPath) {
-        outputPath = path.join(this.tempDir, `with_audio_${Date.now()}.mp4`);
-      }
+      // Ensure valid string output path
+      const targetOutput = (typeof outputPath === 'string' && outputPath.trim().length > 0)
+        ? outputPath
+        : path.join(this.tempDir, `with_audio_${Date.now()}.mp4`);
 
       const filters = [];
       if (volume !== 1) {
@@ -85,7 +45,6 @@ class FFmpegService {
       }
 
       const args = [
-        ffmpegConfig.ffmpegPath,
         '-i', videoPath,
         '-i', audioPath,
         '-c:v', 'copy',
@@ -99,38 +58,71 @@ class FFmpegService {
         args.push('-af', filters.join(','));
       }
 
-      args.push('-y', outputPath);
+      args.push('-y', targetOutput);
 
       await ffmpegConfig.execute(args);
-      return outputPath;
+      return targetOutput;
     } catch (error) {
       throw new Error(`Add audio failed: ${error.message}`);
     }
   }
 
   /**
+   * Combine Video & Audio (Direct Alias for renderService)
+   */
+  async combineVideoAudio(videoPath, audioPath, outputPath = null) {
+    return await this.addAudio(videoPath, audioPath, { outputPath });
+  }
+
+  /**
+   * Concatenate videos
+   */
+  async concatVideos(videos, outputPath = null) {
+    try {
+      const targetOutput = (typeof outputPath === 'string' && outputPath.trim().length > 0)
+        ? outputPath
+        : path.join(this.tempDir, `concat_${Date.now()}.mp4`);
+
+      const concatFile = path.join(this.tempDir, `concat_${Date.now()}.txt`);
+      const concatContent = videos.map(v => `file '${v}'`).join('\n');
+      await fs.writeFile(concatFile, concatContent);
+
+      const args = [
+        '-f', 'concat',
+        '-safe', '0',
+        '-i', concatFile,
+        '-c', 'copy',
+        '-y', targetOutput,
+      ];
+
+      await ffmpegConfig.execute(args);
+      await fs.unlink(concatFile).catch(() => {});
+
+      return targetOutput;
+    } catch (error) {
+      throw new Error(`Concat failed: ${error.message}`);
+    }
+  }
+
+  /**
    * Extract audio from video
-   * @param {string} videoPath - Video path
-   * @param {string} outputPath - Output path
-   * @returns {Promise<string>}
    */
   async extractAudio(videoPath, outputPath = null) {
     try {
-      if (!outputPath) {
-        outputPath = path.join(this.tempDir, `audio_${Date.now()}.mp3`);
-      }
+      const targetOutput = (typeof outputPath === 'string' && outputPath.trim().length > 0)
+        ? outputPath
+        : path.join(this.tempDir, `audio_${Date.now()}.mp3`);
 
       const args = [
-        ffmpegConfig.ffmpegPath,
         '-i', videoPath,
         '-vn',
         '-acodec', 'libmp3lame',
         '-b:a', '192k',
-        '-y', outputPath,
+        '-y', targetOutput,
       ];
 
       await ffmpegConfig.execute(args);
-      return outputPath;
+      return targetOutput;
     } catch (error) {
       throw new Error(`Extract audio failed: ${error.message}`);
     }
@@ -138,9 +130,6 @@ class FFmpegService {
 
   /**
    * Resize video
-   * @param {string} inputPath - Input video path
-   * @param {object} options - Resize options
-   * @returns {Promise<string>}
    */
   async resizeVideo(inputPath, options = {}) {
     try {
@@ -151,27 +140,23 @@ class FFmpegService {
         outputPath = null,
       } = options;
 
-      if (!outputPath) {
-        outputPath = path.join(this.tempDir, `resized_${Date.now()}.mp4`);
-      }
+      const targetOutput = (typeof outputPath === 'string' && outputPath.trim().length > 0)
+        ? outputPath
+        : path.join(this.tempDir, `resized_${Date.now()}.mp4`);
 
-      let filter;
-      if (fit === 'cover') {
-        filter = `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2`;
-      } else {
-        filter = `scale=${width}:${height}:force_original_aspect_ratio=increase,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2`;
-      }
+      let filter = fit === 'cover'
+        ? `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2`
+        : `scale=${width}:${height}:force_original_aspect_ratio=increase,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2`;
 
       const args = [
-        ffmpegConfig.ffmpegPath,
         '-i', inputPath,
         '-vf', filter,
         '-c:a', 'copy',
-        '-y', outputPath,
+        '-y', targetOutput,
       ];
 
       await ffmpegConfig.execute(args);
-      return outputPath;
+      return targetOutput;
     } catch (error) {
       throw new Error(`Resize failed: ${error.message}`);
     }
@@ -179,9 +164,6 @@ class FFmpegService {
 
   /**
    * Compress video
-   * @param {string} inputPath - Input video path
-   * @param {object} options - Compression options
-   * @returns {Promise<string>}
    */
   async compressVideo(inputPath, options = {}) {
     try {
@@ -192,12 +174,11 @@ class FFmpegService {
         outputPath = null,
       } = options;
 
-      if (!outputPath) {
-        outputPath = path.join(this.tempDir, `compressed_${Date.now()}.mp4`);
-      }
+      const targetOutput = (typeof outputPath === 'string' && outputPath.trim().length > 0)
+        ? outputPath
+        : path.join(this.tempDir, `compressed_${Date.now()}.mp4`);
 
       const args = [
-        ffmpegConfig.ffmpegPath,
         '-i', inputPath,
         '-c:v', 'libx264',
         '-preset', preset,
@@ -206,11 +187,11 @@ class FFmpegService {
         '-c:a', 'aac',
         '-b:a', '128k',
         '-pix_fmt', 'yuv420p',
-        '-y', outputPath,
+        '-y', targetOutput,
       ];
 
       await ffmpegConfig.execute(args);
-      return outputPath;
+      return targetOutput;
     } catch (error) {
       throw new Error(`Compress failed: ${error.message}`);
     }
@@ -218,9 +199,6 @@ class FFmpegService {
 
   /**
    * Create thumbnail from video
-   * @param {string} videoPath - Video path
-   * @param {object} options - Options
-   * @returns {Promise<string>}
    */
   async createThumbnail(videoPath, options = {}) {
     try {
@@ -231,21 +209,20 @@ class FFmpegService {
         outputPath = null,
       } = options;
 
-      if (!outputPath) {
-        outputPath = path.join(this.tempDir, `thumb_${Date.now()}.jpg`);
-      }
+      const targetOutput = (typeof outputPath === 'string' && outputPath.trim().length > 0)
+        ? outputPath
+        : path.join(this.tempDir, `thumb_${Date.now()}.jpg`);
 
       const args = [
-        ffmpegConfig.ffmpegPath,
         '-ss', timestamp,
         '-i', videoPath,
         '-vf', `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2`,
         '-vframes', '1',
-        '-y', outputPath,
+        '-y', targetOutput,
       ];
 
       await ffmpegConfig.execute(args);
-      return outputPath;
+      return targetOutput;
     } catch (error) {
       throw new Error(`Thumbnail creation failed: ${error.message}`);
     }
@@ -253,31 +230,29 @@ class FFmpegService {
 
   /**
    * Get video info
-   * @param {string} videoPath - Video path
-   * @returns {Promise<object>}
    */
   async getVideoInfo(videoPath) {
     try {
       const info = await ffmpegConfig.getMediaInfo(videoPath);
-      const videoStream = info.streams.find(s => s.codec_type === 'video');
-      const audioStream = info.streams.find(s => s.codec_type === 'audio');
+      const videoStream = info.streams?.find(s => s.codec_type === 'video');
+      const audioStream = info.streams?.find(s => s.codec_type === 'audio');
 
       return {
-        duration: parseFloat(info.format.duration),
-        size: parseInt(info.format.size),
-        format: info.format.format_name,
+        duration: parseFloat(info.format?.duration || 0),
+        size: parseInt(info.format?.size || 0),
+        format: info.format?.format_name,
         video: {
           codec: videoStream?.codec_name,
-          width: parseInt(videoStream?.width),
-          height: parseInt(videoStream?.height),
-          fps: eval(videoStream?.r_frame_rate),
-          bitrate: parseInt(videoStream?.bit_rate),
+          width: parseInt(videoStream?.width || 1080),
+          height: parseInt(videoStream?.height || 1920),
+          fps: videoStream?.r_frame_rate ? eval(videoStream.r_frame_rate) : 30,
+          bitrate: parseInt(videoStream?.bit_rate || 0),
         },
         audio: {
           codec: audioStream?.codec_name,
-          channels: parseInt(audioStream?.channels),
-          sampleRate: parseInt(audioStream?.sample_rate),
-          bitrate: parseInt(audioStream?.bit_rate),
+          channels: parseInt(audioStream?.channels || 2),
+          sampleRate: parseInt(audioStream?.sample_rate || 44100),
+          bitrate: parseInt(audioStream?.bit_rate || 0),
         },
       };
     } catch (error) {
