@@ -29,17 +29,31 @@ if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
 // ============================================================
 // ✅ 2. STATIC FILE SERVING (FIXED)
 // ============================================================
+// ============================================================
+// ✅ 2. STATIC FILE SERVING (FIXED)
+// ============================================================
 app.use('/uploads/temp', express.static(uploadDir));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/generated', express.static(generatedDir));
 
-// ✅ IMPORTANT FIX: Ensure 'output' folder is found (Check if outside backend)
+// ✅ CORS FIX: /output folder ke liye headers allow karo
+app.use('/output', (req, res, next) => {
+    // Frontend ka exact port allow karo (5173)
+    res.header('Access-Control-Allow-Origin', 'http://localhost:5173'); 
+    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    // Agar preflight (OPTIONS) request hai toh seedha 200 return karo
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
+// ✅ IMPORTANT FIX: Ensure 'output' folder is found
 const outputPath = path.join(__dirname, 'output');
-// Agar 'output' folder andar nahi hai, toh ek level bahar check karo
 if (!fs.existsSync(outputPath)) {
     const parentOutputPath = path.join(__dirname, '../output');
     if (fs.existsSync(parentOutputPath)) {
-        // Agar bahar mila, toh usko use karo
         app.use('/output', express.static(parentOutputPath));
         console.log("📂 Serving output from (Parent):", parentOutputPath);
     } else {
@@ -50,7 +64,7 @@ if (!fs.existsSync(outputPath)) {
     console.log("📂 Serving output from (Inside):", outputPath);
 }
 
-// ✅ DELETE THIS LINE (No longer needed, causes conflicts):
+// ✅ DELETE THIS LINE
 // app.use('/renders', express.static(path.join(__dirname, 'output/renders')));
 
 app.use('/public', express.static(publicDir));

@@ -33,6 +33,7 @@ function ReelsGrid() {
     };
 
     // ✅ Helper function to get correct video URL
+       // ✅ Helper function to get correct video URL
     const getVideoUrl = (reel) => {
         if (reel.outputUrl) {
             return reel.outputUrl.startsWith('http') 
@@ -41,6 +42,10 @@ function ReelsGrid() {
         }
         if (reel.outputPath) {
             const filename = reel.outputPath.split('/').pop() || reel.outputPath.split('\\').pop();
+            
+            // ✅ YEH 2 LINES ADD KARIYE (Taaki pata chale ki frontend kya dhundh raha hai)
+            console.log(`🔍 Attempting to load video: http://localhost:5000/output/renders/${filename}`);
+            
             return `http://localhost:5000/output/renders/${filename}`; 
         }
         return null;
