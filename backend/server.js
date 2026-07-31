@@ -22,33 +22,47 @@ const uploadDir = path.join(__dirname, 'uploads/temp');
 const generatedDir = path.join(__dirname, 'generated/reels');
 const publicDir = path.join(__dirname, 'public');
 
-// ✅ FIXED: Proper static folder serving
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 if (!fs.existsSync(generatedDir)) fs.mkdirSync(generatedDir, { recursive: true });
 if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
 
-// Static file serving alignment for Frontend & Backend
+// ============================================================
+// ✅ 2. STATIC FILE SERVING (FIXED)
+// ============================================================
 app.use('/uploads/temp', express.static(uploadDir));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/generated', express.static(generatedDir));
-app.use("/output", (req, res, next) => {
-  console.log("OUTPUT REQUEST:", req.url);
-  next();
-});
-app.use('/output', express.static(path.join(__dirname, 'output')));
-app.use('/renders', express.static(
-    path.join(__dirname, 'output/renders')
-));
+
+// ✅ IMPORTANT FIX: Ensure 'output' folder is found (Check if outside backend)
+const outputPath = path.join(__dirname, 'output');
+// Agar 'output' folder andar nahi hai, toh ek level bahar check karo
+if (!fs.existsSync(outputPath)) {
+    const parentOutputPath = path.join(__dirname, '../output');
+    if (fs.existsSync(parentOutputPath)) {
+        // Agar bahar mila, toh usko use karo
+        app.use('/output', express.static(parentOutputPath));
+        console.log("📂 Serving output from (Parent):", parentOutputPath);
+    } else {
+        console.warn("⚠️ Output folder not found anywhere!");
+    }
+} else {
+    app.use('/output', express.static(outputPath));
+    console.log("📂 Serving output from (Inside):", outputPath);
+}
+
+// ✅ DELETE THIS LINE (No longer needed, causes conflicts):
+// app.use('/renders', express.static(path.join(__dirname, 'output/renders')));
+
 app.use('/public', express.static(publicDir));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 // ============================================================
-// ✅ 2. MONGODB CONNECT
+// ✅ 3. MONGODB CONNECT
 // ============================================================
 connectDB();
 
 // ============================================================
-// ✅ 3. MIDDLEWARE
+// ✅ 4. MIDDLEWARE
 // ============================================================
 app.use(cors());
 app.use(express.json({ limit: '100mb' }));
@@ -58,10 +72,8 @@ app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 app.use(express.static(path.join(__dirname, '../Frontend/public')));
 
 // ============================================================
-// ✅ 4. ROUTES
+// ✅ 5. ROUTES
 // ============================================================
-
-// ✅ Root route
 app.get('/', (req, res) => {
   res.send(`
     <h1>🎬 Reel Maker Backend</h1>
@@ -75,7 +87,6 @@ app.get('/', (req, res) => {
   `);
 });
 
-// ✅ API Routes
 app.use('/api/upload', uploadRoutes);
 app.use('/api/reel', reelRoutes);
 app.use('/api/templates', templateRoutes);
@@ -83,7 +94,6 @@ app.use('/api/render', renderRoutes);
 app.use('/api/music', musicRoutes);
 app.use('/api/health', healthRoutes);
 
-// ✅ Test API route
 app.get('/api/test', (req, res) => {
   res.json({ 
     message: '✅ Backend is working!',
@@ -93,7 +103,6 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// ✅ Health check route
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'healthy',
@@ -103,7 +112,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // ============================================================
-// ✅ 5. ERROR HANDLING MIDDLEWARE
+// ✅ 6. ERROR HANDLING MIDDLEWARE
 // ============================================================
 app.use((req, res, next) => {
   res.status(404).json({ error: `Route ${req.url} not found` });
@@ -118,7 +127,7 @@ app.use((err, req, res, next) => {
 });
 
 // ============================================================
-// ✅ 6. SERVER START
+// ✅ 7. SERVER START
 // ============================================================
 app.listen(PORT, () => {
   console.log(`\n╔═══════════════════════════════════════════════════╗`);

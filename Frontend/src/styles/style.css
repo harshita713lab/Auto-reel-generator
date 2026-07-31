@@ -1677,3 +1677,207 @@ body {
         padding: 1px 6px;
     }
 }
+
+/*Reels Grid Part*/
+
+/* Search Bar Styles */
+.search-bar-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding: 0 10px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 25px;
+    border: 1px solid #333;
+    background-color: #1e1e1e;
+    color: white;
+    font-size: 15px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.search-input:focus {
+    border-color: #fca311;
+    box-shadow: 0 0 8px rgba(252, 163, 17, 0.2);
+}
+
+.reel-count {
+    color: #888;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+/* List View Styles */
+.reels-list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    width: 100%;
+    max-width: 800px; /* Thoda chaura rakhein taaki list achi dikhe */
+    margin: 0 auto;
+}
+
+.reel-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.group-header {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ccc;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #333;
+    margin: 0;
+}
+
+.group-items {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Individual List Item (Instagram/CapCut Style) */
+.reel-list-item {
+    display: flex;
+    gap: 15px;
+    background: #1e1e1e;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #2a2a2a;
+    align-items: center;
+    transition: 0.2s;
+}
+
+.reel-list-item:hover {
+    background: #252525;
+    border-color: #444;
+}
+
+.reel-list-thumbnail {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #000;
+}
+
+.duration-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 2px 6px;
+    font-size: 11px;
+    border-radius: 4px;
+}
+
+.thumbnail-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    background: #2a2a2a;
+}
+
+.reel-list-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    min-width: 0; /* Prevent text overflow issues */
+}
+
+.reel-detail-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.reel-list-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+
+.reel-list-date {
+    font-size: 13px;
+    color: #777;
+    white-space: nowrap;
+}
+
+.reel-detail-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 13px;
+    color: #aaa;
+}
+
+.template-tag {
+    background: #2a2a2a;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.reel-list-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.download-btn-small, .delete-btn-small {
+    padding: 4px 12px;
+    font-size: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.download-btn-small {
+    background: #fca311;
+    color: #000;
+}
+
+.delete-btn-small {
+    background: #2a2a2a;
+    color: #ff6b6b;
+    border: 1px solid #ff6b6b;
+}
+
+.download-btn-small:hover { background: #ffb703; }
+.delete-btn-small:hover { background: #3a1a1a; }
+
+/* Responsive */
+@media (max-width: 600px) {
+    .search-bar-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .reel-list-thumbnail {
+        width: 60px;
+        height: 60px;
+    }
+    .reel-list-title {
+        font-size: 14px;
+        max-width: 55%;
+    }
+}

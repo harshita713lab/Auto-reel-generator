@@ -223,6 +223,12 @@ reel.previewUrl = renderResult.previewUrl;
 /**
  * Get all reels
  */
+/**
+ * Get all reels
+ */
+/**
+ * Get all reels
+ */
 exports.getAllReels = async (req, res) => {
   try {
     const { page = 1, limit = 20, status } = req.query;
@@ -242,9 +248,20 @@ exports.getAllReels = async (req, res) => {
       Reel.countDocuments(query),
     ]);
 
+    // ✅ FIX: Pura URL (domain ke saath) bhej rahe hain
+    const formattedReels = reels.map(reel => {
+      const reelObj = reel.toObject();
+      if (reelObj.outputPath) {
+        const filename = path.basename(reelObj.outputPath);
+        // Isse frontend ka handleDownload directly fetch kar lega
+        reelObj.outputUrl = `http://localhost:5000/output/renders/${filename}`;
+      }
+      return reelObj;
+    });
+
     res.json({
       success: true,
-      reels: reels || [],
+      reels: formattedReels || [], 
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -252,6 +269,7 @@ exports.getAllReels = async (req, res) => {
         pages: Math.ceil(total / parseInt(limit)),
       },
     });
+
   } catch (error) {
     logger.error("Failed to get reels:", error);
     res.status(500).json({
@@ -260,7 +278,6 @@ exports.getAllReels = async (req, res) => {
     });
   }
 };
-
 /**
  * Get single reel by ID
  */
