@@ -123,21 +123,30 @@ function UploadSection() {
             }
 
             const reelResponse = await reelRes.json();
+            console.log("FULL RESPONSE", reelResponse);
+
 
             setProgress(100);
             setStatus('✅ Reel Ready!');
             
             // Extract reel data from nested response structure
             const reelObj = reelResponse.data || reelResponse;
-            const outputUrl = reelObj.outputUrl || `/output/renders/${reelObj.outputPath ? reelObj.outputPath.split('/').pop() || reelObj.outputPath.split('\\').pop() : ''}`;
-            
-            setReelData({
-                downloadUrl: outputUrl,
-                music: reelObj.usedMusic || 'Upbeat',
-                template: reelObj.usedTemplate || 'Auto',
-                reelId: reelObj._id || reelObj.reelId || reelObj.renderId,
-                provider: useShotstack ? 'Shotstack' : 'FFmpeg'
-            });
+            const fileName = reelObj.outputPath
+    ? reelObj.outputPath.split('\\').pop()
+    : '';
+
+const outputUrl = reelObj.outputUrl 
+    ||`/output/renders/${fileName}`;
+            console.log("FULL RESPONSE", reelResponse);
+console.log("REEL OBJ", reelObj);
+console.log("OUTPUT URL", outputUrl);
+          setReelData({
+    outputUrl: outputUrl,
+    music: reelObj.usedMusic || 'Upbeat',
+    template: reelObj.usedTemplate || 'Auto',
+    reelId: reelObj._id || reelObj.reelId || reelObj.renderId,
+    provider: useShotstack ? 'Shotstack' : 'FFmpeg'
+});
             setLoading(false);
             toast.success(`🎬 Reel created successfully with ${images.length} images!`);
 

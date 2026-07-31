@@ -1,127 +1,118 @@
-import React from 'react';
-import { Img, useCurrentFrame, interpolate } from 'remotion';
+import React from "react";
+import {
+  AbsoluteFill,
+  Img,
+  interpolate,
+  useCurrentFrame,
+  Easing,
+} from "remotion";
 
 interface AnimatedImageProps {
   src: string;
-  durationInFrames: number;
-  animation: string;
-  animationConfig?: Record<string, any>;
-  className?: string;
+  animation?: string;
+  durationInFrames?: number;
   style?: React.CSSProperties;
 }
 
-export const AnimatedImage: React.FC<AnimatedImageProps> = ({
+const AnimatedImage: React.FC<AnimatedImageProps> = ({
   src,
-  durationInFrames,
-  animation = 'kenBurns',
-  animationConfig = {},
-  className = '',
-  style = {},
+  animation = "kenBurns",
+  durationInFrames = 18,
+  style,
 }) => {
   const frame = useCurrentFrame();
-  const progress = Math.min(frame / durationInFrames, 1);
 
-  const getAnimationStyle = () => {
-    const anims: Record<string, any> = {
-      zoomIn: () => ({
-        scale: interpolate(progress, [0, 1], [0.5, 1]),
-        opacity: interpolate(progress, [0, 0.3], [0, 1]),
-      }),
-      zoomOut: () => ({
-        scale: interpolate(progress, [0, 1], [1.5, 1]),
-        opacity: interpolate(progress, [0, 0.3], [1, 0.8]),
-      }),
-      kenBurns: () => ({
-        scale: interpolate(progress, [0, 1], [1.1, 1.4]),
-        translateX: interpolate(progress, [0, 1], [0, 10]),
-        translateY: interpolate(progress, [0, 1], [0, 10]),
-      }),
-      panLeft: () => ({
-        translateX: interpolate(progress, [0, 1], [0, -100]),
-      }),
-      panRight: () => ({
-        translateX: interpolate(progress, [0, 1], [0, 100]),
-      }),
-      panUp: () => ({
-        translateY: interpolate(progress, [0, 1], [0, -100]),
-      }),
-      panDown: () => ({
-        translateY: interpolate(progress, [0, 1], [0, 100]),
-      }),
-      bounce: () => ({
-        translateY: Math.sin(progress * Math.PI * 4) * 20 * (1 - progress),
-      }),
-      shake: () => ({
-        translateX: (Math.random() - 0.5) * 10 * (1 - progress),
-        translateY: (Math.random() - 0.5) * 10 * (1 - progress),
-      }),
-      float: () => ({
-        translateY: Math.sin(progress * Math.PI * 2) * 10,
-      }),
-      rotate: () => ({
-        rotate: interpolate(progress, [0, 1], [0, 360]),
-      }),
-      fade: () => ({
-        opacity: interpolate(progress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]),
-      }),
-      scale: () => ({
-        scale: interpolate(progress, [0, 1], [0.3, 1]),
-      }),
-      blurIn: () => ({
-        blur: interpolate(progress, [0, 1], [10, 0]),
-        opacity: interpolate(progress, [0, 0.3], [0, 1]),
-      }),
-      blurOut: () => ({
-        blur: interpolate(progress, [0, 1], [0, 10]),
-        opacity: interpolate(progress, [0.7, 1], [1, 0]),
-      }),
-      reveal: () => ({
-        scale: interpolate(progress, [0, 1], [0.8, 1]),
-        opacity: progress,
-      }),
-      tilt: () => ({
-        rotate: Math.sin(progress * Math.PI) * 15,
-      }),
-      parallax: () => ({
-        translateX: interpolate(progress, [0, 1], [0, 20]),
-        translateY: interpolate(progress, [0, 1], [0, 20]),
-        scale: 1 + progress * 0.05,
-      }),
-      cameraPush: () => ({
-        scale: 1 + progress * 0.2,
-      }),
-      cameraPull: () => ({
-        scale: 1.2 - progress * 0.2,
-      }),
-      slowFloat: () => ({
-        translateY: Math.sin(progress * Math.PI * 0.5) * 15,
-        scale: 1 + Math.sin(progress * Math.PI * 0.5) * 0.02,
-      }),
-    };
+  const end = durationInFrames;
 
-    return anims[animation] || anims.kenBurns;
-  };
+  let scale = 1;
+  let x = 0;
+  let y = 0;
+  let rotate = 0;
 
-  const animStyle = getAnimationStyle();
+  switch (animation) {
+    case "kenBurns":
+      scale = interpolate(frame, [0, end], [1, 1.08], {
+        easing: Easing.ease,
+        extrapolateRight: "clamp",
+      });
+      break;
 
-  const transformParts = [];
-  if (animStyle.scale !== undefined) transformParts.push(`scale(${animStyle.scale})`);
-  if (animStyle.translateX !== undefined) transformParts.push(`translateX(${animStyle.translateX}px)`);
-  if (animStyle.translateY !== undefined) transformParts.push(`translateY(${animStyle.translateY}px)`);
-  if (animStyle.rotate !== undefined) transformParts.push(`rotate(${animStyle.rotate}deg)`);
+    case "zoomIn":
+      scale = interpolate(frame, [0, end], [1, 1.12], {
+        easing: Easing.ease,
+        extrapolateRight: "clamp",
+      });
+      break;
 
-  const finalStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    transform: transformParts.length > 0 ? transformParts.join(' ') : 'none',
-    opacity: animStyle.opacity ?? 1,
-    filter: animStyle.blur !== undefined ? `blur(${animStyle.blur}px)` : 'none',
-    ...style,
-  };
+    case "zoomOut":
+      scale = interpolate(frame, [0, end], [1.08, 1], {
+        easing: Easing.ease,
+        extrapolateRight: "clamp",
+      });
+      break;
 
-  return <Img src={src} className={className} style={finalStyle} />;
+    case "panLeft":
+      x = interpolate(frame, [0, end], [0, -20], {
+        extrapolateRight: "clamp",
+      });
+      break;
+
+    case "panRight":
+      x = interpolate(frame, [0, end], [0, 20], {
+        extrapolateRight: "clamp",
+      });
+      break;
+
+    case "panUp":
+      y = interpolate(frame, [0, end], [0, -15], {
+        extrapolateRight: "clamp",
+      });
+      break;
+
+    case "panDown":
+      y = interpolate(frame, [0, end], [0, 15], {
+        extrapolateRight: "clamp",
+      });
+      break;
+
+    case "rotate":
+      rotate = interpolate(frame, [0, end], [-1, 1], {
+        extrapolateRight: "clamp",
+      });
+      break;
+
+    default:
+      scale = interpolate(frame, [0, end], [1, 1.08], {
+        easing: Easing.ease,
+        extrapolateRight: "clamp",
+      });
+  }
+
+  return (
+    <AbsoluteFill
+      style={{
+        overflow: "hidden",
+      }}
+    >
+      <Img
+        src={src}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          transform: `
+            translate(${x}px, ${y}px)
+            scale(${scale})
+            rotate(${rotate}deg)
+          `,
+          willChange: "transform",
+          ...style,
+
+        }}
+         onError={() => console.log("Image Error", src)}
+      />
+    </AbsoluteFill>
+  );
 };
+
+export default AnimatedImage;

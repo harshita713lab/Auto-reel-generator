@@ -28,8 +28,15 @@ try {
     console.error('❌ Error reading data file:', err.message);
     process.exit(1);
 }
+const {compositionId = "ReelComposition",
+  inputProps = {},
+} = data;
 
-const { images = [], template = {} } = data;
+const {
+  images = [],
+  music = null,
+  config = {},
+} = inputProps;
 
 console.log(`\n🎬 Starting Remotion Render for ${images.length} images...`);
 
@@ -59,32 +66,32 @@ try {
     console.log(`🎬 Selecting composition...`);
     const composition = await selectComposition({
         serveUrl: bundleLocation,
-        id: 'ReelComposition',
-        inputProps: {
-            images: images,
-            template: template,
-            totalDuration: template.totalDuration || images.length * (template.slideDuration || 3),
-            numImages: images.length,
-        },
+        id: "ReelComposition",
+    inputProps: {
+  images,
+  music,
+  config,
+    },
         chromiumOptions,
     });
 
     // Step 3: Render
     console.log(`🎬 Rendering video...`);
-    await renderMedia({
-        composition,
-        serveUrl: bundleLocation,
-        codec: 'h264',
-        outputLocation: outputPath,
-        inputProps: {
-            images: images,
-            template: template,
-            totalDuration: template.totalDuration || images.length * (template.slideDuration || 3),
-            numImages: images.length,
-        },
-        concurrency: 1,
-        chromiumOptions,
-    });
+  await renderMedia({
+    composition,
+    serveUrl: bundleLocation,
+    codec: "h264",
+    outputLocation: outputPath,
+
+    inputProps: {
+        images,
+        music,
+        config,
+    },
+
+    concurrency: 1,
+    chromiumOptions,
+});
 
     if (fs.existsSync(outputPath)) {
         console.log(`✅ REMOTION RENDER COMPLETED SUCCESSFULLY: ${outputPath}`);

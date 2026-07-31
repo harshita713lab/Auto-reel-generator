@@ -38,11 +38,21 @@ class OutputService {
       default:
         outputDir = this.outputDirs.renders;
     }
+const outputPath = path.join(outputDir, filename);
 
-    const outputPath = path.join(outputDir, filename);
-    await fileService.saveFile(data, outputPath);
+console.log("=================================");
+console.log("SOURCE FILE :", data);
+console.log("DEST FILE   :", outputPath);
 
-    const stats = await fileService.getFileStats(outputPath);
+await fileService.saveFile(data, outputPath);
+
+const fsSync = require("fs");
+
+console.log("Copied Successfully :", fsSync.existsSync(outputPath));
+console.log("=================================");
+
+const stats = await fileService.getFileStats(outputPath);
+ 
 
     return {
       path: outputPath,

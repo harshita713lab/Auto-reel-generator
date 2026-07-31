@@ -31,8 +31,16 @@ if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
 app.use('/uploads/temp', express.static(uploadDir));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/generated', express.static(generatedDir));
+app.use("/output", (req, res, next) => {
+  console.log("OUTPUT REQUEST:", req.url);
+  next();
+});
 app.use('/output', express.static(path.join(__dirname, 'output')));
+app.use('/renders', express.static(
+    path.join(__dirname, 'output/renders')
+));
 app.use('/public', express.static(publicDir));
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 // ============================================================
 // ✅ 2. MONGODB CONNECT

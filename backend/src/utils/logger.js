@@ -23,14 +23,19 @@ const formatTimestamp = () => {
   return now.toISOString().replace('T', ' ').slice(0, 19);
 };
 
+
 const formatMessage = (level, message, meta = {}) => {
   let msg = `${formatTimestamp()} [${level.toUpperCase()}] ${message}`;
-  if (Object.keys(meta).length > 0) {
+
+  if (meta instanceof Error) {
+    msg += `\nMessage: ${meta.message}`;
+    msg += `\nStack:\n${meta.stack}`;
+  } else if (Object.keys(meta).length > 0) {
     msg += `\n${JSON.stringify(meta, null, 2)}`;
   }
+
   return msg;
 };
-
 const writeToFile = (level, message) => {
   const logFile = level === 'error' ? 'error.log' : 'combined.log';
   const logPath = path.join(logsDir, logFile);
@@ -42,13 +47,19 @@ const writeToFile = (level, message) => {
 };
 
 const logger = {
-  error: (message, meta = {}) => {
-    if (currentLevel >= LOG_LEVELS.error) {
-      const msg = formatMessage('error', message, meta);
-      console.error('\x1b[31m%s\x1b[0m', msg);
-      writeToFile('error', msg);
+ error: (message, meta = {}) => {
+  if (currentLevel >= LOG_LEVELS.error) {
+    const msg = formatMessage("error", message, meta);
+
+    console.error(msg);
+
+    if (meta instanceof Error) {
+      console.error(meta.stack);
     }
-  },
+
+    writeToFile("error", msg);
+  }
+},
 
   warn: (message, meta = {}) => {
     if (currentLevel >= LOG_LEVELS.warn) {

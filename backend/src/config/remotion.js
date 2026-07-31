@@ -13,13 +13,17 @@ class RemotionConfig {
     this.timeout = 300 * 1000; // 5 minutes
   }
 
-  validateCompositionName(compositionName) {
-    const validCompositions = ['ReelComposition', 'Main', 'Default'];
-    if (!compositionName || typeof compositionName !== 'string') {
-      return 'ReelComposition';
+validateCompositionName(compositionName) {
+    const validCompositions = ["ReelComposition"];
+
+    if (!compositionName || typeof compositionName !== "string") {
+        return "ReelComposition";
     }
-    return validCompositions.includes(compositionName) ? compositionName : 'ReelComposition';
-  }
+
+    return validCompositions.includes(compositionName)
+        ? compositionName
+        : "ReelComposition";
+}
 
   async render(compositionId, options = {}) {
     const validatedComposition = this.validateCompositionName(compositionId);
@@ -34,12 +38,10 @@ class RemotionConfig {
     if (!fs.existsSync(DIRECTORIES.TEMP)) fs.mkdirSync(DIRECTORIES.TEMP, { recursive: true });
     if (!fs.existsSync(this.outputDir)) fs.mkdirSync(this.outputDir, { recursive: true });
 
-    const payload = {
-      compositionId: validatedComposition,
-      images: inputProps.images || [],
-      template: inputProps.template || { name: 'Default', slideDuration: 3, effects: ['none'], transitions: ['fade'] },
-    };
-
+const payload = {
+    compositionId: validatedComposition,
+    inputProps,
+};
     fs.writeFileSync(tempJsonPath, JSON.stringify(payload, null, 2));
 
     logger.info(`Starting Remotion render process... Input: ${tempJsonPath}`);
@@ -71,7 +73,7 @@ class RemotionConfig {
       });
 
       child.on('close', (code) => {
-        if (fs.existsSync(tempJsonPath)) fs.unlinkSync(tempJsonPath);
+       // if (fs.existsSync(tempJsonPath)) fs.unlinkSync(tempJsonPath);
 
         if (code === 0) {
           resolve({ outputPath, stdout, stderr });

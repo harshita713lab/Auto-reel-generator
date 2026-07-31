@@ -41,7 +41,7 @@ const IMAGE_CONFIG = {
   FORMAT: 'jpeg',
   THUMBNAIL_WIDTH: 320,
   THUMBNAIL_HEIGHT: 180,
-  ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+  ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'webp', 'gif','jfif'],
   MAX_FILE_SIZE: 10 * 1024 * 1024,
 };
 

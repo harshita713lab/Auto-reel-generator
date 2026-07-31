@@ -15,15 +15,29 @@ exports.getLatestReel = async (req, res) => {
     const latestReel = await Reel.findOne().sort({ createdAt: -1 });
 
     if (!latestReel) {
-      return res
-        .status(200)
-        .json({ success: false, message: "No reels found" });
+      return res.status(200).json({
+        success: false,
+        message: "No reels found",
+        reel: null
+      });
     }
 
     return res.status(200).json({
       success: true,
-      reel: latestReel,
+      reel: {
+        ...latestReel.toObject(),
+
+        // frontend video URL
+        outputUrl: latestReel.outputPath
+          ? `/renders/${path.basename(latestReel.outputPath)}`
+          : null,
+
+        previewUrl: latestReel.previewPath
+          ? `/previews/${path.basename(latestReel.previewPath)}`
+          : null
+      },
     });
+
   } catch (error) {
     logger.error("Error fetching latest reel:", error);
     return res.status(500).json({
@@ -161,7 +175,7 @@ exports.createReel = async (req, res) => {
     reel.progress = 0;
     await reel.save();
 
-    let renderResult;
+let renderResult;
     try {
       renderResult = await renderService.renderReel(reel, {
         audioPath: selectedAudioPath
@@ -169,17 +183,22 @@ exports.createReel = async (req, res) => {
 
       reel.status = 'rendered';
       reel.progress = 100;
-      reel.outputPath = renderResult.outputPath;
-      reel.outputUrl = renderResult.outputUrl || `/output/renders/${path.basename(renderResult.outputPath)}`;
-      reel.previewPath = renderResult.previewPath;
-      reel.previewUrl = renderResult.previewUrl || `/output/previews/${path.basename(renderResult.previewPath)}`;
+     reel.outputPath = renderResult.outputPath;
+reel.outputUrl = renderResult.outputUrl;
+reel.previewPath = renderResult.previewPath;
+reel.previewUrl = renderResult.previewUrl;
       reel.thumbnailPath = renderResult.thumbnailPath;
       reel.renderedAt = new Date();
       await reel.save();
 
       logger.info(`Reel rendering completed: ${reel.title} (${reel._id})`);
     } catch (renderError) {
-      logger.error(`Reel rendering failed for ${reel._id}:`, renderError);
+      // 🔍 इस लाइन को मॉडिफाई करें ताकि असली वजह साफ़ दिखे
+      logger.error(`❌ REAL RENDERING ERROR FOR REEL ${reel._id}:`, renderError);
+      console.error("================ REMOTION / FFMPEG ERROR DETAIL ================");
+      console.error(renderError.stack || renderError);
+      console.error("================================================================");
+
       reel.status = 'failed';
       reel.error = renderError.message;
       await reel.save();

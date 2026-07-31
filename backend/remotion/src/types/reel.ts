@@ -1,4 +1,4 @@
-import { AnimationType } from './animation';
+import { AnimationType, AnimationConfig } from './animation';
 import { TransitionType } from './template';
 
 export interface ImageData {

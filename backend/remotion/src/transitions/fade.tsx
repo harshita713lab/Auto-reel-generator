@@ -16,8 +16,8 @@ export const FadeTransition: React.FC<FadeTransitionProps> = ({
 }) => {
   const frame = useCurrentFrame();
   const progress = Math.max(0, Math.min((frame - delay) / durationInFrames, 1));
-  const eased = Easing.easeInOut(progress);
 
+const eased = Easing.inOut(Easing.ease)(progress);
   let opacity = 1;
 
   if (direction === 'in') {

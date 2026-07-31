@@ -1,6 +1,7 @@
 import React from 'react';
 import { Composition, AbsoluteFill, Sequence } from 'remotion';
-import { AnimatedImage } from './components/AnimatedImage';
+import {  default as AnimatedImage } from './components/AnimatedImage';
+import WeddingComposition from './compositions/Wedding/WeddingComposition';
 
 const DefaultComposition: React.FC<any> = ({ images = [], template = {} }) => {
   const slideDuration = template.slideDuration || 3;
@@ -19,11 +20,8 @@ const DefaultComposition: React.FC<any> = ({ images = [], template = {} }) => {
             from={index * slideFrames}
             durationInFrames={slideFrames}
           >
-            <AnimatedImage
-              src={imageSrc}
-              durationInFrames={slideFrames}
-              animation={animation}
-            />
+            
+     <AnimatedImage src={img.path} />
           </Sequence>
         );
       })}
@@ -46,7 +44,7 @@ export const Root: React.FC = () => {
   return (
     <Composition
       id="ReelComposition"
-      component={DefaultComposition}
+      component={WeddingComposition}
       fps={30}
       width={1080}
       height={1920}

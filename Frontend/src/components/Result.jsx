@@ -4,9 +4,11 @@ import React, { useState } from 'react';
 function Result({ reelData, onReset }) {
     const [rating, setRating] = useState(0);
 
-    const videoUrl = reelData?.downloadUrl 
-        ? `http://localhost:5000${reelData.downloadUrl}` 
-        : '';
+const videoUrl = reelData?.outputUrl
+  ? reelData.outputUrl.startsWith('http')
+      ? reelData.outputUrl
+      : `http://localhost:5000${reelData.outputUrl}`
+  : '';
 
     // ✅ Download function - blob fetch karke download karega
     const handleDownload = async () => {
@@ -37,14 +39,19 @@ function Result({ reelData, onReset }) {
             
             <div className="video-wrapper">
                 {videoUrl ? (
-                    <video 
-                        controls 
-                        muted 
-                        style={{ width: '100%', maxHeight: '500px', borderRadius: '12px' }}
-                    >
-                        <source src={videoUrl} type="video/mp4" />
-                        Your browser does not support the video tag.
-                    </video>
+<video
+  controls
+  muted
+  playsInline
+  style={{
+    width: '100%',
+    maxHeight: '500px',
+    borderRadius: '12px'
+  }}
+>
+  <source src={videoUrl} type="video/mp4" />
+  Your browser does not support the video tag.
+</video>
                 ) : (
                     <div className="video-placeholder">
                         <span className="play-icon">▶️</span>

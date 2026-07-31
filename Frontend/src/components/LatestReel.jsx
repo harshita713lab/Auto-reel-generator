@@ -20,6 +20,8 @@ function LatestReel() {
                 const data = await response.json();
                 if (data.success && data.reel) {
                     setLatestReel(data.reel);
+                  
+console.log(latestReel);
                 }
             }
         } catch (error) {
@@ -74,7 +76,10 @@ function LatestReel() {
                     muted 
                     style={{ width: '100%', maxHeight: '400px', borderRadius: '12px' }}
                 >
-                    <source src={`http://localhost:5000${latestReel.videoUrl}`} type="video/mp4" />
+                  <source
+    src={`http://localhost:5000${latestReel.outputUrl}`}
+    type="video/mp4"
+/>
                 </video>
                 <div className="latest-reel-info">
                     <span>🎵 {latestReel.usedMusic}</span>
