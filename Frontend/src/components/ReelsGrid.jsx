@@ -1,5 +1,5 @@
 // frontend/src/components/ReelsGrid.jsx
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -10,22 +10,22 @@ function ReelsGrid() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState(''); // Search state
     const [openMenuId, setOpenMenuId] = useState(null); // Track which menu is open
-    const menuRef = useRef(null); // To handle clicking outside
+    const [shareModal, setShareModal] = useState(null); // Track share modal state: { reel, videoUrl } or null
 
     useEffect(() => {
         fetchAllReels();
     }, []);
 
-    // ✅ Close menu when clicking outside
+    // ✅ Close menu when clicking outside (fixed: no shared ref, uses closest())
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (menuRef.current && !menuRef.current.contains(event.target)) {
+            if (openMenuId && !event.target.closest('.reel-menu-container')) {
                 setOpenMenuId(null);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [openMenuId]);
 
     const fetchAllReels = async () => {
         try {
@@ -59,26 +59,17 @@ function ReelsGrid() {
         return null;
     };
 
-    const handleDownload = async (videoUrl, filename) => {
+    const handleDownload = (videoUrl, filename) => {
         try {
-            let fullUrl = videoUrl;
-            if (!fullUrl.startsWith('http')) {
-                const cleanPath = fullUrl.startsWith('/') ? fullUrl : `/${fullUrl}`;
-                fullUrl = `http://localhost:5000${cleanPath}`;
-            }
-
-            const response = await fetch(fullUrl);
-            if (!response.ok) throw new Error('Download failed');
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
+            // ✅ Direct download using anchor tag - no fetch/blob needed (avoids CORS issues)
             const link = document.createElement('a');
-            link.href = url;
+            link.href = videoUrl;
             link.download = filename || `reel_${Date.now()}.mp4`;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
             toast.success('📥 Download started!');
         } catch (error) {
             console.error('Download failed:', error);
@@ -128,24 +119,61 @@ function ReelsGrid() {
         }
     };
 
-    // ✅ New Feature: Share Reel
+    // ✅ Share Modal: Platform-specific share options
     const handleShare = (reel) => {
         const videoUrl = getVideoUrl(reel);
-        if (navigator.share) {
-            navigator.share({
-                title: reel.title || "My Reel",
-                text: `Check out my reel on Fotographiya!`,
-                url: videoUrl,
-            }).catch((error) => console.log('Error sharing:', error));
-        } else {
-            // Fallback for browsers that don't support Web Share API
-            navigator.clipboard.writeText(videoUrl).then(() => {
-                toast.success('🔗 Video link copied to clipboard!');
-            }).catch(() => {
-                toast.error('❌ Failed to copy link. Please copy manually.');
-            });
-        }
+        setShareModal({ reel, videoUrl });
         setOpenMenuId(null); // Close menu after action
+    };
+
+    // ✅ Close share modal
+    const closeShareModal = () => {
+        setShareModal(null);
+    };
+
+    // ✅ Share via a specific platform
+    const shareViaPlatform = (platform, videoUrl, title) => {
+        const encodedUrl = encodeURIComponent(videoUrl || '');
+        const encodedTitle = encodeURIComponent(title || 'My Reel');
+        const text = encodeURIComponent(`Check out my reel on Fotographiya!`);
+        
+        let url = '';
+        switch (platform) {
+            case 'telegram':
+                url = `https://t.me/share/url?url=${encodedUrl}&text=${text}`;
+                break;
+            case 'whatsapp':
+                url = `https://wa.me/?text=${text}%20${encodedUrl}`;
+                break;
+            case 'facebook':
+                url = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${text}`;
+                break;
+            case 'email':
+                url = `mailto:?subject=${encodedTitle}&body=${text}%0A${encodedUrl}`;
+                break;
+            case 'instagram':
+                // Instagram doesn't support direct web share URLs, so copy link
+                navigator.clipboard.writeText(videoUrl).then(() => {
+                    toast.success('📋 Link copied! Paste it in Instagram.');
+                }).catch(() => {
+                    toast.error('❌ Failed to copy link.');
+                });
+                closeShareModal();
+                return;
+            case 'copy':
+                navigator.clipboard.writeText(videoUrl).then(() => {
+                    toast.success('📋 Link copied to clipboard!');
+                }).catch(() => {
+                    toast.error('❌ Failed to copy link.');
+                });
+                closeShareModal();
+                return;
+            default:
+                return;
+        }
+        
+        window.open(url, '_blank', 'noopener,noreferrer');
+        closeShareModal();
     };
 
     // ✅ New Feature: Duplicate Reel (Mock for now)
@@ -265,7 +293,7 @@ function ReelsGrid() {
                                                             {new Date(reel.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                                                         </span>
                                                         
-                                                        <div className="reel-menu-container" ref={menuRef}>
+                                                        <div className="reel-menu-container">
                                                             <button 
                                                                 className="reel-menu-trigger" 
                                                                 onClick={() => setOpenMenuId(openMenuId === reel._id ? null : reel._id)}
@@ -338,6 +366,45 @@ function ReelsGrid() {
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* ✅ SHARE MODAL - Platform-specific share options */}
+            {shareModal && (
+                <div className="share-modal-overlay" onClick={closeShareModal}>
+                    <div className="share-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="share-modal-header">
+                            <h3>🔗 Share Reel</h3>
+                            <button className="share-modal-close" onClick={closeShareModal}>✕</button>
+                        </div>
+                        <p className="share-modal-title">{shareModal.reel.title || 'Untitled Reel'}</p>
+                        <div className="share-options">
+                            <button className="share-option" onClick={() => shareViaPlatform('telegram', shareModal.videoUrl, shareModal.reel.title)}>
+                                <span className="share-icon">✈️</span>
+                                <span className="share-label">Telegram</span>
+                            </button>
+                            <button className="share-option" onClick={() => shareViaPlatform('instagram', shareModal.videoUrl, shareModal.reel.title)}>
+                                <span className="share-icon">📷</span>
+                                <span className="share-label">Instagram</span>
+                            </button>
+                            <button className="share-option" onClick={() => shareViaPlatform('facebook', shareModal.videoUrl, shareModal.reel.title)}>
+                                <span className="share-icon">👍</span>
+                                <span className="share-label">Facebook</span>
+                            </button>
+                            <button className="share-option" onClick={() => shareViaPlatform('email', shareModal.videoUrl, shareModal.reel.title)}>
+                                <span className="share-icon">📧</span>
+                                <span className="share-label">Email</span>
+                            </button>
+                            <button className="share-option" onClick={() => shareViaPlatform('whatsapp', shareModal.videoUrl, shareModal.reel.title)}>
+                                <span className="share-icon">💬</span>
+                                <span className="share-label">WhatsApp</span>
+                            </button>
+                            <button className="share-option copy-link" onClick={() => shareViaPlatform('copy', shareModal.videoUrl, shareModal.reel.title)}>
+                                <span className="share-icon">📋</span>
+                                <span className="share-label">Copy Link</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

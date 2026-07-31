@@ -1,16 +1,15 @@
-import path from 'path';
-import { promises as fs } from 'fs';
-import Reel from '../models/Reel.js';
-import Template from '../models/Template.js';
-import templateService from '../services/template/templateService.js';
-import renderService from '../services/video/renderService.js';
-import logger from '../utils/logger.js';
-import { RENDER_CONFIG } from '../config/constants.js';
+const path = require("path");
+const fs = require("fs").promises;
+const Reel = require("../models/Reel");
+const Template = require("../models/Template");
+const renderService = require("../services/video/renderService");
+const logger = require("../utils/logger");
+const { RENDER_CONFIG } = require("../config/constants");
 
 /**
  * Get Latest Reel
  */
-export const getLatestReel = async (req, res) => {
+exports.getLatestReel = async (req, res) => {
   try {
     const latestReel = await Reel.findOne().sort({ createdAt: -1 });
 
@@ -34,7 +33,6 @@ export const getLatestReel = async (req, res) => {
           : null
       },
     });
-
   } catch (error) {
     logger.error("Error fetching latest reel:", error);
     return res.status(500).json({
@@ -48,17 +46,11 @@ export const getLatestReel = async (req, res) => {
 /**
  * Create a new reel
  */
-export const createReel = async (req, res) => {
+exports.createReel = async (req, res) => {
   try {
-    const {
-      title,
-      templateId,
-      images,
-      musicId,
-      duration,
-      config = {},
-    } = req.body;
+    const { title, templateId, images, musicId, duration, config = {} } = req.body;
 
+    // Validate images array
     if (!images || !Array.isArray(images) || images.length < RENDER_CONFIG.MIN_IMAGES) {
       return res.status(400).json({
         error: `At least ${RENDER_CONFIG.MIN_IMAGES} images are required`,
@@ -97,7 +89,6 @@ export const createReel = async (req, res) => {
       if (typeof img === "object" && img !== null) {
         const imagePath = img.path || img.url || "";
         const fileName = img.filename || imagePath.split("/").pop() || `image_${index}.jpg`;
-        
         return {
           ...img,
           filename: fileName,
@@ -160,9 +151,7 @@ export const createReel = async (req, res) => {
 
     let renderResult;
     try {
-      renderResult = await renderService.renderReel(reel, {
-        audioPath: selectedAudioPath
-      });
+      renderResult = await renderService.renderReel(reel, { audioPath: selectedAudioPath });
 
       reel.status = 'rendered';
       reel.progress = 100;
@@ -205,7 +194,7 @@ export const createReel = async (req, res) => {
 /**
  * Get all reels
  */
-export const getAllReels = async (req, res) => {
+exports.getAllReels = async (req, res) => {
   try {
     const { page = 1, limit = 20, status } = req.query;
 
@@ -243,7 +232,6 @@ export const getAllReels = async (req, res) => {
         pages: Math.ceil(total / parseInt(limit)),
       },
     });
-
   } catch (error) {
     logger.error("Failed to get reels:", error);
     res.status(500).json({
@@ -256,7 +244,7 @@ export const getAllReels = async (req, res) => {
 /**
  * Get single reel by ID
  */
-export const getReelById = async (req, res) => {
+exports.getReelById = async (req, res) => {
   try {
     const reel = await Reel.findById(req.params.id)
       .populate("template", "name category config")
@@ -276,12 +264,12 @@ export const getReelById = async (req, res) => {
   }
 };
 
-export const getReel = getReelById;
+exports.getReel = exports.getReelById;
 
 /**
  * ✅ FIXED: Update reel (Rename work properly now)
  */
-export const updateReel = async (req, res) => {
+exports.updateReel = async (req, res) => {
   try {
     const updates = req.body;
     const reel = await Reel.findById(req.params.id);
@@ -290,7 +278,6 @@ export const updateReel = async (req, res) => {
       return res.status(404).json({ error: "Reel not found" });
     }
 
-    // ✅ FIXED: Only update title, ignore status check
     if (updates.title && typeof updates.title === 'string') {
       reel.title = updates.title.trim();
     }
@@ -314,16 +301,15 @@ export const updateReel = async (req, res) => {
 };
 
 /**
- * ✅ FIXED: Delete reel (Deletes file physically and from DB)
+ * ✅ FIXED: Delete reel
  */
-export const deleteReel = async (req, res) => {
+exports.deleteReel = async (req, res) => {
   try {
     const reel = await Reel.findById(req.params.id);
     if (!reel) {
       return res.status(404).json({ error: "Reel not found" });
     }
 
-    // Delete file from system if exists
     if (reel.outputPath) {
       try {
         let filePath = reel.outputPath;
@@ -338,7 +324,6 @@ export const deleteReel = async (req, res) => {
     }
 
     await reel.deleteOne();
-
     logger.info(`Reel deleted: ${reel.title}`);
 
     res.json({
@@ -357,7 +342,7 @@ export const deleteReel = async (req, res) => {
 /**
  * Get reel preview
  */
-export const getPreview = async (req, res) => {
+exports.getPreview = async (req, res) => {
   try {
     const reel = await Reel.findById(req.params.id);
     if (!reel) {
@@ -387,7 +372,7 @@ export const getPreview = async (req, res) => {
 /**
  * Process reel
  */
-export const processReel = async (req, res) => {
+exports.processReel = async (req, res) => {
   try {
     const reel = await Reel.findById(req.params.id);
     if (!reel) {
@@ -426,7 +411,7 @@ export const processReel = async (req, res) => {
 /**
  * Render reel
  */
-export const renderReel = async (req, res) => {
+exports.renderReel = async (req, res) => {
   try {
     const reel = await Reel.findById(req.params.id);
     if (!reel) {
@@ -481,7 +466,7 @@ export const renderReel = async (req, res) => {
 /**
  * ✅ FIXED: Download reel (Redirects directly to static URL)
  */
-export const downloadReel = async (req, res) => {
+exports.downloadReel = async (req, res) => {
   try {
     const reel = await Reel.findById(req.params.id);
     if (!reel) {
@@ -499,7 +484,6 @@ export const downloadReel = async (req, res) => {
     await reel.save();
 
     return res.redirect(publicUrl);
-
   } catch (error) {
     logger.error("Failed to download reel:", error);
     res.status(500).json({
@@ -512,7 +496,7 @@ export const downloadReel = async (req, res) => {
 /**
  * Get reel status
  */
-export const getReelStatus = async (req, res) => {
+exports.getReelStatus = async (req, res) => {
   try {
     const reel = await Reel.findById(req.params.id);
     if (!reel) {
