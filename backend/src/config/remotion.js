@@ -12,9 +12,11 @@ class RemotionConfig {
     this.concurrency = env.REMOTION_CONCURRENCY || 1;
     this.timeout = 300 * 1000; // 5 minutes
   }
-
 validateCompositionName(compositionName) {
-    const validCompositions = ["ReelComposition"];
+    const validCompositions = [
+        "ReelComposition",
+        "MemoryBlendReel",
+    ];
 
     if (!compositionName || typeof compositionName !== "string") {
         return "ReelComposition";
@@ -24,6 +26,7 @@ validateCompositionName(compositionName) {
         ? compositionName
         : "ReelComposition";
 }
+
 
   async render(compositionId, options = {}) {
     const validatedComposition = this.validateCompositionName(compositionId);

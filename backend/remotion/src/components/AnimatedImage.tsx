@@ -44,6 +44,20 @@ const AnimatedImage: React.FC<AnimatedImageProps> = ({
       });
       break;
 
+    case "slideLeft":
+      x = interpolate(frame, [0, end], [100, 0], {
+        easing: Easing.ease,
+        extrapolateRight: "clamp",
+      });
+      break;
+
+    case "slideRight":
+      x = interpolate(frame, [0, end], [-100, 0], {
+        easing: Easing.ease,
+        extrapolateRight: "clamp",
+      });
+      break;
+
     case "zoomOut":
       scale = interpolate(frame, [0, end], [1.08, 1], {
         easing: Easing.ease,
@@ -100,16 +114,18 @@ const AnimatedImage: React.FC<AnimatedImageProps> = ({
           width: "100%",
           height: "100%",
           objectFit: "cover",
+
           transform: `
             translate(${x}px, ${y}px)
             scale(${scale})
             rotate(${rotate}deg)
           `,
-          willChange: "transform",
-          ...style,
 
+          willChange: "transform",
+
+          ...style,
         }}
-         onError={() => console.log("Image Error", src)}
+        onError={() => console.log("Image Error", src)}
       />
     </AbsoluteFill>
   );

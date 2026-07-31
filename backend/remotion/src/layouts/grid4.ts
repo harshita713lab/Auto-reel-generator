@@ -1,15 +1,11 @@
-
 import { Layout } from "./types";
 
+export const grid4Layout: Layout = [
+  { x: 170, y: 40,   width: 740, height: 370, rotate: -4 },
 
-export const grid4Layout :Layout= [
-// Bottom Image
+  { x: 170, y: 440,  width: 740, height: 370, rotate: 3 },
 
-  { x: 220, y: 40,  width: 640, height: 320, rotate: -4 },
+  { x: 170, y: 840,  width: 740, height: 370, rotate: -3 },
 
-  { x: 220, y: 390, width: 640, height: 320, rotate: 3 },
-
-  { x: 220, y: 740, width: 640, height: 320, rotate: -3 },
-
-  { x: 220, y: 1090, width: 640, height: 320, rotate: 2 },
+  { x: 170, y: 1240, width: 740, height: 370, rotate: 2 },
 ];

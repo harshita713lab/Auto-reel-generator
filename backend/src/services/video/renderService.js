@@ -75,10 +75,30 @@ console.log(JSON.stringify(inputProps, null, 2));
         reel.template?.name || 'Memories'
       );
 
-      const result = await remotionConfig.render("ReelComposition", {
-        inputProps,
-    
-      });
+// const result = await remotionConfig.render("ReelComposition", {
+ //inputProps,
+//});
+
+      
+      // आप चाहें तो यहाँ नाम को Remotion के composition id से मैच करा सकती हैं
+      // Decide composition based on image count
+const imageCount = reel.images.length;
+
+let compositionId;
+
+if (imageCount <= 4) {
+  compositionId = "ReelComposition";
+} else {
+  compositionId = "MemoryBlendReel";
+}
+
+console.log(
+  `Image Count: ${imageCount}, Rendering with Composition ID: ${compositionId}`
+);
+
+const result = await remotionConfig.render(compositionId, {
+  inputProps,
+});
 
       // Post-process with FFmpeg
       const processedPath = await this.postProcess(result.outputPath, {

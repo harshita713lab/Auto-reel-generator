@@ -64,17 +64,16 @@ try {
 
     // Step 2: Select Composition
     console.log(`🎬 Selecting composition...`);
-    const composition = await selectComposition({
-        serveUrl: bundleLocation,
-        id: "ReelComposition",
+   const composition = await selectComposition({
+    serveUrl: bundleLocation,
+    id: compositionId,   // ✅ Dynamic
     inputProps: {
-  images,
-  music,
-  config,
+      images,
+      music,
+      config,
     },
-        chromiumOptions,
-    });
-
+    chromiumOptions,
+});
     // Step 3: Render
     console.log(`🎬 Rendering video...`);
   await renderMedia({

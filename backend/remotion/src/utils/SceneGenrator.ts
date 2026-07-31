@@ -37,8 +37,8 @@ const layoutPattern: Array<{
   count: number;
   duration: number;
 }> = [
-  { layout: "hero", count: 1, duration: 90 },
-  { layout: "hero", count: 1, duration: 90},
+  { layout: "hero", count: 1, duration: 120 },
+  { layout: "hero", count: 1, duration: 120},
   { layout: "grid2", count: 2, duration: 20 },
   { layout: "hero", count: 1, duration: 20 },
   { layout: "grid3", count: 3, duration: 20 },
@@ -60,6 +60,7 @@ export function generateScenes(images: ReelImage[]): Scene[] {
   for (let i = 0; i < images.length; i += 4) {
 
     const group = images.slice(i, i + 4);
+const collageDuration = scenes.length === 0 ? 120 : 45;
 
     // Collage Scene
     scenes.push({
@@ -75,15 +76,16 @@ export function generateScenes(images: ReelImage[]): Scene[] {
 
       animation: "zoomIn",
       transition: "fade",
-      duration: 45,
+      duration: collageDuration,
     });
 
     // Single Scenes
-    group.forEach((img) => {
+    group.forEach((img,index
+    ) => {
       scenes.push({
         layout: "hero",
         images: [img],
-        animation: "kenBurns",
+        animation: index % 2 === 0 ? "slideLeft" : "slideRight",
         transition: "zoom",
         duration: 60,
       });

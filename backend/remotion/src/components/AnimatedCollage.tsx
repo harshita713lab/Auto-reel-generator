@@ -112,7 +112,7 @@ export const AnimatedCollage: React.FC<Props> = ({
               animation={
                 imageAnimations[index] ?? animation
               }
-              durationInFrames={90}
+              durationInFrames={150}
               style={{
                 width: "100%",
                 height: "100%",
