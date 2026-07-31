@@ -1881,3 +1881,98 @@ body {
         max-width: 55%;
     }
 }
+
+
+/* --- Top Row: Title & Date-Menu --- */
+.reel-detail-top {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    gap: 4px;
+}
+
+.reel-list-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    margin: 0;
+    word-break: break-word;
+}
+
+.date-and-menu {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 100%;
+    gap: 10px;
+}
+
+.reel-list-date {
+    font-size: 13px;
+    color: #777;
+}
+
+/* --- 3-Dots Menu & Dropdown Styles --- */
+.reel-menu-container {
+    position: relative;
+    display: inline-block;
+}
+
+.reel-menu-trigger {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 5px;
+    transition: color 0.2s ease;
+    padding-bottom: 2px;
+}
+
+.reel-menu-trigger:hover {
+    color: #ffffff;
+}
+
+/* Dropdown Menu Box (Now opens on click) */
+.reel-dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 30px;
+    background-color: #1e1e1e;
+    min-width: 140px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    border: 1px solid #333;
+    z-index: 999;
+    overflow: hidden;
+    padding: 6px 0;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-item {
+    padding: 10px 16px;
+    font-size: 14px;
+    color: #e0e0e0;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dropdown-item:hover {
+    background-color: #2a2a2a;
+    color: #ffffff;
+}
+
+.dropdown-item.delete-item:hover {
+    background-color: #2a1212;
+    color: #ff6b6b;
+}
