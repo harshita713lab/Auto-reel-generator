@@ -82,15 +82,31 @@ console.log(JSON.stringify(inputProps, null, 2));
       
       // आप चाहें तो यहाँ नाम को Remotion के composition id से मैच करा सकती हैं
       // Decide composition based on image count
+
 const imageCount = reel.images.length;
 
 let compositionId;
 
-if (imageCount <= 4) {
+if (imageCount === 6) {
+  compositionId = "WhiteCardPolaroidStack";
+
+} else if (imageCount === 8) {
+  compositionId = "WhiteCardMasonry";
+
+} else if (imageCount === 9) {
+  compositionId = "WhiteCardGrid3x3";
+
+} else if (imageCount === 10) {
+  compositionId = "WhiteCardCarousel";
+
+} else if (imageCount <= 4) {
   compositionId = "ReelComposition";
+
 } else {
   compositionId = "MemoryBlendReel";
 }
+
+
 
 console.log(
   `Image Count: ${imageCount}, Rendering with Composition ID: ${compositionId}`
@@ -99,6 +115,7 @@ console.log(
 const result = await remotionConfig.render(compositionId, {
   inputProps,
 });
+
 
       // Post-process with FFmpeg
       const processedPath = await this.postProcess(result.outputPath, {

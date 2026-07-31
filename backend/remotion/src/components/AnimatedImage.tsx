@@ -12,6 +12,9 @@ interface AnimatedImageProps {
   animation?: string;
   durationInFrames?: number;
   style?: React.CSSProperties;
+
+  startFrame?: number;
+
 }
 
 const AnimatedImage: React.FC<AnimatedImageProps> = ({
@@ -19,8 +22,11 @@ const AnimatedImage: React.FC<AnimatedImageProps> = ({
   animation = "kenBurns",
   durationInFrames = 18,
   style,
+    startFrame = 0,
 }) => {
-  const frame = useCurrentFrame();
+const globalFrame = useCurrentFrame();
+
+const frame = Math.max(0, globalFrame - startFrame);
 
   const end = durationInFrames;
 

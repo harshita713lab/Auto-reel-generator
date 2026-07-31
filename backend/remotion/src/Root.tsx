@@ -3,7 +3,10 @@ import { Composition, AbsoluteFill, Sequence } from 'remotion';
 import { default as AnimatedImage } from './components/AnimatedImage';
 import WeddingComposition from './compositions/Wedding/WeddingComposition'; // <-- यहाँ से कलीब्रेट ब्रेसेस हटा दिए गए हैं क्योंकि यह default export है
 import { MemoryBlendComposition } from './compositions/Wedding/MemoryBlendComposition';
-
+import { WhiteCardGrid3x3 } from './compositions/Wedding/CardGridComposition';
+import WhiteCardCarousel from "./compositions/Wedding/WhiteCarouselComposition";
+import WhiteCardPolaroidStack from "./compositions/Wedding/WhitePolaroidComposition";
+import WhiteCardMasonry from "./compositions/Wedding/MasonryComposition";
 const DefaultComposition: React.FC<any> = ({ images = [], template = {} }) => {
   const slideDuration = template.slideDuration || 3;
   const fps = 30;
@@ -79,6 +82,101 @@ export const Root: React.FC = () => {
           outroText: "Happy Valentine's Day",
         }}
       />
+      <Composition
+  id="WhiteCardGrid3x3"
+  component={WhiteCardGrid3x3}
+  fps={30}
+  width={1080}
+  height={1920}
+  durationInFrames={300}
+  defaultProps={{
+    images: [],
+    music: undefined,
+  }}
+/>
+<Composition
+  id="WhiteCardCarousel"
+  component={WhiteCardCarousel}
+  fps={30}
+  width={1080}
+  height={1920}
+  calculateMetadata={async ({ props }) => {
+    const typedProps = props as any;
+
+    const images = typedProps.images || [];
+    const slideDuration = typedProps.slideDuration || 3;
+
+    return {
+      durationInFrames: Math.max(
+        30,
+        images.length * slideDuration * 30
+      ),
+    };
+  }}
+
+    defaultProps={{
+    images: [],
+    music: undefined,
+
+    slideDuration: 3,
+
+    title: "Wedding Gallery",
+    subtitle: "",
+
+    backgroundColor: "#F4F4F4",
+
+    showTitle: true,
+    showCounter: true,
+    showDots: true,
+
+    cardColor: "#FFFFFF",
+    cardRadius: 28,
+    cardShadow: true,
+  }}
+
+/>
+<Composition
+  id="WhiteCardPolaroidStack"
+  component={WhiteCardPolaroidStack}
+  fps={30}
+  width={1080}
+  height={1920}
+  calculateMetadata={async ({ props }) => {
+    const typedProps = props as any;
+
+    const images = typedProps.images || [];
+
+    // 6 images per stack
+    const groups = Math.max(1, Math.ceil(images.length / 6));
+
+    return {
+      durationInFrames: groups * 240, // 4 sec per stack (30fps)
+    };
+  }}
+  defaultProps={{
+    images: [],
+
+    title: "Our Memories",
+
+    backgroundColor: "#F8F8F8",
+
+    cardColor: "#FFFFFF",
+
+    showCounter: true,
+  }}
+/>
+<Composition
+ id="WhiteCardMasonry"
+ component={WhiteCardMasonry}
+ fps={30}
+ width={1080}
+ height={1920}
+ durationInFrames={180}
+ defaultProps={{
+   images:[],
+   music:undefined
+ }}
+/>
     </>
   );
 };

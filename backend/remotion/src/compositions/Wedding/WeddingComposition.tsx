@@ -17,8 +17,6 @@ import {
 
 } from "../../components";
 
-
-
 interface WeddingCompositionProps {
 
   images?: Array<{

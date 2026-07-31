@@ -16,6 +16,11 @@ validateCompositionName(compositionName) {
     const validCompositions = [
         "ReelComposition",
         "MemoryBlendReel",
+         "WhiteCardGrid3x3",
+         "WhiteCardCarousel",
+         "WhiteCardPolaroidStack",
+         "WhiteCardMasonry",
+
     ];
 
     if (!compositionName || typeof compositionName !== "string") {
@@ -65,10 +70,13 @@ const payload = {
         logger.debug(`Remotion: ${data.toString().trim()}`);
       });
 
-      child.stderr.on('data', (data) => {
-        stderr += data.toString();
-        logger.debug(`Remotion stderr: ${data.toString().trim()}`);
-      });
+child.stdout.on('data', (data) => {
+  const msg = data.toString();
+
+  stdout += msg;
+
+  console.log("🎬 REMOTION STDOUT:", msg);
+});
 
       child.on('error', (error) => {
         if (fs.existsSync(tempJsonPath)) fs.unlinkSync(tempJsonPath);
