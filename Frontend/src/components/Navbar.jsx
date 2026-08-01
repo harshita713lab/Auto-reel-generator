@@ -1,9 +1,28 @@
+// frontend/src/components/Navbar.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGear, faSun, faMoon } from '@fortawesome/free-solid-svg-icons';
 
 function Navbar() {
     const [scrolled, setScrolled] = useState(false);
     const location = useLocation();
+
+    // ✅ Theme State add kiya
+    const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+
+    // ✅ Theme change karne ka function
+    const toggleTheme = () => {
+        const newTheme = theme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+    };
+
+    useEffect(() => {
+        // Page load hone par theme apply ho
+        document.documentElement.setAttribute('data-theme', theme);
+    }, [theme]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -43,6 +62,11 @@ function Navbar() {
                     </Link>
                     <Link to="/" className="nav-link create-link">
                         Create Reel
+                    </Link>
+
+                    {/* ✅ Settings Link */}
+                    <Link to="/settings" className="nav-link settings-link">
+                        <FontAwesomeIcon icon={faGear} />
                     </Link>
                 </div>
 

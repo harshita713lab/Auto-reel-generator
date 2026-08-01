@@ -1,37 +1,44 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify'; // ✅ Import
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import AllReels from './pages/AllReels';
+import Settings from './pages/Settings';
+import Trash from './pages/Trash';
+import DownloadHistory from './pages/DownloadHistory';
 import './styles/style.css';
-import 'react-toastify/dist/ReactToastify.css'; // ✅ Import CSS
 
 function App() {
-    return (
-        <BrowserRouter>
-            <div className="app">
-                <Navbar />
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/all-reels" element={<AllReels />} />
-                </Routes>
-                {/* ✅ Add ToastContainer - Yeh ek baar add karo */}
-                <ToastContainer 
-                    position="top-right"
-                    autoClose={3000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="dark"
-                />
-            </div>
-        </BrowserRouter>
-    );
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  return (
+    <>
+      {/* ✅ Cursor Glow */}
+      <div 
+        className="cursor-glow" 
+        style={{ left: mousePos.x, top: mousePos.y }}
+      />
+      
+      <Router>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/all-reels" element={<AllReels />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/trash" element={<Trash />} />
+          <Route path="/downloads" element={<DownloadHistory />} />
+        </Routes>
+      </Router>
+    </>
+  );
 }
 
 export default App;
