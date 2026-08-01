@@ -124,6 +124,8 @@ exports.createReel = async (req, res) => {
       images: formattedImages,
       music: musicId && musicId.match(/^[0-9a-fA-F]{24}$/) ? musicId : null,
       audioPath: selectedAudioPath,
+      usedMusic: musicFileName,
+      usedTemplate: template ? template.name : (templateId || "Default"),
       duration: totalDuration,
       config: {
         ...config,

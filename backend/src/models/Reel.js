@@ -88,6 +88,14 @@ const ReelSchema = new mongoose.Schema({
   musicPath: {
     type: String,
   },
+  usedMusic: {
+    type: String,
+    default: 'ReelAudio-1.mp3',
+  },
+  usedTemplate: {
+    type: String,
+    default: 'Default',
+  },
   musicStartTime: {
     type: Number,
     default: 0,

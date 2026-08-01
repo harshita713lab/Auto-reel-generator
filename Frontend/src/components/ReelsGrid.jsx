@@ -64,16 +64,20 @@ function ReelsGrid() {
         return null;
     };
 
-    const handleDownload = (videoUrl, filename) => {
+    const handleDownload = async (videoUrl, filename) => {
         try {
+            toast.info(<><FontAwesomeIcon icon={faDownload} /> Downloading...</>);
+            const response = await fetch(videoUrl);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = videoUrl;
+            link.href = url;
             link.download = filename || `reel_${Date.now()}.mp4`;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
             toast.success(<><FontAwesomeIcon icon={faDownload} /> Download started!</>);
         } catch (error) {
             console.error('Download failed:', error);

@@ -22,6 +22,7 @@ class RenderService {
    */
   async renderReel(reel, options = {}) {
     try {
+      const fsSync = require("fs");
       const {
         quality = 'high',
         format = 'mp4',
@@ -104,13 +105,32 @@ class RenderService {
       });
 
       // Post-process with FFmpeg
-      const processedPath = await this.postProcess(result.outputPath, {
+      let processedPath = await this.postProcess(result.outputPath, {
         quality,
         format,
         width,
         height,
         fps,
       });
+
+      // Add music/audio to the video via FFmpeg (Remotion compositions don't render audio)
+      if (audioPath) {
+        try {
+          const audioFile = fsSync.existsSync(audioPath) ? audioPath : null;
+          if (audioFile) {
+            const withAudioPath = await ffmpegService.addAudio(processedPath, audioFile, {
+              volume: 1,
+              outputPath: path.join(this.tempDir, `with_audio_${Date.now()}.${format}`),
+            });
+            if (withAudioPath) {
+              processedPath = withAudioPath;
+              console.log("🎵 Music added to video:", audioFile);
+            }
+          }
+        } catch (audioError) {
+          console.error("⚠️ Failed to add music (continuing without audio):", audioError.message);
+        }
+      }
 
       // Get file info
       const stats = await fs.stat(processedPath);
@@ -133,8 +153,6 @@ class RenderService {
           fps,
         },
       });
-
-      const fsSync = require("fs");
 
       console.log("Processed Exists :", fsSync.existsSync(processedPath));
       console.log("Final Exists     :", fsSync.existsSync(finalPath.path));
