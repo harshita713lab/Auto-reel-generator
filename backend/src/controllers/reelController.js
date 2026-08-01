@@ -356,8 +356,8 @@ exports.getPreview = async (req, res) => {
     res.json({
       success: true,
       data: {
-        previewUrl: `/output/previews/${reel.previewPath}`,
-        thumbnailUrl: `/output/thumbnails/${reel.thumbnailPath}`,
+        previewUrl: `/output/previews/${path.basename(reel.previewPath || '')}`,
+        thumbnailUrl: `/output/thumbnails/${path.basename(reel.thumbnailPath || '')}`,
       },
     });
   } catch (error) {

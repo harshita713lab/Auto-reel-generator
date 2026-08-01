@@ -1,9 +1,50 @@
 // src/components/HeroSection.jsx
 import React from 'react';
-// ✅ Sahi path - assets/logo folder se image import
+import { motion } from 'framer-motion';
 import logoImage from '../assets/logo/WhatsApp Image 2026-06-27 at 2.44.13 PM.jpeg';
 
 function HeroSection() {
+    // Text animation variants
+    const titleText = "Fotographiya Reel Maker".split("");
+
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: (i = 1) => ({
+            opacity: 1,
+            transition: { staggerChildren: 0.05, delayChildren: 0.2 * i },
+        }),
+    };
+
+    const letterVariants = {
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                type: "spring",
+                damping: 12,
+                stiffness: 200,
+            },
+        },
+        hidden: {
+            opacity: 0,
+            y: 20,
+            transition: {
+                type: "spring",
+                damping: 12,
+                stiffness: 200,
+            },
+        },
+    };
+
+    const fadeInUp = {
+        hidden: { opacity: 0, y: 30 },
+        visible: { 
+            opacity: 1, 
+            y: 0,
+            transition: { duration: 0.8, ease: "easeOut" }
+        }
+    };
+
     return (
         <section className="hero-section">
             <div className="hero-background"></div>
@@ -24,24 +65,59 @@ function HeroSection() {
             </div>
 
             <div className="hero-content">
-                <div className="logo-circle pulse-ring">
+                {/* Logo Pulse Animation */}
+                <motion.div 
+                    className="logo-circle pulse-ring"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.6, ease: "backOut" }}
+                >
                     <img 
                         src={logoImage}
                         alt="ReelForge Logo"
                     />
-                </div>
+                </motion.div>
 
-                <h1 className="hero-title">
-                    <span className="brand">Fotographiya </span>
-                    <span className="sub-brand">Reel Maker</span>
-                </h1>
+                {/* Animated Title (Letter by Letter) */}
+                <motion.h1 
+                    className="hero-title"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    style={{ display: "flex", justifyContent: "center", flexWrap: "wrap" }}
+                >
+                    {titleText.map((letter, index) => (
+                        <motion.span
+                            key={index}
+                            variants={letterVariants}
+                            className={index < 12 ? "brand" : "sub-brand"}
+                            style={{ display: "inline-block", whiteSpace: "pre" }}
+                        >
+                            {letter}
+                        </motion.span>
+                    ))}
+                </motion.h1>
 
-                <p className="hero-desc">
+                {/* Animated Description */}
+                <motion.p 
+                    className="hero-desc"
+                    variants={fadeInUp}
+                    initial="hidden"
+                    animate="visible"
+                    transition={{ delay: 0.5 }}
+                >
                     Turn your memories into stunning social media reels with AI-powered magic.
                     Upload images and get a professional video in seconds.
-                </p>
+                </motion.p>
 
-                <div className="hero-stats">
+                {/* Animated Stats */}
+                <motion.div 
+                    className="hero-stats"
+                    variants={fadeInUp}
+                    initial="hidden"
+                    animate="visible"
+                    transition={{ delay: 0.8 }}
+                >
                     <div className="stat">
                         <span className="stat-number">500+</span>
                         <span className="stat-label">Reels Created</span>
@@ -54,10 +130,17 @@ function HeroSection() {
                         <span className="stat-number">10s</span>
                         <span className="stat-label">Avg. Creation</span>
                     </div>
-                </div>
+                </motion.div>
             </div>
 
-            <div className="hero-arrow">↓</div>
+            {/* Bouncing Arrow */}
+            <motion.div 
+                className="hero-arrow"
+                animate={{ y: [0, 10, 0] }}
+                transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+            >
+                ↓
+            </motion.div>
         </section>
     );
 }

@@ -68,7 +68,7 @@ class PreviewService {
         width,
         height,
         quality,
-        url: `/previews/${filename}`,
+        url: `/output/previews/${filename}`,
       };
     } catch (error) {
       throw new Error(`Preview generation failed: ${error.message}`);
@@ -104,7 +104,7 @@ class PreviewService {
           filename,
           path: outputPath,
           timestamp,
-          url: `/previews/${filename}`,
+          url: `/output/previews/${filename}`,
         });
       }
 
@@ -140,7 +140,7 @@ class PreviewService {
         path: filePath,
         size: stats.size,
         created: stats.birthtime,
-        url: `/previews/${filename}`,
+        url: `/output/previews/${filename}`,
       };
     } catch (error) {
       return null;
