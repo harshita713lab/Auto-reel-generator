@@ -44,14 +44,13 @@ console.log(`\n🎬 Starting Remotion Render for ${images.length} images...`);
 // ✅ WINDOWS-SAFE CHROMIUM CONFIGURATION
 // ============================================================
 const chromiumOptions = {
-    enableGpu: false,
-    args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--single-process',
-    ],
+  enableGpu: false,
+  args: [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-gpu",
+  ],
 };
 
 try {

@@ -36,8 +36,8 @@ const {
       // Convert filesystem paths to absolute web URLs for Chromium/Remotion
       const serverBaseUrl = `http://localhost:${process.env.PORT || 5000}`;
 const audioUrl = audioPath
-  ? `${serverBaseUrl}/assets/music/${path.basename(audioPath)}`
-  : null;
+  ? `${serverBaseUrl}/assets/music/${path.basename(audioPath)}`
+  : null;
 
 const images = reel.images.map(img => ({
   path: `${serverBaseUrl}/uploads/images/${path.basename(img.path)}`,
@@ -86,8 +86,13 @@ console.log(JSON.stringify(inputProps, null, 2));
 const imageCount = reel.images.length;
 
 let compositionId;
+if(imageCount === 20) {
+  compositionId = "WeddingSequenceComposition";
+}
+        else if (imageCount === 4) {
+  compositionId = "PremiumGrid";
 
-if (imageCount === 6) {
+} else if (imageCount === 6) {
   compositionId = "WhiteCardPolaroidStack";
 
 } else if (imageCount === 8) {
@@ -99,7 +104,7 @@ if (imageCount === 6) {
 } else if (imageCount === 10) {
   compositionId = "WhiteCardCarousel";
 
-} else if (imageCount <= 4) {
+} else if (imageCount < 4) {
   compositionId = "ReelComposition";
 
 } else {

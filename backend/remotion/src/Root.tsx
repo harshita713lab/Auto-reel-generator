@@ -7,6 +7,24 @@ import { WhiteCardGrid3x3 } from './compositions/Wedding/CardGridComposition';
 import WhiteCardCarousel from "./compositions/Wedding/WhiteCarouselComposition";
 import WhiteCardPolaroidStack from "./compositions/Wedding/WhitePolaroidComposition";
 import WhiteCardMasonry from "./compositions/Wedding/MasonryComposition";
+import { PremiumGrid } from "./compositions/Wedding/PreiumGrid";
+import WeddingSequenceComposition from "./compositions/Wedding/WeddingSequenceComposition";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const DefaultComposition: React.FC<any> = ({ images = [], template = {} }) => {
   const slideDuration = template.slideDuration || 3;
   const fps = 30;
@@ -176,6 +194,36 @@ export const Root: React.FC = () => {
    images:[],
    music:undefined
  }}
+/>
+<Composition
+  id="PremiumGrid"
+  component={PremiumGrid}
+  width={1080}
+  height={1920}
+  fps={30}
+  durationInFrames={120}
+  defaultProps={{
+    images: [],
+    slideDuration: 4,
+    backgroundColor:
+      "linear-gradient(135deg,#0a0a1a,#1a1a3e)",
+    transition: "glide",
+    effect: "cinematic",
+    showCounter: true,
+    music: undefined,
+  }}
+/>
+<Composition
+  id="WeddingSequenceComposition"
+  component={WeddingSequenceComposition}
+  width={1080}
+  height={1920}
+  fps={30}
+  durationInFrames={450} // ya 60+45+60+45+90 = 300
+  defaultProps={{
+    images: [],
+    music: undefined,
+  }}
 />
     </>
   );

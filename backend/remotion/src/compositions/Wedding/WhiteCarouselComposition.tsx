@@ -10,7 +10,6 @@ import {
 
 import {
   AnimatedImage,
-  MusicPlayer,
   Overlay,
 } from "../../components";
 
@@ -129,12 +128,7 @@ export const WhiteCardCarousel: React.FC<WhiteCardCarouselProps> = ({
 
       {/* ---------- Music ---------- */}
 
-      {music && (
-        <MusicPlayer
-          src={music.path}
-          volume={music.volume ?? 1}
-        />
-      )}
+    
 
       {/* ---------- Header ---------- */}
 

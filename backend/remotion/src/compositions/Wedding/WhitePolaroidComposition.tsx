@@ -7,7 +7,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { MusicPlayer } from "../../components";
+//import { MusicPlayer } from "../../components";
 interface ImageItem {
   path: string;
 }
@@ -48,12 +48,7 @@ export const WhiteCardPolaroidStack: React.FC<
         alignItems: "center",
       }}
     >
-      {music && (
-  <MusicPlayer
-    src={music.path}
-    volume={music.volume ?? 1}
-  />
-)}
+      
       {/* Title */}
       <div
         style={{

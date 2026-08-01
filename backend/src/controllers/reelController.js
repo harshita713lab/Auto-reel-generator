@@ -2,13 +2,12 @@ const path = require("path");
 const fs = require("fs").promises;
 const Reel = require("../models/Reel");
 const Template = require("../models/Template");
-const templateService = require("../services/template/templateService");
 const renderService = require("../services/video/renderService");
 const logger = require("../utils/logger");
 const { RENDER_CONFIG } = require("../config/constants");
 
 /**
- * Get Latest Reel (For Frontend LatestReel Component)
+ * Get Latest Reel
  */
 exports.getLatestReel = async (req, res) => {
   try {
@@ -26,18 +25,14 @@ exports.getLatestReel = async (req, res) => {
       success: true,
       reel: {
         ...latestReel.toObject(),
-
-        // frontend video URL
         outputUrl: latestReel.outputPath
-          ? `/renders/${path.basename(latestReel.outputPath)}`
+          ? `/output/renders/${path.basename(latestReel.outputPath)}`
           : null,
-
         previewUrl: latestReel.previewPath
-          ? `/previews/${path.basename(latestReel.previewPath)}`
+          ? `/output/previews/${path.basename(latestReel.previewPath)}`
           : null
       },
     });
-
   } catch (error) {
     logger.error("Error fetching latest reel:", error);
     return res.status(500).json({
@@ -53,21 +48,10 @@ exports.getLatestReel = async (req, res) => {
  */
 exports.createReel = async (req, res) => {
   try {
-    const {
-      title,
-      templateId,
-      images,
-      musicId,
-      duration,
-      config = {},
-    } = req.body;
+    const { title, templateId, images, musicId, duration, config = {} } = req.body;
 
-    // 1. Validate images array
-    if (
-      !images ||
-      !Array.isArray(images) ||
-      images.length < RENDER_CONFIG.MIN_IMAGES
-    ) {
+    // Validate images array
+    if (!images || !Array.isArray(images) || images.length < RENDER_CONFIG.MIN_IMAGES) {
       return res.status(400).json({
         error: `At least ${RENDER_CONFIG.MIN_IMAGES} images are required`,
       });
@@ -79,7 +63,6 @@ exports.createReel = async (req, res) => {
       });
     }
 
-    // 2. Lookup template if provided
     let template = null;
     if (templateId) {
       template = await Template.findOne({
@@ -87,9 +70,7 @@ exports.createReel = async (req, res) => {
           { templateId: templateId },
           { id: templateId },
           { name: templateId },
-          ...(templateId.match(/^[0-9a-fA-F]{24}$/)
-            ? [{ _id: templateId }]
-            : []),
+          ...(templateId.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: templateId }] : []),
         ],
       });
     }
@@ -101,17 +82,13 @@ exports.createReel = async (req, res) => {
 
     const activeTemplate = template || defaultTemplateConfig;
 
-    // 3. Calculate scene duration
-    const totalDuration =
-      duration || RENDER_CONFIG.DEFAULT_SCENE_DURATION * images.length;
+    const totalDuration = duration || RENDER_CONFIG.DEFAULT_SCENE_DURATION * images.length;
     const sceneDuration = totalDuration / images.length;
 
-    // 4. Safely format images array to match ImageSchema
     const formattedImages = images.map((img, index) => {
       if (typeof img === "object" && img !== null) {
         const imagePath = img.path || img.url || "";
         const fileName = img.filename || imagePath.split("/").pop() || `image_${index}.jpg`;
-        
         return {
           ...img,
           filename: fileName,
@@ -136,14 +113,12 @@ exports.createReel = async (req, res) => {
       };
     });
 
-    // 5. Select Music File and Resolve Path
     const musicFileName = typeof musicId === 'string' && musicId.endsWith('.mp3') 
       ? musicId 
       : 'ReelAudio-1.mp3';
 
     const selectedAudioPath = path.join(__dirname, '../../assets/music', musicFileName);
 
-    // 6. Build Reel Document Data
     const reelData = {
       title: title || "Untitled Reel",
       images: formattedImages,
@@ -170,30 +145,26 @@ exports.createReel = async (req, res) => {
 
     logger.info(`Reel document created: ${reel.title} (${reel._id}). Starting render...`);
 
-    // 7. Trigger rendering process
     reel.status = 'rendering';
     reel.progress = 0;
     await reel.save();
 
-let renderResult;
+    let renderResult;
     try {
-      renderResult = await renderService.renderReel(reel, {
-        audioPath: selectedAudioPath
-      });
+      renderResult = await renderService.renderReel(reel, { audioPath: selectedAudioPath });
 
       reel.status = 'rendered';
       reel.progress = 100;
-     reel.outputPath = renderResult.outputPath;
-reel.outputUrl = renderResult.outputUrl;
-reel.previewPath = renderResult.previewPath;
-reel.previewUrl = renderResult.previewUrl;
+      reel.outputPath = renderResult.outputPath;
+      reel.outputUrl = renderResult.outputUrl;
+      reel.previewPath = renderResult.previewPath;
+      reel.previewUrl = renderResult.previewUrl;
       reel.thumbnailPath = renderResult.thumbnailPath;
       reel.renderedAt = new Date();
       await reel.save();
 
       logger.info(`Reel rendering completed: ${reel.title} (${reel._id})`);
     } catch (renderError) {
-      // 🔍 इस लाइन को मॉडिफाई करें ताकि असली वजह साफ़ दिखे
       logger.error(`❌ REAL RENDERING ERROR FOR REEL ${reel._id}:`, renderError);
       console.error("================ REMOTION / FFMPEG ERROR DETAIL ================");
       console.error(renderError.stack || renderError);
@@ -223,12 +194,6 @@ reel.previewUrl = renderResult.previewUrl;
 /**
  * Get all reels
  */
-/**
- * Get all reels
- */
-/**
- * Get all reels
- */
 exports.getAllReels = async (req, res) => {
   try {
     const { page = 1, limit = 20, status } = req.query;
@@ -248,12 +213,10 @@ exports.getAllReels = async (req, res) => {
       Reel.countDocuments(query),
     ]);
 
-    // ✅ FIX: Pura URL (domain ke saath) bhej rahe hain
     const formattedReels = reels.map(reel => {
       const reelObj = reel.toObject();
       if (reelObj.outputPath) {
         const filename = path.basename(reelObj.outputPath);
-        // Isse frontend ka handleDownload directly fetch kar lega
         reelObj.outputUrl = `http://localhost:5000/output/renders/${filename}`;
       }
       return reelObj;
@@ -269,7 +232,6 @@ exports.getAllReels = async (req, res) => {
         pages: Math.ceil(total / parseInt(limit)),
       },
     });
-
   } catch (error) {
     logger.error("Failed to get reels:", error);
     res.status(500).json({
@@ -278,6 +240,7 @@ exports.getAllReels = async (req, res) => {
     });
   }
 };
+
 /**
  * Get single reel by ID
  */
@@ -304,7 +267,7 @@ exports.getReelById = async (req, res) => {
 exports.getReel = exports.getReelById;
 
 /**
- * Update reel
+ * ✅ FIXED: Update reel (Rename work properly now)
  */
 exports.updateReel = async (req, res) => {
   try {
@@ -315,19 +278,10 @@ exports.updateReel = async (req, res) => {
       return res.status(404).json({ error: "Reel not found" });
     }
 
-    if (reel.status === "rendering" || reel.status === "rendered") {
-      return res.status(400).json({
-        error: "Cannot update reel while rendering or already rendered",
-      });
+    if (updates.title && typeof updates.title === 'string') {
+      reel.title = updates.title.trim();
     }
 
-    Object.keys(updates).forEach((key) => {
-      if (key !== "_id" && key !== "__v") {
-        reel[key] = updates[key];
-      }
-    });
-
-    reel.status = "draft";
     await reel.save();
 
     logger.info(`Reel updated: ${reel.title} (${reel._id})`);
@@ -347,7 +301,7 @@ exports.updateReel = async (req, res) => {
 };
 
 /**
- * Delete reel
+ * ✅ FIXED: Delete reel
  */
 exports.deleteReel = async (req, res) => {
   try {
@@ -357,11 +311,19 @@ exports.deleteReel = async (req, res) => {
     }
 
     if (reel.outputPath) {
-      await renderService.cleanupReel(reel);
+      try {
+        let filePath = reel.outputPath;
+        if (!path.isAbsolute(filePath)) {
+          filePath = path.join(__dirname, '../../', filePath);
+        }
+        await fs.unlink(filePath);
+        logger.info(`🗑️ Deleted video file: ${filePath}`);
+      } catch (err) {
+        logger.warn(`⚠️ Video file not found for deletion: ${reel.outputPath}`);
+      }
     }
 
     await reel.deleteOne();
-
     logger.info(`Reel deleted: ${reel.title}`);
 
     res.json({
@@ -394,8 +356,8 @@ exports.getPreview = async (req, res) => {
     res.json({
       success: true,
       data: {
-        previewUrl: `/previews/${reel.previewPath}`,
-        thumbnailUrl: `/thumbnails/${reel.thumbnailPath}`,
+        previewUrl: `/output/previews/${reel.previewPath}`,
+        thumbnailUrl: `/output/thumbnails/${reel.thumbnailPath}`,
       },
     });
   } catch (error) {
@@ -476,7 +438,7 @@ exports.renderReel = async (req, res) => {
       success: true,
       data: {
         ...reel.toObject(),
-        outputUrl: `/generated/${path.basename(result.outputPath)}`,
+        outputUrl: `/output/renders/${path.basename(result.outputPath)}`,
       },
       message: "Reel rendered successfully",
     });
@@ -502,7 +464,7 @@ exports.renderReel = async (req, res) => {
 };
 
 /**
- * Download reel
+ * ✅ FIXED: Download reel (Redirects directly to static URL)
  */
 exports.downloadReel = async (req, res) => {
   try {
@@ -515,16 +477,13 @@ exports.downloadReel = async (req, res) => {
       return res.status(400).json({ error: "Reel has not been rendered yet" });
     }
 
-    try {
-      await fs.access(reel.outputPath);
-    } catch {
-      return res.status(404).json({ error: "Output file not found" });
-    }
+    const filename = path.basename(reel.outputPath);
+    const publicUrl = `http://localhost:5000/output/renders/${filename}`;
 
     reel.downloadCount = (reel.downloadCount || 0) + 1;
     await reel.save();
 
-    res.download(reel.outputPath, `${reel.title}.mp4`);
+    return res.redirect(publicUrl);
   } catch (error) {
     logger.error("Failed to download reel:", error);
     res.status(500).json({

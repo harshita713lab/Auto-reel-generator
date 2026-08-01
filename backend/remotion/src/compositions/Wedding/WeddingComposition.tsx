@@ -11,7 +11,7 @@ import {
 
   AnimatedCollage,
 
-  MusicPlayer,
+  
 
   Overlay,
 
@@ -193,26 +193,7 @@ console.log(scenes);
 
 
 
-      {music && (
-
-        <MusicPlayer
-
-          src={music.path}
-
-          volume={music.volume ?? 1}
-
-          duration={totalFrames / 30}
-
-          fadeInDuration={0.5}
-
-          fadeOutDuration={0.8}
-
-          showVisualizer={false}
-
-        />
-
-      )}
-
+     
     </AbsoluteFill>
 
   );

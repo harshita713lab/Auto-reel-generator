@@ -7,7 +7,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { MusicPlayer } from "../../components";
+//import { MusicPlayer } from "../../components";
 
 
 interface ImageItem {
@@ -276,17 +276,6 @@ background:backgroundColor,
 overflow:"hidden"
 }}
 >
-
-
-{
-music &&
-<MusicPlayer
-src={music.path}
-volume={music.volume ?? 1}
-/>
-}
-
-
 
 
 <div

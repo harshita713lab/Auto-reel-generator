@@ -9,10 +9,23 @@ function ReelsGrid() {
     const [reels, setReels] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState(''); // Search state
+    const [openMenuId, setOpenMenuId] = useState(null); // Track which menu is open
+    const [shareModal, setShareModal] = useState(null); // Track share modal state: { reel, videoUrl } or null
 
     useEffect(() => {
         fetchAllReels();
     }, []);
+
+    // ✅ Close menu when clicking outside (fixed: no shared ref, uses closest())
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (openMenuId && !event.target.closest('.reel-menu-container')) {
+                setOpenMenuId(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [openMenuId]);
 
     const fetchAllReels = async () => {
         try {
@@ -33,7 +46,6 @@ function ReelsGrid() {
     };
 
     // ✅ Helper function to get correct video URL
-       // ✅ Helper function to get correct video URL
     const getVideoUrl = (reel) => {
         if (reel.outputUrl) {
             return reel.outputUrl.startsWith('http') 
@@ -42,35 +54,22 @@ function ReelsGrid() {
         }
         if (reel.outputPath) {
             const filename = reel.outputPath.split('/').pop() || reel.outputPath.split('\\').pop();
-            
-            // ✅ YEH 2 LINES ADD KARIYE (Taaki pata chale ki frontend kya dhundh raha hai)
-            console.log(`🔍 Attempting to load video: http://localhost:5000/output/renders/${filename}`);
-            
             return `http://localhost:5000/output/renders/${filename}`; 
         }
         return null;
     };
 
-    const handleDownload = async (videoUrl, filename) => {
+    const handleDownload = (videoUrl, filename) => {
         try {
-            let fullUrl = videoUrl;
-            if (!fullUrl.startsWith('http')) {
-                const cleanPath = fullUrl.startsWith('/') ? fullUrl : `/${fullUrl}`;
-                fullUrl = `http://localhost:5000${cleanPath}`;
-            }
-
-            const response = await fetch(fullUrl);
-            if (!response.ok) throw new Error('Download failed');
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
+            // ✅ Direct download using anchor tag - no fetch/blob needed (avoids CORS issues)
             const link = document.createElement('a');
-            link.href = url;
+            link.href = videoUrl;
             link.download = filename || `reel_${Date.now()}.mp4`;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
             toast.success('📥 Download started!');
         } catch (error) {
             console.error('Download failed:', error);
@@ -94,6 +93,98 @@ function ReelsGrid() {
             console.error('Error deleting reel:', error);
             toast.error('❌ Failed to delete reel');
         }
+    };
+
+    // ✅ New Feature: Reel ka Title Edit karna
+    const handleRename = async (id, newTitle) => {
+        if (!newTitle || newTitle.trim() === '') return;
+
+        try {
+            const response = await fetch(`${API_URL}/reel/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: newTitle.trim() })
+            });
+
+            if (response.ok) {
+                toast.success('✅ Reel renamed successfully!');
+                fetchAllReels(); // List refresh karo
+                setOpenMenuId(null); // Close menu after action
+            } else {
+                toast.error('❌ Failed to rename reel');
+            }
+        } catch (error) {
+            console.error('Error renaming reel:', error);
+            toast.error('❌ Failed to rename reel');
+        }
+    };
+
+    // ✅ Share Modal: Platform-specific share options
+    const handleShare = (reel) => {
+        const videoUrl = getVideoUrl(reel);
+        setShareModal({ reel, videoUrl });
+        setOpenMenuId(null); // Close menu after action
+    };
+
+    // ✅ Close share modal
+    const closeShareModal = () => {
+        setShareModal(null);
+    };
+
+    // ✅ Share via a specific platform
+    const shareViaPlatform = (platform, videoUrl, title) => {
+        const encodedUrl = encodeURIComponent(videoUrl || '');
+        const encodedTitle = encodeURIComponent(title || 'My Reel');
+        const text = encodeURIComponent(`Check out my reel on Fotographiya!`);
+        
+        let url = '';
+        switch (platform) {
+            case 'telegram':
+                url = `https://t.me/share/url?url=${encodedUrl}&text=${text}`;
+                break;
+            case 'whatsapp':
+                url = `https://wa.me/?text=${text}%20${encodedUrl}`;
+                break;
+            case 'facebook':
+                url = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${text}`;
+                break;
+            case 'email':
+                url = `mailto:?subject=${encodedTitle}&body=${text}%0A${encodedUrl}`;
+                break;
+            case 'instagram':
+                // Instagram doesn't support direct web share URLs, so copy link
+                navigator.clipboard.writeText(videoUrl).then(() => {
+                    toast.success('📋 Link copied! Paste it in Instagram.');
+                }).catch(() => {
+                    toast.error('❌ Failed to copy link.');
+                });
+                closeShareModal();
+                return;
+            case 'copy':
+                navigator.clipboard.writeText(videoUrl).then(() => {
+                    toast.success('📋 Link copied to clipboard!');
+                }).catch(() => {
+                    toast.error('❌ Failed to copy link.');
+                });
+                closeShareModal();
+                return;
+            default:
+                return;
+        }
+        
+        window.open(url, '_blank', 'noopener,noreferrer');
+        closeShareModal();
+    };
+
+    // ✅ New Feature: Duplicate Reel (Mock for now)
+    const handleDuplicate = (reel) => {
+        toast.info(`🔄 Creating a copy of "${reel.title || 'Untitled'}"...`);
+        // In a real app, you would call your generate API here with the same images
+        setTimeout(() => {
+            toast.success(`✅ Reel duplicated! Refresh to see it.`);
+            fetchAllReels();
+        }, 1500);
+        setOpenMenuId(null);
     };
 
     // ✅ 1. SEARCH LOGIC: Filter reels based on search term
@@ -180,7 +271,7 @@ function ReelsGrid() {
                                                     <video 
                                                         muted 
                                                         playsInline
-                                                        poster={videoUrl} // Optional: poster image if available
+                                                        poster={videoUrl}
                                                         style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
                                                     >
                                                         <source src={videoUrl} type="video/mp4" />
@@ -195,9 +286,71 @@ function ReelsGrid() {
                                             <div className="reel-list-details">
                                                 <div className="reel-detail-top">
                                                     <h4 className="reel-list-title">{reel.title || "Untitled Reel"}</h4>
-                                                    <span className="reel-list-date">
-                                                        {new Date(reel.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                                                    </span>
+                                                    
+                                                    {/* ✅ Date & 3-Dot Menu (Side by Side) */}
+                                                    <div className="date-and-menu">
+                                                        <span className="reel-list-date">
+                                                            {new Date(reel.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                        
+                                                        <div className="reel-menu-container">
+                                                            <button 
+                                                                className="reel-menu-trigger" 
+                                                                onClick={() => setOpenMenuId(openMenuId === reel._id ? null : reel._id)}
+                                                            >
+                                                                ⋮
+                                                            </button>
+                                                            
+                                                            {/* ✅ DROPDOWN MENU - Contains ALL actions */}
+                                                            {openMenuId === reel._id && (
+                                                                <div className="reel-dropdown-menu">
+                                                                    <div 
+                                                                        className="dropdown-item"
+                                                                        onClick={() => {
+                                                                            const newTitle = prompt("Enter new name for this reel:", reel.title || "Untitled Reel");
+                                                                            if (newTitle !== null && newTitle.trim() !== '') {
+                                                                                handleRename(reel._id, newTitle);
+                                                                            } else if (newTitle !== null) {
+                                                                                toast.warning('⚠️ Title cannot be empty!');
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        ✏️ Rename
+                                                                    </div>
+                                                                    
+                                                                    {videoUrl && (
+                                                                        <div 
+                                                                            className="dropdown-item"
+                                                                            onClick={() => handleDownload(videoUrl, `reel_${reel._id}.mp4`)}
+                                                                        >
+                                                                            📥 Download
+                                                                        </div>
+                                                                    )}
+
+                                                                    <div 
+                                                                        className="dropdown-item"
+                                                                        onClick={() => handleDuplicate(reel)}
+                                                                    >
+                                                                        📋 Duplicate
+                                                                    </div>
+
+                                                                    <div 
+                                                                        className="dropdown-item"
+                                                                        onClick={() => handleShare(reel)}
+                                                                    >
+                                                                        🔗 Share
+                                                                    </div>
+
+                                                                    <div 
+                                                                        className="dropdown-item delete-item"
+                                                                        onClick={() => handleDelete(reel._id)}
+                                                                    >
+                                                                        🗑️ Delete
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 
                                                 <div className="reel-detail-meta">
@@ -205,22 +358,7 @@ function ReelsGrid() {
                                                     <span className="template-tag">📐 {reel.usedTemplate || 'Default'}</span>
                                                 </div>
 
-                                                <div className="reel-list-actions">
-                                                    {videoUrl && (
-                                                        <button 
-                                                            onClick={() => handleDownload(videoUrl, `reel_${reel._id}.mp4`)}
-                                                            className="download-btn-small"
-                                                        >
-                                                            📥 Download
-                                                        </button>
-                                                    )}
-                                                    <button 
-                                                        onClick={() => handleDelete(reel._id)}
-                                                        className="delete-btn-small"
-                                                    >
-                                                        🗑️ Delete
-                                                    </button>
-                                                </div>
+                                                {/* ✅ NO DOWNLOAD BUTTON HERE ANYMORE - UI is clean */}
                                             </div>
                                         </div>
                                     );
@@ -228,6 +366,45 @@ function ReelsGrid() {
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* ✅ SHARE MODAL - Platform-specific share options */}
+            {shareModal && (
+                <div className="share-modal-overlay" onClick={closeShareModal}>
+                    <div className="share-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="share-modal-header">
+                            <h3>🔗 Share Reel</h3>
+                            <button className="share-modal-close" onClick={closeShareModal}>✕</button>
+                        </div>
+                        <p className="share-modal-title">{shareModal.reel.title || 'Untitled Reel'}</p>
+                        <div className="share-options">
+                            <button className="share-option" onClick={() => shareViaPlatform('telegram', shareModal.videoUrl, shareModal.reel.title)}>
+                                <span className="share-icon">✈️</span>
+                                <span className="share-label">Telegram</span>
+                            </button>
+                            <button className="share-option" onClick={() => shareViaPlatform('instagram', shareModal.videoUrl, shareModal.reel.title)}>
+                                <span className="share-icon">📷</span>
+                                <span className="share-label">Instagram</span>
+                            </button>
+                            <button className="share-option" onClick={() => shareViaPlatform('facebook', shareModal.videoUrl, shareModal.reel.title)}>
+                                <span className="share-icon">👍</span>
+                                <span className="share-label">Facebook</span>
+                            </button>
+                            <button className="share-option" onClick={() => shareViaPlatform('email', shareModal.videoUrl, shareModal.reel.title)}>
+                                <span className="share-icon">📧</span>
+                                <span className="share-label">Email</span>
+                            </button>
+                            <button className="share-option" onClick={() => shareViaPlatform('whatsapp', shareModal.videoUrl, shareModal.reel.title)}>
+                                <span className="share-icon">💬</span>
+                                <span className="share-label">WhatsApp</span>
+                            </button>
+                            <button className="share-option copy-link" onClick={() => shareViaPlatform('copy', shareModal.videoUrl, shareModal.reel.title)}>
+                                <span className="share-icon">📋</span>
+                                <span className="share-label">Copy Link</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

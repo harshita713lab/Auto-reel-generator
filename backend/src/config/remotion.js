@@ -20,7 +20,8 @@ validateCompositionName(compositionName) {
          "WhiteCardCarousel",
          "WhiteCardPolaroidStack",
          "WhiteCardMasonry",
-
+         "PremiumGrid",
+          "WeddingSequenceComposition"
     ];
 
     if (!compositionName || typeof compositionName !== "string") {

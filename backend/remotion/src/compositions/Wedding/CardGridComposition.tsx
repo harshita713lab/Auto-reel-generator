@@ -7,7 +7,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { MusicPlayer } from "../../components";
+//import { MusicPlayer } from "../../components";
 
 interface WhiteCardGrid3x3Props {
   images?: Array<{ path: string }>;
@@ -151,16 +151,7 @@ const positions = [
 >
   Captured with Love
 </div>
-      {music && (
-        <MusicPlayer
-          src={music.path}
-          volume={music.volume ?? 1}
-          duration={durationInFrames / fps}
-          fadeInDuration={0.5}
-          fadeOutDuration={0.8}
-          showVisualizer={false}
-        />
-      )}
+    
     </AbsoluteFill>
   );
 };

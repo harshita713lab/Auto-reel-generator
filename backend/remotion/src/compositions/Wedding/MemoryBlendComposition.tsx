@@ -1,6 +1,6 @@
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, Img, interpolate } from "remotion";
 import React from "react";
-import { MusicPlayer } from "../../components";
+//import { MusicPlayer } from "../../components";
 
 interface MemoryBlendProps {
   images?: Array<{ path: string }>;
@@ -133,16 +133,7 @@ const overlayScale = interpolate(
       </AbsoluteFill>
 
       {/* 4. बैकग्राउंड म्यूजिक प्लेयर */}
-      {music && music.path && (
-        <MusicPlayer
-          src={music.path}
-          volume={music.volume ?? 1}
-          duration={durationInFrames / fps}
-          fadeInDuration={0.5}
-          fadeOutDuration={0.8}
-          showVisualizer={false}
-        />
-      )}
+      
     </AbsoluteFill>
   );
 };
