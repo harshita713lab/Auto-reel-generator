@@ -86,7 +86,10 @@ console.log(JSON.stringify(inputProps, null, 2));
 const imageCount = reel.images.length;
 
 let compositionId;
-if(imageCount === 20) {
+if(imageCount === 11) {
+  compositionId = "WeddingSplitSlider";
+}
+ else if(imageCount === 20) {
   compositionId = "WeddingSequenceComposition";
 }
         else if (imageCount === 4) {
