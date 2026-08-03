@@ -532,3 +532,40 @@ exports.getReelStatus = async (req, res) => {
     });
   }
 };
+
+/**
+ * Duplicate a reel
+ */
+exports.duplicateReel = async (req, res) => {
+  try {
+    const originalReel = await Reel.findById(req.params.id);
+    if (!originalReel) {
+      return res.status(404).json({ error: "Reel not found" });
+    }
+
+    const reelData = originalReel.toObject();
+    delete reelData._id;
+    delete reelData.createdAt;
+    delete reelData.updatedAt;
+
+    reelData.title = `${originalReel.title || "Untitled Reel"} (Copy)`;
+    reelData.status = originalReel.status || "rendered";
+
+    const duplicatedReel = new Reel(reelData);
+    await duplicatedReel.save();
+
+    logger.info(`Reel duplicated: ${duplicatedReel.title} (${duplicatedReel._id})`);
+
+    return res.status(201).json({
+      success: true,
+      reel: duplicatedReel,
+      message: "Reel duplicated successfully",
+    });
+  } catch (error) {
+    logger.error("Failed to duplicate reel:", error);
+    return res.status(500).json({
+      error: "Failed to duplicate reel",
+      message: error.message,
+    });
+  }
+};

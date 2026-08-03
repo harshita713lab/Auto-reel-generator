@@ -169,6 +169,7 @@ router.delete('/:id', reelController.deleteReel);
 // Action endpoints on specific reel
 router.post('/:id/process', reelController.processReel);
 router.post('/:id/render', reelController.renderReel);
+router.post('/:id/duplicate', reelController.duplicateReel);
 router.get('/:id/status', reelController.getReelStatus);
 router.get('/:id/download', reelController.downloadReel);
 router.get('/:id/preview', reelController.getPreview);

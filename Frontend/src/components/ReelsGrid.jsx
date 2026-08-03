@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import GlitterBackground from '../components/GlitterBackground';
 import { 
     faEllipsisVertical, faPenToSquare, faDownload, faCopy, faShareNodes, 
-    faTrashCan, faMusic, faLayerGroup, faMagnifyingGlass, faFilm,
+    faTrashCan, faMusic, faLayerGroup, faFilm, faPlay,
     faPaperPlane, faCamera, faThumbsUp, faEnvelope, faComment, faLink
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -18,6 +18,7 @@ function ReelsGrid() {
     const [searchTerm, setSearchTerm] = useState(''); 
     const [openMenuId, setOpenMenuId] = useState(null); 
     const [shareModal, setShareModal] = useState(null); 
+    const [activePlayReel, setActivePlayReel] = useState(null);
 
     useEffect(() => {
         fetchAllReels();
@@ -52,6 +53,7 @@ function ReelsGrid() {
     };
 
     const getVideoUrl = (reel) => {
+        if (!reel) return null;
         if (reel.outputUrl) {
             return reel.outputUrl.startsWith('http') 
                 ? reel.outputUrl 
@@ -62,6 +64,32 @@ function ReelsGrid() {
             return `http://localhost:5000/output/renders/${filename}`; 
         }
         return null;
+    };
+
+    const getThumbnailUrl = (reel) => {
+        if (reel.thumbnailUrl) {
+            return reel.thumbnailUrl.startsWith('http') ? reel.thumbnailUrl : `http://localhost:5000${reel.thumbnailUrl}`;
+        }
+        if (reel.previewUrl && !reel.previewUrl.endsWith('.mp4')) {
+            return reel.previewUrl.startsWith('http') ? reel.previewUrl : `http://localhost:5000${reel.previewUrl}`;
+        }
+        if (reel.images && Array.isArray(reel.images) && reel.images.length > 0) {
+            const firstImg = reel.images[0];
+            const imgPath = typeof firstImg === 'object' ? (firstImg.path || firstImg.url || '') : String(firstImg);
+            const filename = imgPath.split('/').pop() || imgPath.split('\\').pop();
+            if (filename) {
+                return `http://localhost:5000/uploads/images/${filename}`;
+            }
+        }
+        return null;
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        const formattedDate = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        const formattedTime = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+        return `${formattedDate} • ${formattedTime}`;
     };
 
     const handleDownload = async (videoUrl, filename) => {
@@ -126,6 +154,27 @@ function ReelsGrid() {
         }
     };
 
+    const handleDuplicate = async (reel) => {
+        try {
+            toast.info(<><FontAwesomeIcon icon={faCopy} /> Duplicating reel...</>);
+            const response = await fetch(`${API_URL}/reel/${reel._id}/duplicate`, {
+                method: 'POST'
+            });
+            if (response.ok) {
+                toast.success(<><FontAwesomeIcon icon={faCopy} /> Reel duplicated successfully!</>);
+                fetchAllReels();
+            } else {
+                const error = await response.json();
+                toast.error(error.error || 'Failed to duplicate reel');
+            }
+        } catch (error) {
+            console.error('Error duplicating reel:', error);
+            toast.error('Failed to duplicate reel');
+        } finally {
+            setOpenMenuId(null);
+        }
+    };
+
     const handleShare = (reel) => {
         const videoUrl = getVideoUrl(reel);
         setShareModal({ reel, videoUrl });
@@ -179,22 +228,20 @@ function ReelsGrid() {
         closeShareModal();
     };
 
-    const handleDuplicate = (reel) => {
-        toast.info(<><FontAwesomeIcon icon={faCopy} /> Creating a copy...</>);
-        setTimeout(() => {
-            toast.success(<><FontAwesomeIcon icon={faCopy} /> Reel duplicated! Refresh to see it.</>);
-            fetchAllReels();
-        }, 1500);
-        setOpenMenuId(null);
-    };
-
+    // Enhanced Search by Title, Date, Template, or Music
     const filteredReels = useMemo(() => {
-        if (!searchTerm) return reels;
-        const lowerSearch = searchTerm.toLowerCase();
+        if (!searchTerm || !searchTerm.trim()) return reels;
+        const lowerSearch = searchTerm.toLowerCase().trim();
         return reels.filter(reel => {
             const titleMatch = reel.title?.toLowerCase().includes(lowerSearch);
-            const dateMatch = new Date(reel.createdAt).toLocaleDateString('en-IN').includes(lowerSearch);
-            return titleMatch || dateMatch;
+            const musicMatch = reel.usedMusic?.toLowerCase().includes(lowerSearch);
+            const templateMatch = reel.usedTemplate?.toLowerCase().includes(lowerSearch);
+            
+            const dateObj = new Date(reel.createdAt);
+            const dateStr = dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).toLowerCase();
+            const dateMatch = dateStr.includes(lowerSearch);
+
+            return titleMatch || musicMatch || templateMatch || dateMatch;
         });
     }, [reels, searchTerm]);
 
@@ -237,7 +284,7 @@ function ReelsGrid() {
                 <div className="search-bar-container">
                     <input 
                         type="text" 
-                        placeholder="Search by title or date..." 
+                        placeholder="Search by title, date (e.g. Aug 3), template..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="search-input"
@@ -249,7 +296,7 @@ function ReelsGrid() {
 
                 {filteredReels.length === 0 ? (
                     <div className="no-reels">
-                        <p>{searchTerm ? `No reels found` : "No reels created yet!"}</p>
+                        <p>{searchTerm ? `No reels found matching "${searchTerm}"` : "No reels created yet!"}</p>
                         <Link to="/" className="create-btn">Create Your First Reel</Link>
                     </div>
                 ) : (
@@ -260,33 +307,47 @@ function ReelsGrid() {
                                 <div className="group-items">
                                     {groupedReels[groupLabel].map((reel) => {
                                         const videoUrl = getVideoUrl(reel);
+                                        const thumbnailUrl = getThumbnailUrl(reel);
                                         return (
                                             <div key={reel._id} className="reel-list-item">
-                                                <div className="reel-list-thumbnail">
-                                                    {videoUrl ? (
-                                                        <video 
-                                                            muted 
-                                                            playsInline
-                                                            poster={videoUrl}
-                                                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
-                                                        >
-                                                            <source src={videoUrl} type="video/mp4" />
-                                                        </video>
+                                                <div 
+                                                    className="reel-list-thumbnail"
+                                                    onClick={() => videoUrl && setActivePlayReel(reel)}
+                                                    title="Click to play reel"
+                                                >
+                                                    {thumbnailUrl ? (
+                                                        <img 
+                                                            src={thumbnailUrl} 
+                                                            alt={reel.title || "Reel"}
+                                                            className="thumbnail-img"
+                                                        />
                                                     ) : (
                                                         <div className="thumbnail-placeholder">
                                                             <FontAwesomeIcon icon={faFilm} />
                                                         </div>
                                                     )}
+                                                    
+                                                    {videoUrl && (
+                                                        <div className="play-overlay">
+                                                            <FontAwesomeIcon icon={faPlay} className="play-icon-overlay" />
+                                                        </div>
+                                                    )}
+
                                                     <span className="duration-badge">{reel.duration ? Math.round(reel.duration) : "0"}s</span>
                                                 </div>
 
                                                 <div className="reel-list-details">
                                                     <div className="reel-detail-top">
-                                                        <h4 className="reel-list-title">{reel.title || "Untitled Reel"}</h4>
+                                                        <h4 
+                                                            className="reel-list-title clickable"
+                                                            onClick={() => videoUrl && setActivePlayReel(reel)}
+                                                        >
+                                                            {reel.title || "Untitled Reel"}
+                                                        </h4>
                                                         
                                                         <div className="date-and-menu">
                                                             <span className="reel-list-date">
-                                                                {new Date(reel.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                                                                📅 {formatDate(reel.createdAt)}
                                                             </span>
                                                             
                                                             <div className="reel-menu-container">
@@ -366,6 +427,34 @@ function ReelsGrid() {
                     </div>
                 )}
 
+                {/* Video Playback Modal */}
+                {activePlayReel && (
+                    <div className="reel-modal-overlay" onClick={() => setActivePlayReel(null)}>
+                        <div className="reel-modal-content" onClick={(e) => e.stopPropagation()}>
+                            <div className="reel-modal-header">
+                                <h3>🎬 {activePlayReel.title || "Untitled Reel"}</h3>
+                                <button className="reel-modal-close" onClick={() => setActivePlayReel(null)}>✕</button>
+                            </div>
+                            
+                            <div className="reel-video-wrapper">
+                                <video 
+                                    src={getVideoUrl(activePlayReel)} 
+                                    controls 
+                                    autoPlay 
+                                    className="reel-modal-video"
+                                />
+                            </div>
+
+                            <div className="reel-modal-info">
+                                <span><FontAwesomeIcon icon={faMusic} /> {activePlayReel.usedMusic || 'Default Music'}</span>
+                                <span><FontAwesomeIcon icon={faLayerGroup} /> {activePlayReel.usedTemplate || 'Default Template'}</span>
+                                <span>📅 {formatDate(activePlayReel.createdAt)}</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Share Modal */}
                 {shareModal && (
                     <div className="share-modal-overlay" onClick={closeShareModal}>
                         <div className="share-modal" onClick={(e) => e.stopPropagation()}>
