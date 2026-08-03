@@ -19,6 +19,7 @@ function Settings() {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+    document.body.classList.toggle("light-mode", theme === "light");
     localStorage.setItem("theme", theme);
   }, [theme]);
 

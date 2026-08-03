@@ -152,7 +152,9 @@ router.get('/templates', (req, res) => {
   return res.json({ success: true, templates });
 });
 
-// Creation Endpoints (Place before dynamic :id routes)
+// Special list endpoints (Place before dynamic :id routes)
+router.get('/trash', reelController.getTrash);
+router.get('/downloads/history', reelController.getDownloadHistory);
 router.post('/generate', reelController.createReel);
 router.post('/', reelController.createReel);
 
@@ -170,6 +172,8 @@ router.delete('/:id', reelController.deleteReel);
 router.post('/:id/process', reelController.processReel);
 router.post('/:id/render', reelController.renderReel);
 router.post('/:id/duplicate', reelController.duplicateReel);
+router.post('/:id/restore', reelController.restoreReel);
+router.delete('/:id/permanent', reelController.permanentDeleteReel);
 router.get('/:id/status', reelController.getReelStatus);
 router.get('/:id/download', reelController.downloadReel);
 router.get('/:id/preview', reelController.getPreview);

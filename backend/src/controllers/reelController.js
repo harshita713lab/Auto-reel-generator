@@ -333,7 +333,7 @@ exports.updateReel = async (req, res) => {
 };
 
 /**
- * ✅ FIXED: Delete reel
+ * ✅ FIXED: Delete reel (Soft Delete to Trash)
  */
 exports.deleteReel = async (req, res) => {
   try {
@@ -342,25 +342,15 @@ exports.deleteReel = async (req, res) => {
       return res.status(404).json({ error: "Reel not found" });
     }
 
-    if (reel.outputPath) {
-      try {
-        let filePath = reel.outputPath;
-        if (!path.isAbsolute(filePath)) {
-          filePath = path.join(__dirname, '../../', filePath);
-        }
-        await fs.unlink(filePath);
-        logger.info(`🗑️ Deleted video file: ${filePath}`);
-      } catch (err) {
-        logger.warn(`⚠️ Video file not found for deletion: ${reel.outputPath}`);
-      }
-    }
+    reel.isDeleted = true;
+    reel.deletedAt = new Date();
+    await reel.save();
 
-    await reel.deleteOne();
-    logger.info(`Reel deleted: ${reel.title}`);
+    logger.info(`Reel moved to Trash: ${reel.title} (${reel._id})`);
 
     res.json({
       success: true,
-      message: "Reel deleted successfully",
+      message: "Reel moved to Trash successfully",
     });
   } catch (error) {
     logger.error("Failed to delete reel:", error);
@@ -588,5 +578,94 @@ exports.duplicateReel = async (req, res) => {
       error: "Failed to duplicate reel",
       message: error.message,
     });
+  }
+};
+
+/**
+ * Get reels in Trash
+ */
+exports.getTrash = async (req, res) => {
+  try {
+    const reels = await Reel.find({ isDeleted: true }).sort({ deletedAt: -1 });
+    const formattedReels = reels.map(reel => {
+      const reelObj = reel.toObject();
+      if (reelObj.outputPath) {
+        const filename = path.basename(reelObj.outputPath);
+        reelObj.outputUrl = `http://localhost:5000/output/renders/${filename}`;
+      }
+      return reelObj;
+    });
+    res.json({ success: true, reels: formattedReels || [] });
+  } catch (error) {
+    logger.error("Failed to get trash reels:", error);
+    res.status(500).json({ error: "Failed to load trash" });
+  }
+};
+
+/**
+ * Restore reel from Trash
+ */
+exports.restoreReel = async (req, res) => {
+  try {
+    const reel = await Reel.findById(req.params.id);
+    if (!reel) return res.status(404).json({ error: "Reel not found" });
+
+    reel.isDeleted = false;
+    reel.deletedAt = null;
+    await reel.save();
+
+    logger.info(`Reel restored from Trash: ${reel.title} (${reel._id})`);
+    res.json({ success: true, message: "Reel restored successfully" });
+  } catch (error) {
+    logger.error("Failed to restore reel:", error);
+    res.status(500).json({ error: "Failed to restore reel" });
+  }
+};
+
+/**
+ * Permanent Delete reel
+ */
+exports.permanentDeleteReel = async (req, res) => {
+  try {
+    const reel = await Reel.findById(req.params.id);
+    if (!reel) return res.status(404).json({ error: "Reel not found" });
+
+    if (reel.outputPath) {
+      try {
+        let filePath = reel.outputPath;
+        if (!path.isAbsolute(filePath)) {
+          filePath = path.join(__dirname, '../../', filePath);
+        }
+        await fs.unlink(filePath);
+      } catch (err) {}
+    }
+
+    await reel.deleteOne();
+    logger.info(`Reel permanently deleted: ${reel.title}`);
+    res.json({ success: true, message: "Reel permanently deleted" });
+  } catch (error) {
+    logger.error("Failed to delete reel permanently:", error);
+    res.status(500).json({ error: "Failed to delete reel permanently" });
+  }
+};
+
+/**
+ * Get Download History
+ */
+exports.getDownloadHistory = async (req, res) => {
+  try {
+    const reels = await Reel.find({ isDeleted: { $ne: true } }).sort({ createdAt: -1 });
+    const formattedReels = reels.map(reel => {
+      const reelObj = reel.toObject();
+      if (reelObj.outputPath) {
+        const filename = path.basename(reelObj.outputPath);
+        reelObj.outputUrl = `http://localhost:5000/output/renders/${filename}`;
+      }
+      return reelObj;
+    });
+    res.json({ success: true, reels: formattedReels || [] });
+  } catch (error) {
+    logger.error("Failed to get download history:", error);
+    res.status(500).json({ error: "Failed to load download history" });
   }
 };

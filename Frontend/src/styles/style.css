@@ -2527,6 +2527,45 @@ body {
     font-weight: 600;
 }
 
+/* ===== LIGHT THEME STYLES ===== */
+body.light-mode, html[data-theme="light"] {
+    --bg-color: #f4f6fb;
+    --card-bg: rgba(255, 255, 255, 0.85);
+    --text-color: #1e293b;
+    --text-muted: #64748b;
+    --border-color: rgba(0, 0, 0, 0.1);
+    background-color: #f4f6fb !important;
+    color: #1e293b !important;
+}
+
+body.light-mode .upload-card,
+body.light-mode .settings-card,
+body.light-mode .reel-list-item,
+body.light-mode .trash-item,
+body.light-mode .download-item {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+    color: #1e293b !important;
+}
+
+body.light-mode h1, 
+body.light-mode h2, 
+body.light-mode h3, 
+body.light-mode h4,
+body.light-mode .reel-list-title {
+    color: #0f172a !important;
+}
+
+body.light-mode .reel-list-date,
+body.light-mode .template-tag,
+body.light-mode .download-meta span,
+body.light-mode .trash-meta span {
+    background: rgba(0, 0, 0, 0.06) !important;
+    color: #475569 !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
 .toggle-switch {
     position: relative;
     display: inline-block;
