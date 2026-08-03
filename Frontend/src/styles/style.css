@@ -1732,25 +1732,31 @@ body {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    position: relative;
 }
 
-/* Individual List Item (Transparent & Bordered Glassmorphic Style) */
+/* Individual List Item (Ultra-Transparent Glassmorphic Style) */
 .reel-list-item {
+    position: relative;
     display: flex;
     gap: 16px;
-    background: rgba(255, 255, 255, 0.04) !important;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: rgba(255, 255, 255, 0.02) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
     padding: 14px;
     border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
     align-items: center;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.reel-list-item.active-menu-item {
+    z-index: 9999 !important;
 }
 
 .reel-list-item:hover {
-    background: rgba(255, 255, 255, 0.09) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
     border-color: rgba(108, 92, 231, 0.6) !important;
     transform: translateY(-2px);
     box-shadow: 0 10px 30px rgba(108, 92, 231, 0.25);
@@ -1879,120 +1885,48 @@ body {
 }
 
 .template-tag {
-    background: #2a2a2a;
+    background: rgba(255, 255, 255, 0.08);
     padding: 2px 8px;
     border-radius: 12px;
 }
 
-.reel-list-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 4px;
-}
-
-.download-btn-small, .delete-btn-small {
-    padding: 4px 12px;
-    font-size: 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.download-btn-small {
-    background: #fca311;
-    color: #000;
-}
-
-.delete-btn-small {
-    background: #2a2a2a;
-    color: #ff6b6b;
-    border: 1px solid #ff6b6b;
-}
-
-.download-btn-small:hover { background: #ffb703; }
-.delete-btn-small:hover { background: #3a1a1a; }
-
-/* Responsive */
-@media (max-width: 600px) {
-    .search-bar-container {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .reel-list-thumbnail {
-        width: 60px;
-        height: 60px;
-    }
-    .reel-list-title {
-        font-size: 14px;
-        max-width: 55%;
-    }
-}
-
-
-/* --- Top Row: Title & Date-Menu --- */
-.reel-detail-top {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
-    gap: 4px;
-}
-
-.reel-list-title {
-    font-size: 16px;
-    font-weight: 500;
-    color: #fff;
-    margin: 0;
-    word-break: break-word;
-}
-
-.date-and-menu {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    width: 100%;
-    gap: 10px;
-}
-
-.reel-list-date {
-    font-size: 13px;
-    color: #777;
-}
-
-/* --- 3-Dots Menu & Dropdown Styles --- */
+/* --- 3-Dots Menu & Floating Dropdown Styles --- */
 .reel-menu-container {
     position: relative;
     display: inline-block;
+    z-index: 1000;
 }
 
 .reel-menu-trigger {
     background: transparent;
     border: none;
-    color: #888;
+    color: #aaa;
     font-size: 20px;
     line-height: 1;
     cursor: pointer;
-    padding: 0 5px;
-    transition: color 0.2s ease;
-    padding-bottom: 2px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
 }
 
-.reel-menu-trigger:hover {
+.reel-menu-trigger:hover, .reel-menu-trigger.active {
     color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
 }
 
-/* Dropdown Menu Box (Now opens on click) */
+/* Dropdown Menu Box - Always Floats on Top */
 .reel-dropdown-menu {
     position: absolute;
     right: 0;
-    top: 30px;
-    background-color: #1e1e1e;
-    min-width: 140px;
+    top: 34px;
+    background: rgba(20, 20, 28, 0.95) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    min-width: 160px;
     border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-    border: 1px solid #333;
-    z-index: 999;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    z-index: 999999 !important;
     overflow: hidden;
     padding: 6px 0;
     animation: fadeIn 0.2s ease-in-out;
@@ -2008,20 +1942,148 @@ body {
     font-size: 14px;
     color: #e0e0e0;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease;
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
 .dropdown-item:hover {
-    background-color: #2a2a2a;
+    background: rgba(255, 255, 255, 0.1);
     color: #ffffff;
 }
 
 .dropdown-item.delete-item:hover {
-    background-color: #2a1212;
-    color: #ff6b6b;
+    background: rgba(255, 71, 87, 0.2);
+    color: #ff4757;
+}
+
+/* Beautiful Custom Delete & Rename Modals */
+.reel-custom-modal {
+    background: rgba(22, 22, 30, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 18px;
+    width: 100%;
+    max-width: 420px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.delete-modal-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px auto;
+    border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+.rename-modal-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(108, 92, 231, 0.15);
+    color: #a29bfe;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px auto;
+    border: 1px solid rgba(108, 92, 231, 0.3);
+}
+
+.reel-custom-modal h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.25rem;
+    color: #fff;
+}
+
+.reel-custom-modal p {
+    font-size: 0.92rem;
+    color: #bbb;
+    margin: 0 0 20px 0;
+    line-height: 1.5;
+}
+
+.rename-modal-input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    margin-bottom: 20px;
+    transition: border-color 0.2s ease;
+}
+
+.rename-modal-input:focus {
+    border-color: #a29bfe;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.custom-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    flex: 1;
+}
+
+.modal-btn.cancel-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ddd;
+}
+
+.modal-btn.cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+}
+
+.modal-btn.confirm-delete-btn {
+    background: linear-gradient(135deg, #ff4757, #ff6b81);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+}
+
+.modal-btn.confirm-delete-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(255, 71, 87, 0.6);
+}
+
+.modal-btn.save-btn {
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+}
+
+.modal-btn.save-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.6);
 }
 
 /* ============================================================ */

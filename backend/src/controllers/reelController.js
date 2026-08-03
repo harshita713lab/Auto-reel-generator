@@ -128,8 +128,29 @@ exports.createReel = async (req, res) => {
 
     const selectedAudioPath = path.join(__dirname, '../../assets/music', musicFileName);
 
+    const generateUniqueDefaultTitle = (tId, count) => {
+      const randomCode = Math.floor(1000 + Math.random() * 9000);
+      const namesMap = {
+        wedding_seq: 'Wedding Memory',
+        cinematic_wedding: 'Cinematic Highlights',
+        wedding_split: 'Love Story Reel',
+        white_carousel: 'Modern Carousel',
+        white_masonry: 'Creative Masonry',
+        white_polaroid: 'Vintage Polaroid',
+        premium_grid: 'Premium Grid',
+        memory_blend: 'Memory Blend',
+        simple_1: 'Classic Slideshow',
+      };
+      const themeName = namesMap[tId] || (count === 20 ? 'Wedding Memory' : count === 9 ? 'Cinematic Highlights' : 'Fotographiya Reel');
+      return `${themeName} #${randomCode}`;
+    };
+
+    const finalTitle = (title && title.trim() !== '' && title !== "Untitled Reel") 
+      ? title.trim() 
+      : generateUniqueDefaultTitle(templateId, formattedImages.length);
+
     const reelData = {
-      title: title || "Untitled Reel",
+      title: finalTitle,
       images: formattedImages,
       music: musicId && musicId.match(/^[0-9a-fA-F]{24}$/) ? musicId : null,
       audioPath: selectedAudioPath,
