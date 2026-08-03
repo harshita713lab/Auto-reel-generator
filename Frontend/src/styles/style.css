@@ -252,7 +252,7 @@ body {
     transform: translateY(-50%);
     width: 1px;
     height: 30px;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(9, 9, 9, 0.08);
 }
 
 .stat-number {
@@ -307,7 +307,7 @@ body {
 
 /* ========== UPLOAD SECTION ========== */
 .upload-section {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(3, 3, 3, 0.03);
     border-radius: 20px;
     padding: 30px;
     border: 1px solid rgba(255, 255, 255, 0.06);
@@ -438,7 +438,7 @@ body {
 .progress-bar {
     width: 100%;
     height: 6px;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(5, 5, 5, 0.08);
     border-radius: 4px;
     overflow: hidden;
 }
@@ -899,6 +899,10 @@ body {
 /* ========== NAVBAR CSS ========== */
 /* ============================================================ */
 
+/* ============================================================ */
+/* ========== NAVBAR CSS (THEME SUPPORT) ========== */
+/* ============================================================ */
+
 .navbar {
     position: fixed;
     top: 0;
@@ -916,11 +920,12 @@ body {
     box-shadow: none;
 }
 
+/* ✅ Theme ke hisaab se scrolled color change hoga */
 .navbar-scrolled {
-    background: rgba(10, 10, 10, 0.85);
+    background: var(--bg-color); /* Theme variable use kiya */
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid var(--border-color);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
@@ -940,7 +945,7 @@ body {
     text-decoration: none;
     font-weight: 700;
     font-size: 1.4rem;
-    color: #ffffff;
+    color: var(--text-color); /* Theme color */
     transition: transform 0.3s ease;
 }
 
@@ -977,12 +982,12 @@ body {
 }
 
 .nav-link:hover {
-    color: #ffffff;
+    color: var(--text-color); /* Theme color */
     background: rgba(255, 255, 255, 0.06);
 }
 
 .nav-link.active {
-    color: #ffffff;
+    color: var(--text-color);
     background: rgba(255, 255, 255, 0.08);
 }
 
@@ -1024,6 +1029,42 @@ body {
     display: none;
 }
 
+/* ✅ Settings Link & Theme Toggle */
+.settings-link {
+    font-size: 1.2rem;
+    padding: 8px 12px;
+    color: rgba(255, 255, 255, 0.6);
+    transition: all 0.3s;
+}
+
+.settings-link:hover {
+    color: var(--text-color);
+    transform: rotate(45deg);
+}
+
+.navbar-theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 8px 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    transition: all 0.3s ease;
+    margin-left: 4px;
+}
+
+.navbar-theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.1);
+}
+
+.theme-icon {
+    font-size: 1.2rem;
+    color: var(--text-color);
+}
+
+/* Mobile Menu Button */
 .mobile-menu-btn {
     display: none;
     flex-direction: column;
@@ -1038,60 +1079,9 @@ body {
     display: block;
     width: 25px;
     height: 2px;
-    background: #ffffff;
+    background: var(--text-color); /* Theme color */
     border-radius: 2px;
     transition: all 0.3s ease;
-}
-
-/* ============================================================ */
-/* ========== LATEST REEL SECTION ========== */
-/* ============================================================ */
-
-.latest-reel-section {
-    margin: 30px 0;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 20px;
-    padding: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.latest-reel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-}
-
-.latest-reel-header h2 {
-    font-size: 1.4rem;
-    color: #ffffff;
-}
-
-.view-all-btn {
-    color: #ff6b6b;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.3s;
-}
-
-.view-all-btn:hover {
-    color: #ffa502;
-}
-
-.latest-reel-preview video {
-    width: 100%;
-    max-height: 400px;
-    border-radius: 12px;
-    background: #000;
-}
-
-.latest-reel-info {
-    display: flex;
-    gap: 20px;
-    margin-top: 12px;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.9rem;
-    flex-wrap: wrap;
 }
 
 /* ============================================================ */
@@ -2143,4 +2133,660 @@ body {
     .share-icon {
         font-size: 20px;
     }
+}
+
+
+/* ============================================================ */
+/* ========== SETTINGS PAGE ========== */
+/* ============================================================ */
+
+
+.settings-page {
+    padding: 80px 20px 40px;  /* ✅ 80px top padding add kiya */
+    min-height: 100vh;
+}
+
+.settings-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.settings-header h1 {
+    font-size: 1.8rem;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.back-btn-settings {
+    color: var(--text-color);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.back-btn-settings:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(-3px);
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.settings-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.settings-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 107, 107, 0.3);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+/* Glossy effect on hover */
+.settings-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+}
+
+.settings-card:hover::before {
+    opacity: 1;
+}
+
+.card-icon-wrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: rgba(255, 107, 107, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.card-icon {
+    font-size: 1.4rem;
+    color: #ff6b6b;
+}
+
+.trash-icon {
+    color: #ff6b6b;
+}
+
+.settings-card h3 {
+    font-size: 1.2rem;
+    color: var(--text-color);
+    margin-bottom: 6px;
+}
+
+.settings-card p {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* ===== THEME TOGGLE ===== */
+.theme-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 12px;
+    justify-content: center;
+}
+
+.theme-toggle-container span {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s;
+}
+
+.theme-toggle-container span.active-theme {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #333;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background: linear-gradient(135deg, #ff6b6b, #ffa502);
+}
+
+input:checked + .slider:before {
+    transform: translateX(22px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* ===== LINK CARDS ===== */
+.link-card {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.card-arrow {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.2);
+    transition: all 0.3s;
+}
+
+.link-card:hover .card-arrow {
+    color: #ff6b6b;
+    transform: translateX(4px);
+}
+
+/* ===== HELP CENTER ===== */
+/* ===== HELP CENTER ===== */
+.help-card {
+    /* Yeh card pure grid ki width lega */
+    grid-column: 1 / -1; 
+    position: relative;
+    overflow: hidden;
+}
+
+/* Help Center ko aur spacious banane ke liye */
+.help-card h3 {
+    margin-bottom: 16px;
+}
+
+/* Steps Container */
+.help-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+    padding: 0 4px;
+}
+
+/* Individual Step */
+.step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: all 0.3s ease;
+}
+
+.step:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(6px) scale(1.01);
+    border-color: rgba(255, 107, 107, 0.2);
+}
+
+/* Number Circle */
+.step-num {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #ff6b6b, #ffa502);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+/* Step Text */
+.step p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.step p strong {
+    color: #ffa502;
+    font-weight: 600;
+}
+
+/* Responsive Fix for Mobile */
+@media (max-width: 768px) {
+    .help-card {
+        grid-column: 1 / -1; /* Mobile par bhi full width rahega */
+    }
+}
+
+/* ============================================================ */
+/* ========== TRASH PAGE ========== */
+/* ============================================================ */
+
+.trash-page {
+    padding: 80px 20px 40px;  /* ✅ 80px top padding add kiya */
+    min-height: 100vh;
+}
+
+.trash-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.trash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.trash-header h1 {
+    font-size: 1.8rem;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.back-btn-trash {
+    color: var(--text-color);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.back-btn-trash:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(-3px);
+}
+
+.icon-danger {
+    color: #ff6b6b;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.empty-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-icon {
+    font-size: 2.5rem;
+    color: rgba(255, 255, 255, 0.1);
+}
+
+.empty-state h3 {
+    font-size: 1.3rem;
+    color: var(--text-color);
+    margin-bottom: 6px;
+}
+
+.empty-state p {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.trash-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.trash-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    transition: all 0.3s;
+}
+
+.trash-item:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.trash-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.trash-item-info h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.trash-date {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.trash-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.restore-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(76, 175, 80, 0.15);
+    color: #4caf50;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.restore-btn:hover {
+    background: rgba(76, 175, 80, 0.25);
+    transform: scale(1.05);
+}
+
+.delete-perm-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 107, 107, 0.15);
+    color: #ff6b6b;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.delete-perm-btn:hover {
+    background: rgba(255, 107, 107, 0.25);
+    transform: scale(1.05);
+}
+
+
+
+/* ============================================================ */
+/* ========== DOWNLOADS PAGE ========== */
+/* ============================================================ */
+
+.downloads-page {
+    padding: 80px 20px 40px;  /* ✅ 80px top padding add kiya */
+    min-height: 100vh;
+}
+
+
+.downloads-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.downloads-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.downloads-header h1 {
+    font-size: 1.8rem;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.back-btn-downloads {
+    color: var(--text-color);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.back-btn-downloads:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(-3px);
+}
+
+.downloads-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.download-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    transition: all 0.3s;
+}
+
+.download-item:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.download-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.download-item-info h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.download-date {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.download-count-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(255, 107, 107, 0.12);
+    border-radius: 20px;
+    color: #ff6b6b;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* ===== THEME TOGGLE (Reusable) ===== */
+.theme-toggle-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.toggle-label span {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.4);
+    transition: all 0.3s;
+}
+
+.toggle-label span.active {
+    color: var(--text-color);
+}
+
+/* Toggle Switch Design */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #333;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .s l i d e r {
+    background: linear-gradient(135deg, #ff6b6b, #ffa502);
+}
+
+input:checked + .slider:before {
+    transform: translateX(22px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* ============================================================ */
+/* ========== COLORFUL GLITTER ========== */
+/* ============================================================ */
+
+
+.colorful-glitter-wrapper {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
 }

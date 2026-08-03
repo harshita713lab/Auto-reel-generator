@@ -21,7 +21,9 @@ validateCompositionName(compositionName) {
          "WhiteCardPolaroidStack",
          "WhiteCardMasonry",
          "PremiumGrid",
-          "WeddingSequenceComposition"
+          "WeddingSequenceComposition",
+          "WeddingSplitSlider",
+          "CinematicWeddingReel",
     ];
 
     if (!compositionName || typeof compositionName !== "string") {

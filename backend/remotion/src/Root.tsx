@@ -9,8 +9,9 @@ import WhiteCardPolaroidStack from "./compositions/Wedding/WhitePolaroidComposit
 import WhiteCardMasonry from "./compositions/Wedding/MasonryComposition";
 import { PremiumGrid } from "./compositions/Wedding/PreiumGrid";
 import WeddingSequenceComposition from "./compositions/Wedding/WeddingSequenceComposition";
+import  CinematicWeddingReel  from "./compositions/Wedding/template19";
 
-
+import WeddingSplitSlider from "./compositions/Wedding/SplitSlider";
 
 
 
@@ -220,6 +221,30 @@ export const Root: React.FC = () => {
   height={1920}
   fps={30}
   durationInFrames={450} // ya 60+45+60+45+90 = 300
+  defaultProps={{
+    images: [],
+    music: undefined,
+  }}
+/>
+<Composition
+  id="WeddingSplitSlider"
+  component={WeddingSplitSlider}
+  width={1080}
+  height={1920}
+  fps={30}
+  durationInFrames={300}
+  defaultProps={{
+    images: [],
+    music: undefined,
+  }}
+/>
+<Composition
+  id="CinematicWeddingReel"
+component={CinematicWeddingReel}
+  durationInFrames={360}
+  fps={30}
+  width={1080}
+  height={1920}
   defaultProps={{
     images: [],
     music: undefined,

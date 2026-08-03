@@ -8,8 +8,7 @@ import {
 } from "remotion";
 
 import {
-  AnimatedImage,
-MusicPlayer
+  AnimatedImage
 } from "../../components";
 import { PremiumGrid } from "./PreiumGrid";
 
@@ -117,7 +116,7 @@ const WeddingSequenceComposition: React.FC<
 
 const CardImage = ({
   image,
-
+delay = 0,
 }: {
   image?: {
     path: string;
@@ -131,17 +130,17 @@ const CardImage = ({
 
 
 
-const rotate = interpolate(frame,[0,20],[-180,0],{
+const rotate = interpolate(frame -delay,[0,20],[-180,0],{
   extrapolateLeft:"clamp",
   extrapolateRight:"clamp",
 });
 
-const scale = interpolate(frame,[0,20],[0.4,1],{
+const scale = interpolate(frame-delay,[0,20],[0.4,1],{
   extrapolateLeft:"clamp",
   extrapolateRight:"clamp",
 });
 
-const opacity = interpolate(frame,[0,15],[0,1],{
+const opacity = interpolate(frame-delay,[0,15],[0,1],{
   extrapolateLeft:"clamp",
   extrapolateRight:"clamp",
 });
@@ -228,7 +227,7 @@ const opacity = interpolate(frame,[0,15],[0,1],{
           top: "0%",
           left: 0,
         width: "100%",
-          height: "32%",
+          height: "80%",
         }}
       >
         <RowImage image={img1} />
@@ -262,7 +261,7 @@ const opacity = interpolate(frame,[0,15],[0,1],{
           top: "34%",
           left: 0,
         width: "100%",
-          height: "32%",
+          height: "80%",
         }}
       >
         <RowImage image={img2} />
@@ -296,7 +295,7 @@ const opacity = interpolate(frame,[0,15],[0,1],{
           top: "68%",
           left: 0,
         width: "100%",
-          height: "32%",
+          height: "80%",
         }}
       >
         <RowImage image={img3} />
@@ -450,7 +449,17 @@ const opacity = interpolate(frame,[0,15],[0,1],{
         <CardImage image={img14} delay={40}/>
       </div>
     </Sequence>
-
+ <Sequence from={40} durationInFrames={30}>
+      <div
+        style={{
+          position:"absolute",
+          right:400,
+          bottom:100,
+        }}
+      >
+        <CardImage image={img15} delay={40}/>
+      </div>
+    </Sequence>
 
   </AbsoluteFill>
 </Sequence>
@@ -481,16 +490,7 @@ const opacity = interpolate(frame,[0,15],[0,1],{
       {/* ===========================
           Music
       ============================ */}
-{music && (
-  <MusicPlayer
-    src={music.path}
-    volume={music.volume ?? 1}
-    duration={totalDuration / fps}
-    fadeInDuration={0.5}
-    fadeOutDuration={0.8}
-    showVisualizer={false}
-  />
-)}
+
      
     </AbsoluteFill>
   );
