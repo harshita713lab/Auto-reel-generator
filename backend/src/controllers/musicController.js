@@ -60,38 +60,51 @@ exports.uploadMusic = async (req, res) => {
  */
 exports.getAllMusic = async (req, res) => {
   try {
-    const { page = 1, limit = 20, search, genre } = req.query;
-    
-    const query = {};
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { artist: { $regex: search, $options: 'i' } },
-      ];
-    }
-    if (genre) {
-      query.genre = genre;
+    const fs = require('fs').promises;
+    const path = require('path');
+    const musicDir = path.join(__dirname, '../../assets/music');
+
+    let assetFiles = [];
+    try {
+      const files = await fs.readdir(musicDir);
+      assetFiles = files
+        .filter(f => f.toLowerCase().endsWith('.mp3'))
+        .sort((a, b) => {
+          const numA = parseInt((a.match(/\d+/) || [0])[0], 10);
+          const numB = parseInt((b.match(/\d+/) || [0])[0], 10);
+          return numA - numB;
+        })
+        .map(filename => {
+          const numMatch = filename.match(/\d+/);
+          const trackNum = numMatch ? numMatch[0] : '';
+          return {
+            _id: filename,
+            id: filename,
+            filename: filename,
+            title: `🎵 Reel Track ${trackNum || filename.replace('.mp3', '')}`,
+            artist: 'Auto Reel Collection',
+            url: `/assets/music/${filename}`,
+            path: `/assets/music/${filename}`,
+            isSystemAsset: true,
+          };
+        });
+    } catch (err) {
+      logger.warn('Could not read assets/music directory:', err.message);
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    
-    const [music, total] = await Promise.all([
-      Music.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(parseInt(limit)),
-      Music.countDocuments(query),
-    ]);
+    let dbMusic = [];
+    try {
+      dbMusic = await Music.find({}).lean();
+    } catch (dbErr) {
+      // MongoDB DB query fallback
+    }
+
+    const combinedMusic = [...assetFiles, ...dbMusic];
 
     res.json({
       success: true,
-      data: music,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / parseInt(limit)),
-      },
+      data: combinedMusic,
+      total: combinedMusic.length,
     });
   } catch (error) {
     logger.error('Failed to get music:', error);

@@ -6,6 +6,7 @@ import Upload from "./Upload";
 import ImagePreview from "./ImagePreview";
 import Result from "./Result";
 import TemplateSelector from "./TemplateSelector";
+import MusicSelector from "./MusicSelector";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
@@ -18,6 +19,7 @@ function UploadSection() {
   const [reelData, setReelData] = useState(null);
   const [useShotstack, setUseShotstack] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState("simple_1");
+  const [selectedMusicId, setSelectedMusicId] = useState("template_default");
 
   const handleAddImages = (files) => {
     const newImages = [...images, ...files];
@@ -29,6 +31,18 @@ function UploadSection() {
     }
 
     setImages(newImages);
+
+    // Auto-select template based on photo count
+    const count = newImages.length;
+    if (count === 20) setSelectedTemplateId("wedding_seq");
+    else if (count === 9) setSelectedTemplateId("cinematic_wedding");
+    else if (count === 11) setSelectedTemplateId("wedding_split");
+    else if (count === 10) setSelectedTemplateId("white_carousel");
+    else if (count === 8) setSelectedTemplateId("white_masonry");
+    else if (count === 6) setSelectedTemplateId("white_polaroid");
+    else if (count === 4) setSelectedTemplateId("premium_grid");
+    else if (count > 4) setSelectedTemplateId("memory_blend");
+    else setSelectedTemplateId("simple_1");
 
     const urls = files.map((file) => ({
       id: Date.now() + Math.random(),
@@ -118,8 +132,9 @@ function UploadSection() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          images: uploadedImagesList, // 👈 uploadData.files ki jagah yeh use karein
+          images: uploadedImagesList,
           templateId: selectedTemplateId,
+          musicId: selectedMusicId,
         }),
       });
 
@@ -219,6 +234,12 @@ function UploadSection() {
                   onSelect={setSelectedTemplateId}
                   selectedId={selectedTemplateId}
                   imageCount={images.length}
+                />
+
+                <MusicSelector
+                  onSelect={setSelectedMusicId}
+                  selectedId={selectedMusicId}
+                  selectedTemplateId={selectedTemplateId}
                 />
               </>
             )}

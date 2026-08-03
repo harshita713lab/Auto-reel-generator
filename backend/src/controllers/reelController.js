@@ -5,6 +5,7 @@ const Template = require("../models/Template");
 const renderService = require("../services/video/renderService");
 const logger = require("../utils/logger");
 const { RENDER_CONFIG } = require("../config/constants");
+const { getMusicForTemplate } = require("../config/templateMusicMap");
 
 /**
  * Get Latest Reel
@@ -113,9 +114,17 @@ exports.createReel = async (req, res) => {
       };
     });
 
-    const musicFileName = typeof musicId === 'string' && musicId.endsWith('.mp3') 
-      ? musicId 
-      : 'ReelAudio-1.mp3';
+    let musicFileName;
+
+    // Check if user selected a custom song or explicitly chose default
+    if (typeof musicId === 'string' && musicId.endsWith('.mp3')) {
+      musicFileName = musicId;
+    } else if (typeof musicId === 'string' && musicId !== 'template_default' && musicId !== 'default' && musicId.trim() !== '') {
+      musicFileName = `${musicId}.mp3`;
+    } else {
+      // Use template's fixed default song (matched by templateId or photo count)
+      musicFileName = getMusicForTemplate(templateId, formattedImages.length);
+    }
 
     const selectedAudioPath = path.join(__dirname, '../../assets/music', musicFileName);
 
