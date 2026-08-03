@@ -147,10 +147,10 @@ function TemplateSelector({ onSelect, selectedId, imageCount }) {
                       <span className="detail-label">📸 Photos</span>
                       <span className="detail-value">{template.minPhotos || 1}-{template.maxPhotos || 30}</span>
                     </div>
-                    {template.music && (
-                      <div className="detail-row">
-                        <span className="detail-label">🎵 Music</span>
-                        <span className="detail-value">{template.music}</span>
+                    {(template.fixedMusicTitle || template.fixedMusic || template.music) && (
+                      <div className="detail-row highlight-music">
+                        <span className="detail-label">🎵 Theme Song</span>
+                        <span className="detail-value">{template.fixedMusicTitle || template.fixedMusic || template.music}</span>
                       </div>
                     )}
                   </div>

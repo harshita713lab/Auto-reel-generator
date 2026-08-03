@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import GlitterBackground from '../components/GlitterBackground';
 import { 
     faEllipsisVertical, faPenToSquare, faDownload, faCopy, faShareNodes, 
-    faTrashCan, faMusic, faLayerGroup, faMagnifyingGlass, faFilm,
+    faTrashCan, faMusic, faLayerGroup, faFilm, faPlay, faXmark,
     faPaperPlane, faCamera, faThumbsUp, faEnvelope, faComment, faLink
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -18,6 +18,13 @@ function ReelsGrid() {
     const [searchTerm, setSearchTerm] = useState(''); 
     const [openMenuId, setOpenMenuId] = useState(null); 
     const [shareModal, setShareModal] = useState(null); 
+    const [activePlayReel, setActivePlayReel] = useState(null);
+    const [playingReelId, setPlayingReelId] = useState(null);
+
+    // Beautiful Custom Modals State
+    const [deleteModalReel, setDeleteModalReel] = useState(null);
+    const [renameModalReel, setRenameModalReel] = useState(null);
+    const [renameTitleInput, setRenameTitleInput] = useState('');
 
     useEffect(() => {
         fetchAllReels();
@@ -52,6 +59,7 @@ function ReelsGrid() {
     };
 
     const getVideoUrl = (reel) => {
+        if (!reel) return null;
         if (reel.outputUrl) {
             return reel.outputUrl.startsWith('http') 
                 ? reel.outputUrl 
@@ -61,19 +69,56 @@ function ReelsGrid() {
             const filename = reel.outputPath.split('/').pop() || reel.outputPath.split('\\').pop();
             return `http://localhost:5000/output/renders/${filename}`; 
         }
+        if (reel._id) {
+            return `http://localhost:5000/api/reel/${reel._id}/download`;
+        }
         return null;
     };
 
-    const handleDownload = async (videoUrl, filename) => {
+    const getThumbnailUrl = (reel) => {
+        if (!reel) return null;
+        if (reel.thumbnailUrl) {
+            return reel.thumbnailUrl.startsWith('http') ? reel.thumbnailUrl : `http://localhost:5000${reel.thumbnailUrl}`;
+        }
+        if (reel.previewUrl && !reel.previewUrl.endsWith('.mp4')) {
+            return reel.previewUrl.startsWith('http') ? reel.previewUrl : `http://localhost:5000${reel.previewUrl}`;
+        }
+        if (reel.images && Array.isArray(reel.images) && reel.images.length > 0) {
+            const firstImg = reel.images[0];
+            const imgPath = typeof firstImg === 'object' ? (firstImg.path || firstImg.url || '') : String(firstImg);
+            const filename = imgPath.split('/').pop() || imgPath.split('\\').pop();
+            if (filename) {
+                return `http://localhost:5000/uploads/images/${filename}`;
+            }
+        }
+        return null;
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        const formattedDate = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        const formattedTime = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+        return `${formattedDate} • ${formattedTime}`;
+    };
+
+    const handleDownload = async (target, customFilename) => {
+        let videoUrl = typeof target === 'string' ? target : getVideoUrl(target);
+        let filename = customFilename || (typeof target === 'object' && target?.title ? `${target.title}.mp4` : `reel_${Date.now()}.mp4`);
+
+        if (!videoUrl && typeof target === 'object' && target?._id) {
+            videoUrl = `${API_URL}/reel/${target._id}/download`;
+        }
+
         try {
-            toast.info(<><FontAwesomeIcon icon={faDownload} /> Downloading...</>);
+            toast.info(<><FontAwesomeIcon icon={faDownload} /> Downloading reel...</>);
             const response = await fetch(videoUrl);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = filename || `reel_${Date.now()}.mp4`;
+            link.download = filename;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -81,12 +126,19 @@ function ReelsGrid() {
             toast.success(<><FontAwesomeIcon icon={faDownload} /> Download started!</>);
         } catch (error) {
             console.error('Download failed:', error);
-            toast.error(<><FontAwesomeIcon icon={faDownload} /> Download failed! Please try again.</>);
+            if (typeof target === 'object' && target?._id) {
+                window.open(`${API_URL}/reel/${target._id}/download`, '_blank');
+            } else if (videoUrl) {
+                window.open(videoUrl, '_blank');
+            } else {
+                toast.error(<><FontAwesomeIcon icon={faDownload} /> Download failed! Please try again.</>);
+            }
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this reel?')) return;
+    const confirmDelete = async () => {
+        if (!deleteModalReel) return;
+        const id = deleteModalReel._id;
 
         try {
             const response = await fetch(`${API_URL}/reel/${id}`, { method: 'DELETE' });
@@ -100,29 +152,61 @@ function ReelsGrid() {
         } catch (error) {
             console.error('Error deleting reel:', error);
             toast.error(<><FontAwesomeIcon icon={faTrashCan} /> Failed to delete reel</>);
+        } finally {
+            setDeleteModalReel(null);
+            setOpenMenuId(null);
         }
     };
 
-    const handleRename = async (id, newTitle) => {
-        if (!newTitle || newTitle.trim() === '') return;
+    const confirmRename = async () => {
+        if (!renameModalReel || !renameTitleInput || renameTitleInput.trim() === '') {
+            toast.warning('Title cannot be empty!');
+            return;
+        }
+
+        const id = renameModalReel._id;
+        const newTitle = renameTitleInput.trim();
 
         try {
             const response = await fetch(`${API_URL}/reel/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: newTitle.trim() })
+                body: JSON.stringify({ title: newTitle })
             });
 
             if (response.ok) {
                 toast.success(<><FontAwesomeIcon icon={faPenToSquare} /> Reel renamed successfully!</>);
                 fetchAllReels();
-                setOpenMenuId(null);
             } else {
                 toast.error(<><FontAwesomeIcon icon={faPenToSquare} /> Failed to rename reel</>);
             }
         } catch (error) {
             console.error('Error renaming reel:', error);
             toast.error(<><FontAwesomeIcon icon={faPenToSquare} /> Failed to rename reel</>);
+        } finally {
+            setRenameModalReel(null);
+            setOpenMenuId(null);
+        }
+    };
+
+    const handleDuplicate = async (reel) => {
+        try {
+            toast.info(<><FontAwesomeIcon icon={faCopy} /> Duplicating reel...</>);
+            const response = await fetch(`${API_URL}/reel/${reel._id}/duplicate`, {
+                method: 'POST'
+            });
+            if (response.ok) {
+                toast.success(<><FontAwesomeIcon icon={faCopy} /> Reel duplicated successfully!</>);
+                fetchAllReels();
+            } else {
+                const error = await response.json();
+                toast.error(error.error || 'Failed to duplicate reel');
+            }
+        } catch (error) {
+            console.error('Error duplicating reel:', error);
+            toast.error('Failed to duplicate reel');
+        } finally {
+            setOpenMenuId(null);
         }
     };
 
@@ -139,7 +223,7 @@ function ReelsGrid() {
     const shareViaPlatform = (platform, videoUrl, title) => {
         const encodedUrl = encodeURIComponent(videoUrl || '');
         const encodedTitle = encodeURIComponent(title || 'My Reel');
-        const text = encodeURIComponent(`Check out my reel on Fotographiya!`);
+        const text = encodeURIComponent(`Check out my reel "${title || 'Reel'}" on Fotographiya Reel Maker!`);
         
         let url = '';
         switch (platform) {
@@ -147,17 +231,17 @@ function ReelsGrid() {
                 url = `https://t.me/share/url?url=${encodedUrl}&text=${text}`;
                 break;
             case 'whatsapp':
-                url = `https://wa.me/?text=${text}%20${encodedUrl}`;
+                url = `https://api.whatsapp.com/send?text=${text}%20${encodedUrl}`;
                 break;
             case 'facebook':
-                url = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${text}`;
+                url = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
                 break;
             case 'email':
                 url = `mailto:?subject=${encodedTitle}&body=${text}%0A${encodedUrl}`;
                 break;
             case 'instagram':
                 navigator.clipboard.writeText(videoUrl).then(() => {
-                    toast.success(<><FontAwesomeIcon icon={faLink} /> Link copied! Paste it in Instagram.</>);
+                    toast.success(<><FontAwesomeIcon icon={faLink} /> Reel link copied! Open Instagram to share.</>);
                 }).catch(() => {
                     toast.error(<><FontAwesomeIcon icon={faLink} /> Failed to copy link.</>);
                 });
@@ -179,22 +263,20 @@ function ReelsGrid() {
         closeShareModal();
     };
 
-    const handleDuplicate = (reel) => {
-        toast.info(<><FontAwesomeIcon icon={faCopy} /> Creating a copy...</>);
-        setTimeout(() => {
-            toast.success(<><FontAwesomeIcon icon={faCopy} /> Reel duplicated! Refresh to see it.</>);
-            fetchAllReels();
-        }, 1500);
-        setOpenMenuId(null);
-    };
-
+    // Enhanced Search by Title, Date, Template, or Music
     const filteredReels = useMemo(() => {
-        if (!searchTerm) return reels;
-        const lowerSearch = searchTerm.toLowerCase();
+        if (!searchTerm || !searchTerm.trim()) return reels;
+        const lowerSearch = searchTerm.toLowerCase().trim();
         return reels.filter(reel => {
             const titleMatch = reel.title?.toLowerCase().includes(lowerSearch);
-            const dateMatch = new Date(reel.createdAt).toLocaleDateString('en-IN').includes(lowerSearch);
-            return titleMatch || dateMatch;
+            const musicMatch = reel.usedMusic?.toLowerCase().includes(lowerSearch);
+            const templateMatch = reel.usedTemplate?.toLowerCase().includes(lowerSearch);
+            
+            const dateObj = new Date(reel.createdAt);
+            const dateStr = dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).toLowerCase();
+            const dateMatch = dateStr.includes(lowerSearch);
+
+            return titleMatch || musicMatch || templateMatch || dateMatch;
         });
     }, [reels, searchTerm]);
 
@@ -237,7 +319,7 @@ function ReelsGrid() {
                 <div className="search-bar-container">
                     <input 
                         type="text" 
-                        placeholder="Search by title or date..." 
+                        placeholder="Search by title, date (e.g. Aug 3), template..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="search-input"
@@ -249,7 +331,7 @@ function ReelsGrid() {
 
                 {filteredReels.length === 0 ? (
                     <div className="no-reels">
-                        <p>{searchTerm ? `No reels found` : "No reels created yet!"}</p>
+                        <p>{searchTerm ? `No reels found matching "${searchTerm}"` : "No reels created yet!"}</p>
                         <Link to="/" className="create-btn">Create Your First Reel</Link>
                     </div>
                 ) : (
@@ -258,87 +340,149 @@ function ReelsGrid() {
                             <div key={groupLabel} className="reel-group">
                                 <h3 className="group-header">{groupLabel}</h3>
                                 <div className="group-items">
-                                    {groupedReels[groupLabel].map((reel) => {
+                                    {groupedReels[groupLabel].map((reel, index) => {
                                         const videoUrl = getVideoUrl(reel);
+                                        const thumbnailUrl = getThumbnailUrl(reel);
+                                        const isMenuOpen = openMenuId === reel._id;
+                                        const isPlaying = playingReelId === reel._id;
+                                        const totalInGroup = groupedReels[groupLabel].length;
+                                        const isNearBottom = index >= totalInGroup - 2;
+
                                         return (
-                                            <div key={reel._id} className="reel-list-item">
-                                                <div className="reel-list-thumbnail">
-                                                    {videoUrl ? (
+                                            <div 
+                                                key={reel._id} 
+                                                className={`reel-list-item ${isMenuOpen ? 'active-menu-item' : ''} ${isPlaying ? 'item-playing' : ''}`}
+                                                style={{ zIndex: (isMenuOpen || isPlaying) ? 9999 : 1, position: 'relative' }}
+                                                onClick={() => {
+                                                    if (!isMenuOpen) {
+                                                        setPlayingReelId(isPlaying ? null : reel._id);
+                                                    }
+                                                }}
+                                            >
+                                                <div 
+                                                    className={`reel-list-thumbnail ${isPlaying ? 'is-playing' : ''}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setPlayingReelId(isPlaying ? null : reel._id);
+                                                    }}
+                                                    title={isPlaying ? "Click to stop" : "Click to play reel inline"}
+                                                >
+                                                    {isPlaying && videoUrl ? (
                                                         <video 
-                                                            muted 
+                                                            src={videoUrl}
+                                                            autoPlay
+                                                            controls
                                                             playsInline
-                                                            poster={videoUrl}
-                                                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
-                                                        >
-                                                            <source src={videoUrl} type="video/mp4" />
-                                                        </video>
+                                                            className="inline-reel-video"
+                                                            onEnded={() => setPlayingReelId(null)}
+                                                        />
                                                     ) : (
-                                                        <div className="thumbnail-placeholder">
-                                                            <FontAwesomeIcon icon={faFilm} />
-                                                        </div>
+                                                        <>
+                                                            {thumbnailUrl ? (
+                                                                <img 
+                                                                    src={thumbnailUrl} 
+                                                                    alt={reel.title || "Reel"}
+                                                                    className="thumbnail-img"
+                                                                />
+                                                            ) : (
+                                                                <div className="thumbnail-placeholder">
+                                                                    <FontAwesomeIcon icon={faFilm} />
+                                                                </div>
+                                                            )}
+                                                            
+                                                            <div className="play-overlay">
+                                                                <FontAwesomeIcon icon={faPlay} className="play-icon-overlay" />
+                                                            </div>
+
+                                                            <span className="duration-badge">{reel.duration ? Math.round(reel.duration) : "0"}s</span>
+                                                        </>
                                                     )}
-                                                    <span className="duration-badge">{reel.duration ? Math.round(reel.duration) : "0"}s</span>
                                                 </div>
 
                                                 <div className="reel-list-details">
                                                     <div className="reel-detail-top">
-                                                        <h4 className="reel-list-title">{reel.title || "Untitled Reel"}</h4>
+                                                        <h4 
+                                                            className="reel-list-title clickable"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setPlayingReelId(isPlaying ? null : reel._id);
+                                                            }}
+                                                        >
+                                                            {reel.title || "Untitled Reel"} {isPlaying && <span className="playing-badge">▶ Playing</span>}
+                                                        </h4>
                                                         
                                                         <div className="date-and-menu">
                                                             <span className="reel-list-date">
-                                                                {new Date(reel.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                                                                📅 {formatDate(reel.createdAt)}
                                                             </span>
                                                             
                                                             <div className="reel-menu-container">
                                                                 <button 
-                                                                    className="reel-menu-trigger" 
-                                                                    onClick={() => setOpenMenuId(openMenuId === reel._id ? null : reel._id)}
+                                                                    className={`reel-menu-trigger ${isMenuOpen ? 'active' : ''}`}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setOpenMenuId(isMenuOpen ? null : reel._id);
+                                                                    }}
+                                                                    title="Options"
                                                                 >
                                                                     <FontAwesomeIcon icon={faEllipsisVertical} />
                                                                 </button>
                                                                 
-                                                                {openMenuId === reel._id && (
-                                                                    <div className="reel-dropdown-menu">
+                                                                {isMenuOpen && (
+                                                                    <div 
+                                                                        className={`reel-dropdown-menu ${isNearBottom ? 'open-upward' : ''}`}
+                                                                        style={isNearBottom ? { top: 'auto', bottom: '34px' } : {}}
+                                                                    >
                                                                         <div 
                                                                             className="dropdown-item"
-                                                                            onClick={() => {
-                                                                                const newTitle = prompt("Enter new name for this reel:", reel.title || "Untitled Reel");
-                                                                                if (newTitle !== null && newTitle.trim() !== '') {
-                                                                                    handleRename(reel._id, newTitle);
-                                                                                } else if (newTitle !== null) {
-                                                                                    toast.warning('Title cannot be empty!');
-                                                                                }
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setRenameModalReel(reel);
+                                                                                setRenameTitleInput(reel.title || '');
+                                                                                setOpenMenuId(null);
                                                                             }}
                                                                         >
                                                                             <FontAwesomeIcon icon={faPenToSquare} /> Rename
                                                                         </div>
-                                                                        
-                                                                        {videoUrl && (
-                                                                            <div 
-                                                                                className="dropdown-item"
-                                                                                onClick={() => handleDownload(videoUrl, `reel_${reel._id}.mp4`)}
-                                                                            >
-                                                                                <FontAwesomeIcon icon={faDownload} /> Download
-                                                                            </div>
-                                                                        )}
 
                                                                         <div 
                                                                             className="dropdown-item"
-                                                                            onClick={() => handleDuplicate(reel)}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                window.location.href = `/edit-music/${reel._id}`;
+                                                                            }}
                                                                         >
-                                                                            <FontAwesomeIcon icon={faCopy} /> Duplicate
+                                                                            <FontAwesomeIcon icon={faMusic} /> Edit Music
+                                                                        </div>
+                                                                        
+                                                                        <div 
+                                                                            className="dropdown-item"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleDownload(reel);
+                                                                                setOpenMenuId(null);
+                                                                            }}
+                                                                        >
+                                                                            <FontAwesomeIcon icon={faDownload} /> Download
                                                                         </div>
 
                                                                         <div 
                                                                             className="dropdown-item"
-                                                                            onClick={() => handleShare(reel)}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleShare(reel);
+                                                                            }}
                                                                         >
                                                                             <FontAwesomeIcon icon={faShareNodes} /> Share
                                                                         </div>
 
                                                                         <div 
                                                                             className="dropdown-item delete-item"
-                                                                            onClick={() => handleDelete(reel._id)}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setDeleteModalReel(reel);
+                                                                                setOpenMenuId(null);
+                                                                            }}
                                                                         >
                                                                             <FontAwesomeIcon icon={faTrashCan} /> Delete
                                                                         </div>
@@ -366,6 +510,86 @@ function ReelsGrid() {
                     </div>
                 )}
 
+                {/* Video Playback Modal */}
+                {activePlayReel && (
+                    <div className="reel-modal-overlay" onClick={() => setActivePlayReel(null)}>
+                        <div className="reel-modal-content" onClick={(e) => e.stopPropagation()}>
+                            <div className="reel-modal-header">
+                                <h3>🎬 {activePlayReel.title || "Untitled Reel"}</h3>
+                                <button className="reel-modal-close" onClick={() => setActivePlayReel(null)}>✕</button>
+                            </div>
+                            
+                            <div className="reel-video-wrapper">
+                                <video 
+                                    src={getVideoUrl(activePlayReel)} 
+                                    controls 
+                                    autoPlay 
+                                    className="reel-modal-video"
+                                />
+                            </div>
+
+                            <div className="reel-modal-info">
+                                <span><FontAwesomeIcon icon={faMusic} /> {activePlayReel.usedMusic || 'Default Music'}</span>
+                                <span><FontAwesomeIcon icon={faLayerGroup} /> {activePlayReel.usedTemplate || 'Default Template'}</span>
+                                <span>📅 {formatDate(activePlayReel.createdAt)}</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Custom Beautiful Delete Confirmation Modal */}
+                {deleteModalReel && (
+                    <div className="reel-modal-overlay" onClick={() => setDeleteModalReel(null)}>
+                        <div className="reel-custom-modal" onClick={(e) => e.stopPropagation()}>
+                            <div className="delete-modal-icon">
+                                <FontAwesomeIcon icon={faTrashCan} />
+                            </div>
+                            <h3>Delete Reel?</h3>
+                            <p>
+                                Are you sure you want to delete <strong>"{deleteModalReel.title || 'Untitled Reel'}"</strong>? This action cannot be undone.
+                            </p>
+                            <div className="custom-modal-actions">
+                                <button className="modal-btn cancel-btn" onClick={() => setDeleteModalReel(null)}>
+                                    Cancel
+                                </button>
+                                <button className="modal-btn confirm-delete-btn" onClick={confirmDelete}>
+                                    <FontAwesomeIcon icon={faTrashCan} /> Delete Reel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Custom Beautiful Rename Modal */}
+                {renameModalReel && (
+                    <div className="reel-modal-overlay" onClick={() => setRenameModalReel(null)}>
+                        <div className="reel-custom-modal" onClick={(e) => e.stopPropagation()}>
+                            <div className="rename-modal-icon">
+                                <FontAwesomeIcon icon={faPenToSquare} />
+                            </div>
+                            <h3>Rename Reel</h3>
+                            <p>Enter a new title for this reel:</p>
+                            <input 
+                                type="text"
+                                className="rename-modal-input"
+                                value={renameTitleInput}
+                                onChange={(e) => setRenameTitleInput(e.target.value)}
+                                placeholder="Reel Title..."
+                                autoFocus
+                            />
+                            <div className="custom-modal-actions">
+                                <button className="modal-btn cancel-btn" onClick={() => setRenameModalReel(null)}>
+                                    Cancel
+                                </button>
+                                <button className="modal-btn save-btn" onClick={confirmRename}>
+                                    Save Title
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Share Modal */}
                 {shareModal && (
                     <div className="share-modal-overlay" onClick={closeShareModal}>
                         <div className="share-modal" onClick={(e) => e.stopPropagation()}>

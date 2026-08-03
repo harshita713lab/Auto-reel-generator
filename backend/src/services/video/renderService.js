@@ -136,6 +136,7 @@ console.log(
           if (audioFile) {
             const withAudioPath = await ffmpegService.addAudio(processedPath, audioFile, {
               volume: 1,
+              startTime: reel.musicStartTime || 0,
               outputPath: path.join(this.tempDir, `with_audio_${Date.now()}.${format}`),
             });
             if (withAudioPath) {

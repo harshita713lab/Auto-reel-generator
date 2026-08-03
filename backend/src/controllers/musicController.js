@@ -60,38 +60,69 @@ exports.uploadMusic = async (req, res) => {
  */
 exports.getAllMusic = async (req, res) => {
   try {
-    const { page = 1, limit = 20, search, genre } = req.query;
-    
-    const query = {};
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { artist: { $regex: search, $options: 'i' } },
-      ];
-    }
-    if (genre) {
-      query.genre = genre;
+    const fs = require('fs').promises;
+    const fsSync = require('fs');
+    const path = require('path');
+    const musicDir = path.join(__dirname, '../../assets/music');
+    const songsDir = path.join(__dirname, '../../assets/songs');
+
+    if (!fsSync.existsSync(songsDir)) {
+      fsSync.mkdirSync(songsDir, { recursive: true });
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    
-    const [music, total] = await Promise.all([
-      Music.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(parseInt(limit)),
-      Music.countDocuments(query),
-    ]);
+    let assetFiles = [];
+    try {
+      const musicFiles = await fs.readdir(musicDir).catch(() => []);
+      const songFiles = await fs.readdir(songsDir).catch(() => []);
+
+      const allFilesMap = new Map();
+      musicFiles.filter(f => f.toLowerCase().endsWith('.mp3')).forEach(f => {
+        allFilesMap.set(f, { url: `/assets/music/${f}`, isSong: false });
+      });
+      songFiles.filter(f => f.toLowerCase().endsWith('.mp3')).forEach(f => {
+        allFilesMap.set(f, { url: `/assets/songs/${f}`, isSong: true });
+      });
+
+      const sortedFilenames = Array.from(allFilesMap.keys()).sort((a, b) => a.localeCompare(b));
+
+      assetFiles = sortedFilenames.map(filename => {
+        const fileInfo = allFilesMap.get(filename);
+        let cleanTitle = filename
+          .replace('.mp3', '')
+          .replace(/-\(PaagalWorld\.Com\)/gi, '')
+          .replace(/-\(.*?\.com\)/gi, '')
+          .replace(/[-_]/g, ' ')
+          .trim();
+
+        return {
+          _id: filename,
+          id: filename,
+          filename: filename,
+          title: fileInfo.isSong ? `🎶 ${cleanTitle}` : `🎵 ${cleanTitle}`,
+          artist: fileInfo.isSong ? 'Bollywood Collection' : 'Auto Reel Collection',
+          url: fileInfo.url,
+          path: fileInfo.url,
+          downloadUrl: `/api/music/download/${filename}`,
+          isSystemAsset: true,
+        };
+      });
+    } catch (err) {
+      logger.warn('Could not read assets directory:', err.message);
+    }
+
+    let dbMusic = [];
+    try {
+      dbMusic = await Music.find({}).lean();
+    } catch (dbErr) {
+      // MongoDB DB query fallback
+    }
+
+    const combinedMusic = [...assetFiles, ...dbMusic];
 
     res.json({
       success: true,
-      data: music,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / parseInt(limit)),
-      },
+      data: combinedMusic,
+      total: combinedMusic.length,
     });
   } catch (error) {
     logger.error('Failed to get music:', error);

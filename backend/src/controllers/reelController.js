@@ -1,10 +1,13 @@
 const path = require("path");
 const fs = require("fs").promises;
+const fsSync = require("fs");
+const ffmpegService = require("../services/video/ffmpegService");
 const Reel = require("../models/Reel");
 const Template = require("../models/Template");
 const renderService = require("../services/video/renderService");
 const logger = require("../utils/logger");
 const { RENDER_CONFIG } = require("../config/constants");
+const { getMusicForTemplate } = require("../config/templateMusicMap");
 
 /**
  * Get Latest Reel
@@ -113,18 +116,55 @@ exports.createReel = async (req, res) => {
       };
     });
 
-    const musicFileName = typeof musicId === 'string' && musicId.endsWith('.mp3') 
-      ? musicId 
-      : 'ReelAudio-1.mp3';
+    let musicFileName;
 
-    const selectedAudioPath = path.join(__dirname, '../../assets/music', musicFileName);
+    // Check if user selected a custom song or explicitly chose default
+    if (typeof musicId === 'string' && musicId.endsWith('.mp3')) {
+      musicFileName = musicId;
+    } else if (typeof musicId === 'string' && musicId !== 'template_default' && musicId !== 'default' && musicId.trim() !== '') {
+      musicFileName = `${musicId}.mp3`;
+    } else {
+      // Use template's fixed default song (matched by templateId or photo count)
+      musicFileName = getMusicForTemplate(templateId, formattedImages.length);
+    }
+
+    let selectedAudioPath = path.join(__dirname, '../../assets/songs', musicFileName);
+    if (!fsSync.existsSync(selectedAudioPath)) {
+      selectedAudioPath = path.join(__dirname, '../../assets/music', musicFileName);
+    }
+    if (!fsSync.existsSync(selectedAudioPath)) {
+      const defaultMusicName = getMusicForTemplate(templateId, formattedImages.length);
+      selectedAudioPath = path.join(__dirname, '../../assets/music', defaultMusicName);
+    }
+
+    const generateUniqueDefaultTitle = (tId, count) => {
+      const randomCode = Math.floor(1000 + Math.random() * 9000);
+      const namesMap = {
+        wedding_seq: 'Wedding Memory',
+        cinematic_wedding: 'Cinematic Highlights',
+        wedding_split: 'Love Story Reel',
+        white_carousel: 'Modern Carousel',
+        white_masonry: 'Creative Masonry',
+        white_polaroid: 'Vintage Polaroid',
+        premium_grid: 'Premium Grid',
+        memory_blend: 'Memory Blend',
+        simple_1: 'Classic Slideshow',
+      };
+      const themeName = namesMap[tId] || (count === 20 ? 'Wedding Memory' : count === 9 ? 'Cinematic Highlights' : 'Fotographiya Reel');
+      return `${themeName} #${randomCode}`;
+    };
+
+    const finalTitle = (title && title.trim() !== '' && title !== "Untitled Reel") 
+      ? title.trim() 
+      : generateUniqueDefaultTitle(templateId, formattedImages.length);
 
     const reelData = {
-      title: title || "Untitled Reel",
+      title: finalTitle,
       images: formattedImages,
       music: musicId && musicId.match(/^[0-9a-fA-F]{24}$/) ? musicId : null,
       audioPath: selectedAudioPath,
-      usedMusic: musicFileName,
+      musicStartTime: parseFloat(req.body.musicStartTime) || 0,
+      usedMusic: musicFileName.replace('.mp3', '').replace(/-\(PaagalWorld\.Com\)/gi, '').replace(/[-_]/g, ' '),
       usedTemplate: template ? template.name : (templateId || "Default"),
       duration: totalDuration,
       config: {
@@ -303,7 +343,7 @@ exports.updateReel = async (req, res) => {
 };
 
 /**
- * ✅ FIXED: Delete reel
+ * ✅ FIXED: Delete reel (Soft Delete to Trash)
  */
 exports.deleteReel = async (req, res) => {
   try {
@@ -312,25 +352,15 @@ exports.deleteReel = async (req, res) => {
       return res.status(404).json({ error: "Reel not found" });
     }
 
-    if (reel.outputPath) {
-      try {
-        let filePath = reel.outputPath;
-        if (!path.isAbsolute(filePath)) {
-          filePath = path.join(__dirname, '../../', filePath);
-        }
-        await fs.unlink(filePath);
-        logger.info(`🗑️ Deleted video file: ${filePath}`);
-      } catch (err) {
-        logger.warn(`⚠️ Video file not found for deletion: ${reel.outputPath}`);
-      }
-    }
+    reel.isDeleted = true;
+    reel.deletedAt = new Date();
+    await reel.save();
 
-    await reel.deleteOne();
-    logger.info(`Reel deleted: ${reel.title}`);
+    logger.info(`Reel moved to Trash: ${reel.title} (${reel._id})`);
 
     res.json({
       success: true,
-      message: "Reel deleted successfully",
+      message: "Reel moved to Trash successfully",
     });
   } catch (error) {
     logger.error("Failed to delete reel:", error);
@@ -521,5 +551,203 @@ exports.getReelStatus = async (req, res) => {
       error: "Failed to get reel status",
       message: error.message,
     });
+  }
+};
+
+/**
+ * Duplicate a reel
+ */
+exports.duplicateReel = async (req, res) => {
+  try {
+    const originalReel = await Reel.findById(req.params.id);
+    if (!originalReel) {
+      return res.status(404).json({ error: "Reel not found" });
+    }
+
+    const reelData = originalReel.toObject();
+    delete reelData._id;
+    delete reelData.createdAt;
+    delete reelData.updatedAt;
+
+    reelData.title = `${originalReel.title || "Untitled Reel"} (Copy)`;
+    reelData.status = originalReel.status || "rendered";
+
+    const duplicatedReel = new Reel(reelData);
+    await duplicatedReel.save();
+
+    logger.info(`Reel duplicated: ${duplicatedReel.title} (${duplicatedReel._id})`);
+
+    return res.status(201).json({
+      success: true,
+      reel: duplicatedReel,
+      message: "Reel duplicated successfully",
+    });
+  } catch (error) {
+    logger.error("Failed to duplicate reel:", error);
+    return res.status(500).json({
+      error: "Failed to duplicate reel",
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * Get reels in Trash
+ */
+exports.getTrash = async (req, res) => {
+  try {
+    const reels = await Reel.find({ isDeleted: true }).sort({ deletedAt: -1 });
+    const formattedReels = reels.map(reel => {
+      const reelObj = reel.toObject();
+      if (reelObj.outputPath) {
+        const filename = path.basename(reelObj.outputPath);
+        reelObj.outputUrl = `http://localhost:5000/output/renders/${filename}`;
+      }
+      return reelObj;
+    });
+    res.json({ success: true, reels: formattedReels || [] });
+  } catch (error) {
+    logger.error("Failed to get trash reels:", error);
+    res.status(500).json({ error: "Failed to load trash" });
+  }
+};
+
+/**
+ * Restore reel from Trash
+ */
+exports.restoreReel = async (req, res) => {
+  try {
+    const reel = await Reel.findById(req.params.id);
+    if (!reel) return res.status(404).json({ error: "Reel not found" });
+
+    reel.isDeleted = false;
+    reel.deletedAt = null;
+    await reel.save();
+
+    logger.info(`Reel restored from Trash: ${reel.title} (${reel._id})`);
+    res.json({ success: true, message: "Reel restored successfully" });
+  } catch (error) {
+    logger.error("Failed to restore reel:", error);
+    res.status(500).json({ error: "Failed to restore reel" });
+  }
+};
+
+/**
+ * Permanent Delete reel
+ */
+exports.permanentDeleteReel = async (req, res) => {
+  try {
+    const reel = await Reel.findById(req.params.id);
+    if (!reel) return res.status(404).json({ error: "Reel not found" });
+
+    if (reel.outputPath) {
+      try {
+        let filePath = reel.outputPath;
+        if (!path.isAbsolute(filePath)) {
+          filePath = path.join(__dirname, '../../', filePath);
+        }
+        await fs.unlink(filePath);
+      } catch (err) {}
+    }
+
+    await reel.deleteOne();
+    logger.info(`Reel permanently deleted: ${reel.title}`);
+    res.json({ success: true, message: "Reel permanently deleted" });
+  } catch (error) {
+    logger.error("Failed to delete reel permanently:", error);
+    res.status(500).json({ error: "Failed to delete reel permanently" });
+  }
+};
+
+/**
+ * Get Download History
+ */
+exports.getDownloadHistory = async (req, res) => {
+  try {
+    const reels = await Reel.find({ isDeleted: { $ne: true } }).sort({ createdAt: -1 });
+    const formattedReels = reels.map(reel => {
+      const reelObj = reel.toObject();
+      if (reelObj.outputPath) {
+        const filename = path.basename(reelObj.outputPath);
+        reelObj.outputUrl = `http://localhost:5000/output/renders/${filename}`;
+      }
+      return reelObj;
+    });
+    res.json({ success: true, reels: formattedReels || [] });
+  } catch (error) {
+    logger.error("Failed to get download history:", error);
+    res.status(500).json({ error: "Failed to load download history" });
+  }
+};
+
+/**
+ * Change / Edit Music for existing rendered reel
+ */
+exports.changeMusic = async (req, res) => {
+  try {
+    const { musicId, musicStartTime = 0 } = req.body;
+    const reel = await Reel.findById(req.params.id);
+    if (!reel) {
+      return res.status(404).json({ error: "Reel not found" });
+    }
+
+    let musicFileName;
+    if (typeof musicId === 'string' && musicId.endsWith('.mp3')) {
+      musicFileName = musicId;
+    } else if (typeof musicId === 'string' && musicId !== 'template_default' && musicId.trim() !== '') {
+      musicFileName = `${musicId}.mp3`;
+    } else {
+      musicFileName = getMusicForTemplate(reel.templateId, reel.images ? reel.images.length : 4);
+    }
+
+    let audioPath = path.join(__dirname, '../../assets/songs', musicFileName);
+    if (!fsSync.existsSync(audioPath)) {
+      audioPath = path.join(__dirname, '../../assets/music', musicFileName);
+    }
+    if (!fsSync.existsSync(audioPath)) {
+      audioPath = path.join(__dirname, '../../assets/music', 'ReelAudio-1.mp3');
+    }
+
+    const videoPath = reel.outputPath;
+    if (!videoPath || !fsSync.existsSync(videoPath)) {
+      return res.status(400).json({ error: "Original video file not found for music update" });
+    }
+
+    const tempDir = path.join(__dirname, '../../uploads/temp');
+    if (!fsSync.existsSync(tempDir)) {
+      fsSync.mkdirSync(tempDir, { recursive: true });
+    }
+
+    const tempAudioSwapped = path.join(tempDir, `music_edited_${Date.now()}.mp4`);
+    
+    // Replace audio stream using FFmpeg
+    await ffmpegService.addAudio(videoPath, audioPath, {
+      volume: 1,
+      startTime: parseFloat(musicStartTime) || 0,
+      outputPath: tempAudioSwapped,
+    });
+
+    if (fsSync.existsSync(tempAudioSwapped)) {
+      await fs.copyFile(tempAudioSwapped, videoPath);
+      await fs.unlink(tempAudioSwapped).catch(() => {});
+    }
+
+    const cleanMusicName = musicFileName.replace('.mp3', '').replace(/-\(PaagalWorld\.Com\)/gi, '').replace(/[-_]/g, ' ');
+    reel.usedMusic = cleanMusicName;
+    reel.musicStartTime = parseFloat(musicStartTime) || 0;
+    await reel.save();
+
+    logger.info(`Reel music updated for reel ${reel._id}: ${cleanMusicName}`);
+
+    return res.json({
+      success: true,
+      data: reel,
+      usedMusic: cleanMusicName,
+      outputUrl: `/output/renders/${path.basename(reel.outputPath)}?t=${Date.now()}`,
+      message: "Music updated successfully!",
+    });
+  } catch (error) {
+    logger.error("Failed to change reel music:", error);
+    res.status(500).json({ error: "Failed to update music", message: error.message });
   }
 };
