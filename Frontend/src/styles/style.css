@@ -1932,8 +1932,19 @@ body {
     animation: fadeIn 0.2s ease-in-out;
 }
 
+.reel-dropdown-menu.open-upward {
+    top: auto !important;
+    bottom: 34px !important;
+    animation: fadeInUp 0.2s ease-in-out !important;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
@@ -1958,18 +1969,38 @@ body {
     color: #ff4757;
 }
 
+/* Modal Overlay & Centered Custom Dialogs */
+.reel-modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 10000000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+}
+
 /* Beautiful Custom Delete & Rename Modals */
 .reel-custom-modal {
+    position: relative !important;
+    margin: auto !important;
     background: rgba(22, 22, 30, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 18px;
-    width: 100%;
+    width: 90%;
     max-width: 420px;
     padding: 24px;
     text-align: center;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
     animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

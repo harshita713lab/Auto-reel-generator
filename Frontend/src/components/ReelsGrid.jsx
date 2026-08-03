@@ -98,7 +98,14 @@ function ReelsGrid() {
         return `${formattedDate} • ${formattedTime}`;
     };
 
-    const handleDownload = async (videoUrl, filename) => {
+    const handleDownload = async (target, customFilename) => {
+        let videoUrl = typeof target === 'string' ? target : getVideoUrl(target);
+        let filename = customFilename || (typeof target === 'object' && target?.title ? `${target.title}.mp4` : `reel_${Date.now()}.mp4`);
+
+        if (!videoUrl && typeof target === 'object' && target?._id) {
+            videoUrl = `${API_URL}/reel/${target._id}/download`;
+        }
+
         try {
             toast.info(<><FontAwesomeIcon icon={faDownload} /> Downloading reel...</>);
             const response = await fetch(videoUrl);
@@ -107,7 +114,7 @@ function ReelsGrid() {
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = filename || `reel_${Date.now()}.mp4`;
+            link.download = filename;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -115,7 +122,13 @@ function ReelsGrid() {
             toast.success(<><FontAwesomeIcon icon={faDownload} /> Download started!</>);
         } catch (error) {
             console.error('Download failed:', error);
-            toast.error(<><FontAwesomeIcon icon={faDownload} /> Download failed! Please try again.</>);
+            if (typeof target === 'object' && target?._id) {
+                window.open(`${API_URL}/reel/${target._id}/download`, '_blank');
+            } else if (videoUrl) {
+                window.open(videoUrl, '_blank');
+            } else {
+                toast.error(<><FontAwesomeIcon icon={faDownload} /> Download failed! Please try again.</>);
+            }
         }
     };
 
@@ -323,10 +336,12 @@ function ReelsGrid() {
                             <div key={groupLabel} className="reel-group">
                                 <h3 className="group-header">{groupLabel}</h3>
                                 <div className="group-items">
-                                    {groupedReels[groupLabel].map((reel) => {
+                                    {groupedReels[groupLabel].map((reel, index) => {
                                         const videoUrl = getVideoUrl(reel);
                                         const thumbnailUrl = getThumbnailUrl(reel);
                                         const isMenuOpen = openMenuId === reel._id;
+                                        const totalInGroup = groupedReels[groupLabel].length;
+                                        const isNearBottom = index >= totalInGroup - 2;
 
                                         return (
                                             <div 
@@ -387,7 +402,10 @@ function ReelsGrid() {
                                                                 </button>
                                                                 
                                                                 {isMenuOpen && (
-                                                                    <div className="reel-dropdown-menu">
+                                                                    <div 
+                                                                        className={`reel-dropdown-menu ${isNearBottom ? 'open-upward' : ''}`}
+                                                                        style={isNearBottom ? { top: 'auto', bottom: '34px' } : {}}
+                                                                    >
                                                                         <div 
                                                                             className="dropdown-item"
                                                                             onClick={(e) => {
@@ -400,27 +418,15 @@ function ReelsGrid() {
                                                                             <FontAwesomeIcon icon={faPenToSquare} /> Rename
                                                                         </div>
                                                                         
-                                                                        {videoUrl && (
-                                                                            <div 
-                                                                                className="dropdown-item"
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    handleDownload(videoUrl, `reel_${reel._id}.mp4`);
-                                                                                    setOpenMenuId(null);
-                                                                                }}
-                                                                            >
-                                                                                <FontAwesomeIcon icon={faDownload} /> Download
-                                                                            </div>
-                                                                        )}
-
                                                                         <div 
                                                                             className="dropdown-item"
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
-                                                                                handleDuplicate(reel);
+                                                                                handleDownload(reel);
+                                                                                setOpenMenuId(null);
                                                                             }}
                                                                         >
-                                                                            <FontAwesomeIcon icon={faCopy} /> Duplicate
+                                                                            <FontAwesomeIcon icon={faDownload} /> Download
                                                                         </div>
 
                                                                         <div 
