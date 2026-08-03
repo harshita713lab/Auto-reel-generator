@@ -247,10 +247,18 @@ function MusicSelector({ onSelect, onApplyDirectly, selectedId, selectedTemplate
         </div>
       )}
 
-      {/* Snapchat-Style Audio Trimmer Modal */}
+      {/* Snapchat-Style Audio Trimmer Modal Overlay over Music Area */}
       {editingTrack && (
-        <div className="reel-modal-overlay" onClick={() => setEditingTrack(null)}>
+        <div className="music-card-modal-overlay" onClick={() => setEditingTrack(null)}>
           <div className="snapchat-trimmer-modal" onClick={(e) => e.stopPropagation()}>
+            <button 
+              className="trimmer-close-icon" 
+              onClick={() => setEditingTrack(null)}
+              title="Cancel & Close"
+            >
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+
             <div className="trimmer-header">
               <div className="trimmer-icon">
                 <FontAwesomeIcon icon={faScissors} />
@@ -291,7 +299,13 @@ function MusicSelector({ onSelect, onApplyDirectly, selectedId, selectedTemplate
               </div>
             </div>
 
-            <div className="trimmer-footer">
+            <div className="trimmer-footer-actions">
+              <button
+                className="trimmer-cancel-btn"
+                onClick={() => setEditingTrack(null)}
+              >
+                Cancel
+              </button>
               <button
                 className="snapchat-done-btn"
                 onClick={saveSnapchatCut}
