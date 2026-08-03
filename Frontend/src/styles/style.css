@@ -2611,6 +2611,9 @@ body {
     border-radius: 12px !important;
     cursor: pointer !important;
     transition: all 0.25s ease !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    width: 100% !important;
 }
 
 .clean-song-row:hover {
@@ -2628,6 +2631,8 @@ body {
     align-items: center;
     gap: 12px;
     min-width: 0;
+    flex: 1;
+    overflow: hidden;
 }
 
 .song-disc-icon {
@@ -2930,8 +2935,10 @@ body {
     padding-bottom: 40px !important;
     padding-left: 20px !important;
     padding-right: 20px !important;
-    max-width: 1200px;
+    max-width: 1400px !important;
+    width: 95% !important;
     margin: 0 auto;
+    overflow-x: hidden !important;
 }
 
 .edit-music-page-header {
@@ -2974,9 +2981,10 @@ body {
 
 .edit-music-grid {
     display: grid;
-    grid-template-columns: 420px 1fr;
-    gap: 30px;
+    grid-template-columns: 400px 1fr;
+    gap: 24px;
     align-items: start;
+    overflow-x: hidden !important;
 }
 
 .sticky-video-card {
@@ -2987,6 +2995,7 @@ body {
     backdrop-filter: blur(16px);
     border-radius: 20px;
     padding: 20px;
+    box-sizing: border-box;
 }
 
 .edit-preview-video {
@@ -3018,8 +3027,10 @@ body {
     backdrop-filter: blur(16px);
     border-radius: 20px;
     padding: 20px;
-    max-height: calc(100vh - 120px);
-    overflow-y: auto;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
 }
 
 .theme-toggle-container span.active-theme {
