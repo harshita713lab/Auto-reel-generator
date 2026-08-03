@@ -444,6 +444,16 @@ function ReelsGrid() {
                                                                         >
                                                                             <FontAwesomeIcon icon={faPenToSquare} /> Rename
                                                                         </div>
+
+                                                                        <div 
+                                                                            className="dropdown-item"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                window.location.href = `/edit-music/${reel._id}`;
+                                                                            }}
+                                                                        >
+                                                                            <FontAwesomeIcon icon={faMusic} /> Edit Music
+                                                                        </div>
                                                                         
                                                                         <div 
                                                                             className="dropdown-item"

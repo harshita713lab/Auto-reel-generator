@@ -20,6 +20,7 @@ function UploadSection() {
   const [useShotstack, setUseShotstack] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState("simple_1");
   const [selectedMusicId, setSelectedMusicId] = useState("template_default");
+  const [musicStartTime, setMusicStartTime] = useState(0);
 
   const handleAddImages = (files) => {
     const newImages = [...images, ...files];
@@ -135,6 +136,7 @@ function UploadSection() {
           images: uploadedImagesList,
           templateId: selectedTemplateId,
           musicId: selectedMusicId,
+          musicStartTime: musicStartTime,
         }),
       });
 
@@ -216,12 +218,6 @@ function UploadSection() {
                   onSelect={setSelectedTemplateId}
                   selectedId={selectedTemplateId}
                   imageCount={images.length}
-                />
-
-                <MusicSelector
-                  onSelect={setSelectedMusicId}
-                  selectedId={selectedMusicId}
-                  selectedTemplateId={selectedTemplateId}
                 />
               </>
             )}

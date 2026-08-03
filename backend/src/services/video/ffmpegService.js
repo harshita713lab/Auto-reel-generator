@@ -25,6 +25,7 @@ class FFmpegService {
         volume = 1,
         fadeIn = 0,
         fadeOut = 0,
+        startTime = 0,
         outputPath = null,
       } = options;
 
@@ -46,13 +47,20 @@ class FFmpegService {
 
       const args = [
         '-i', videoPath,
+      ];
+
+      if (startTime > 0) {
+        args.push('-ss', String(startTime));
+      }
+
+      args.push(
         '-i', audioPath,
         '-c:v', 'copy',
         '-c:a', 'aac',
         '-map', '0:v:0',
         '-map', '1:a:0',
-        '-shortest',
-      ];
+        '-shortest'
+      );
 
       if (filters.length > 0) {
         args.push('-af', filters.join(','));

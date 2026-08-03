@@ -1,5 +1,7 @@
 const path = require("path");
 const fs = require("fs").promises;
+const fsSync = require("fs");
+const ffmpegService = require("../services/video/ffmpegService");
 const Reel = require("../models/Reel");
 const Template = require("../models/Template");
 const renderService = require("../services/video/renderService");
@@ -126,7 +128,14 @@ exports.createReel = async (req, res) => {
       musicFileName = getMusicForTemplate(templateId, formattedImages.length);
     }
 
-    const selectedAudioPath = path.join(__dirname, '../../assets/music', musicFileName);
+    let selectedAudioPath = path.join(__dirname, '../../assets/songs', musicFileName);
+    if (!fsSync.existsSync(selectedAudioPath)) {
+      selectedAudioPath = path.join(__dirname, '../../assets/music', musicFileName);
+    }
+    if (!fsSync.existsSync(selectedAudioPath)) {
+      const defaultMusicName = getMusicForTemplate(templateId, formattedImages.length);
+      selectedAudioPath = path.join(__dirname, '../../assets/music', defaultMusicName);
+    }
 
     const generateUniqueDefaultTitle = (tId, count) => {
       const randomCode = Math.floor(1000 + Math.random() * 9000);
@@ -154,7 +163,8 @@ exports.createReel = async (req, res) => {
       images: formattedImages,
       music: musicId && musicId.match(/^[0-9a-fA-F]{24}$/) ? musicId : null,
       audioPath: selectedAudioPath,
-      usedMusic: musicFileName,
+      musicStartTime: parseFloat(req.body.musicStartTime) || 0,
+      usedMusic: musicFileName.replace('.mp3', '').replace(/-\(PaagalWorld\.Com\)/gi, '').replace(/[-_]/g, ' '),
       usedTemplate: template ? template.name : (templateId || "Default"),
       duration: totalDuration,
       config: {
@@ -667,5 +677,77 @@ exports.getDownloadHistory = async (req, res) => {
   } catch (error) {
     logger.error("Failed to get download history:", error);
     res.status(500).json({ error: "Failed to load download history" });
+  }
+};
+
+/**
+ * Change / Edit Music for existing rendered reel
+ */
+exports.changeMusic = async (req, res) => {
+  try {
+    const { musicId, musicStartTime = 0 } = req.body;
+    const reel = await Reel.findById(req.params.id);
+    if (!reel) {
+      return res.status(404).json({ error: "Reel not found" });
+    }
+
+    let musicFileName;
+    if (typeof musicId === 'string' && musicId.endsWith('.mp3')) {
+      musicFileName = musicId;
+    } else if (typeof musicId === 'string' && musicId !== 'template_default' && musicId.trim() !== '') {
+      musicFileName = `${musicId}.mp3`;
+    } else {
+      musicFileName = getMusicForTemplate(reel.templateId, reel.images ? reel.images.length : 4);
+    }
+
+    let audioPath = path.join(__dirname, '../../assets/songs', musicFileName);
+    if (!fsSync.existsSync(audioPath)) {
+      audioPath = path.join(__dirname, '../../assets/music', musicFileName);
+    }
+    if (!fsSync.existsSync(audioPath)) {
+      audioPath = path.join(__dirname, '../../assets/music', 'ReelAudio-1.mp3');
+    }
+
+    const videoPath = reel.outputPath;
+    if (!videoPath || !fsSync.existsSync(videoPath)) {
+      return res.status(400).json({ error: "Original video file not found for music update" });
+    }
+
+    const tempDir = path.join(__dirname, '../../uploads/temp');
+    if (!fsSync.existsSync(tempDir)) {
+      fsSync.mkdirSync(tempDir, { recursive: true });
+    }
+
+    const tempAudioSwapped = path.join(tempDir, `music_edited_${Date.now()}.mp4`);
+    
+    // Replace audio stream using FFmpeg
+    await ffmpegService.addAudio(videoPath, audioPath, {
+      volume: 1,
+      startTime: parseFloat(musicStartTime) || 0,
+      outputPath: tempAudioSwapped,
+    });
+
+    if (fsSync.existsSync(tempAudioSwapped)) {
+      await fs.copyFile(tempAudioSwapped, videoPath);
+      await fs.unlink(tempAudioSwapped).catch(() => {});
+    }
+
+    const cleanMusicName = musicFileName.replace('.mp3', '').replace(/-\(PaagalWorld\.Com\)/gi, '').replace(/[-_]/g, ' ');
+    reel.usedMusic = cleanMusicName;
+    reel.musicStartTime = parseFloat(musicStartTime) || 0;
+    await reel.save();
+
+    logger.info(`Reel music updated for reel ${reel._id}: ${cleanMusicName}`);
+
+    return res.json({
+      success: true,
+      data: reel,
+      usedMusic: cleanMusicName,
+      outputUrl: `/output/renders/${path.basename(reel.outputPath)}?t=${Date.now()}`,
+      message: "Music updated successfully!",
+    });
+  } catch (error) {
+    logger.error("Failed to change reel music:", error);
+    res.status(500).json({ error: "Failed to update music", message: error.message });
   }
 };

@@ -6,6 +6,7 @@ import AllReels from './pages/AllReels';
 import Settings from './pages/Settings';
 import Trash from './pages/Trash';
 import DownloadHistory from './pages/DownloadHistory';
+import EditMusicPage from './pages/EditMusicPage';
 import './styles/style.css';
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/all-reels" element={<AllReels />} />
+          <Route path="/edit-music/:id" element={<EditMusicPage />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/trash" element={<Trash />} />
           <Route path="/downloads" element={<DownloadHistory />} />

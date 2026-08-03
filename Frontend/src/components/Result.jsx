@@ -1,16 +1,16 @@
 // frontend/src/components/Result.jsx
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMusic, faDownload, faRotateRight } from '@fortawesome/free-solid-svg-icons';
 
 function Result({ reelData, onReset }) {
     const [rating, setRating] = useState(0);
 
-const videoUrl = reelData?.outputUrl
-  ? reelData.outputUrl.startsWith('http')
-      ? reelData.outputUrl
-      : `http://localhost:5000${reelData.outputUrl}`
-  : '';
+    const videoUrl = reelData?.outputUrl
+      ? (reelData.outputUrl.startsWith('http') ? reelData.outputUrl : `http://localhost:5000${reelData.outputUrl}`)
+      : '';
 
-    // ✅ Download function - blob fetch karke download karega
     const handleDownload = async () => {
         if (!videoUrl) return;
         try {
@@ -39,19 +39,19 @@ const videoUrl = reelData?.outputUrl
             
             <div className="video-wrapper">
                 {videoUrl ? (
-<video
-  controls
-  muted
-  playsInline
-  style={{
-    width: '100%',
-    maxHeight: '500px',
-    borderRadius: '12px'
-  }}
->
-  <source src={videoUrl} type="video/mp4" />
-  Your browser does not support the video tag.
-</video>
+                    <video
+                        controls
+                        autoPlay
+                        playsInline
+                        style={{
+                            width: '100%',
+                            maxHeight: '500px',
+                            borderRadius: '12px'
+                        }}
+                    >
+                        <source src={videoUrl} type="video/mp4" />
+                        Your browser does not support the video tag.
+                    </video>
                 ) : (
                     <div className="video-placeholder">
                         <span className="play-icon">▶️</span>
@@ -92,16 +92,26 @@ const videoUrl = reelData?.outputUrl
             </div>
 
             <div className="actions">
+                {reelData?.reelId && (
+                    <Link
+                        to={`/edit-music/${reelData.reelId}`}
+                        className="edit-music-btn"
+                        style={{ textDecoration: 'none' }}
+                    >
+                        <FontAwesomeIcon icon={faMusic} /> 🎵 Edit Music / Change Song
+                    </Link>
+                )}
+
                 {videoUrl && (
                     <button 
                         onClick={handleDownload}
                         className="download-btn"
                     >
-                        📥 Download Reel
+                        <FontAwesomeIcon icon={faDownload} /> 📥 Download Reel
                     </button>
                 )}
                 <button className="reset-btn" onClick={onReset}>
-                    🔄 Create Another
+                    <FontAwesomeIcon icon={faRotateRight} /> 🔄 Create Another
                 </button>
             </div>
         </div>

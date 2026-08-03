@@ -1807,6 +1807,55 @@ body {
     to { opacity: 1; box-shadow: 0 0 15px rgba(162, 155, 254, 0.9); }
 }
 
+/* Audio Trimmer & Song Download Button */
+.download-audio-btn {
+    background: rgba(108, 92, 231, 0.15) !important;
+    color: #a29bfe !important;
+    border: 1px solid rgba(108, 92, 231, 0.4) !important;
+    padding: 4px 10px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    transition: all 0.2s ease !important;
+}
+
+.download-audio-btn:hover {
+    background: rgba(108, 92, 231, 0.3) !important;
+    color: #fff !important;
+    transform: translateY(-1px) !important;
+}
+
+.audio-trimmer-box {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 8px;
+    padding: 8px 12px;
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.trimmer-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    outline: none;
+}
+
+.trimmer-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #6c5ce7;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(108, 92, 231, 0.8);
+}
+
 .thumbnail-img {
     width: 100%;
     height: 100%;
@@ -2520,6 +2569,266 @@ body {
     color: #fff !important;
     transform: translateY(-1px) !important;
     box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3) !important;
+}
+
+/* Edit Music Button in Result Section */
+.edit-music-btn {
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe) !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 12px 24px !important;
+    border-radius: 12px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    transition: all 0.25s ease !important;
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4) !important;
+}
+
+.edit-music-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 22px rgba(108, 92, 231, 0.6) !important;
+}
+
+/* Snapchat Style Audio Trimmer & Song Rows */
+.music-grid-simple {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.clean-song-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 14px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease !important;
+}
+
+.clean-song-row:hover {
+    background: rgba(255, 255, 255, 0.07) !important;
+    border-color: rgba(162, 155, 254, 0.3) !important;
+}
+
+.clean-song-row.selected {
+    background: rgba(108, 92, 231, 0.15) !important;
+    border-color: #6c5ce7 !important;
+}
+
+.song-left-col {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.song-disc-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+}
+
+.song-disc-icon.default-disc {
+    background: linear-gradient(135deg, #fd79a8, #e84393);
+}
+
+.song-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.song-meta .music-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.song-meta .music-artist {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.cut-tag {
+    color: #a29bfe;
+    font-weight: 600;
+}
+
+.song-right-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.play-btn-round {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.play-btn-round:hover {
+    background: #6c5ce7;
+    transform: scale(1.05);
+}
+
+.play-btn-round.playing {
+    background: #ff4757;
+}
+
+.snapchat-edit-btn {
+    background: rgba(255, 165, 2, 0.15);
+    color: #ffa502;
+    border: 1px solid rgba(255, 165, 2, 0.4);
+    padding: 5px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.snapchat-edit-btn:hover {
+    background: rgba(255, 165, 2, 0.3);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* Snapchat Trimmer Modal */
+.snapchat-trimmer-modal {
+    background: rgba(25, 25, 35, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 24px;
+    width: 90%;
+    max-width: 440px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    text-align: center;
+    animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.trimmer-header {
+    margin-bottom: 20px;
+}
+
+.trimmer-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffa502, #ff7f50);
+    color: white;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    box-shadow: 0 6px 16px rgba(255, 165, 2, 0.4);
+}
+
+.trimmer-header h3 {
+    margin: 0 0 4px 0;
+    color: #fff;
+    font-size: 18px;
+}
+
+.trimmer-header p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+}
+
+.time-display-badge {
+    background: rgba(108, 92, 231, 0.2);
+    border: 1px solid rgba(108, 92, 231, 0.5);
+    color: #a29bfe;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+    display: inline-block;
+    margin-bottom: 16px;
+}
+
+.time-display-badge span {
+    color: #fff;
+    font-size: 16px;
+}
+
+.snapchat-range-slider {
+    width: 100%;
+    accent-color: #ffa502;
+    height: 8px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.preview-cut-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.preview-cut-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.snapchat-done-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+    transition: all 0.25s ease;
+    margin-top: 16px;
+}
+
+.snapchat-done-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(16, 185, 129, 0.6);
 }
 
 .theme-toggle-container span.active-theme {

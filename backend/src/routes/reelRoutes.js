@@ -172,6 +172,7 @@ router.delete('/:id', reelController.deleteReel);
 router.post('/:id/process', reelController.processReel);
 router.post('/:id/render', reelController.renderReel);
 router.post('/:id/duplicate', reelController.duplicateReel);
+router.post('/:id/change-music', reelController.changeMusic);
 router.post('/:id/restore', reelController.restoreReel);
 router.delete('/:id/permanent', reelController.permanentDeleteReel);
 router.get('/:id/status', reelController.getReelStatus);

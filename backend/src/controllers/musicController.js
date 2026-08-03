@@ -61,35 +61,53 @@ exports.uploadMusic = async (req, res) => {
 exports.getAllMusic = async (req, res) => {
   try {
     const fs = require('fs').promises;
+    const fsSync = require('fs');
     const path = require('path');
     const musicDir = path.join(__dirname, '../../assets/music');
+    const songsDir = path.join(__dirname, '../../assets/songs');
+
+    if (!fsSync.existsSync(songsDir)) {
+      fsSync.mkdirSync(songsDir, { recursive: true });
+    }
 
     let assetFiles = [];
     try {
-      const files = await fs.readdir(musicDir);
-      assetFiles = files
-        .filter(f => f.toLowerCase().endsWith('.mp3'))
-        .sort((a, b) => {
-          const numA = parseInt((a.match(/\d+/) || [0])[0], 10);
-          const numB = parseInt((b.match(/\d+/) || [0])[0], 10);
-          return numA - numB;
-        })
-        .map(filename => {
-          const numMatch = filename.match(/\d+/);
-          const trackNum = numMatch ? numMatch[0] : '';
-          return {
-            _id: filename,
-            id: filename,
-            filename: filename,
-            title: `🎵 Reel Track ${trackNum || filename.replace('.mp3', '')}`,
-            artist: 'Auto Reel Collection',
-            url: `/assets/music/${filename}`,
-            path: `/assets/music/${filename}`,
-            isSystemAsset: true,
-          };
-        });
+      const musicFiles = await fs.readdir(musicDir).catch(() => []);
+      const songFiles = await fs.readdir(songsDir).catch(() => []);
+
+      const allFilesMap = new Map();
+      musicFiles.filter(f => f.toLowerCase().endsWith('.mp3')).forEach(f => {
+        allFilesMap.set(f, { url: `/assets/music/${f}`, isSong: false });
+      });
+      songFiles.filter(f => f.toLowerCase().endsWith('.mp3')).forEach(f => {
+        allFilesMap.set(f, { url: `/assets/songs/${f}`, isSong: true });
+      });
+
+      const sortedFilenames = Array.from(allFilesMap.keys()).sort((a, b) => a.localeCompare(b));
+
+      assetFiles = sortedFilenames.map(filename => {
+        const fileInfo = allFilesMap.get(filename);
+        let cleanTitle = filename
+          .replace('.mp3', '')
+          .replace(/-\(PaagalWorld\.Com\)/gi, '')
+          .replace(/-\(.*?\.com\)/gi, '')
+          .replace(/[-_]/g, ' ')
+          .trim();
+
+        return {
+          _id: filename,
+          id: filename,
+          filename: filename,
+          title: fileInfo.isSong ? `🎶 ${cleanTitle}` : `🎵 ${cleanTitle}`,
+          artist: fileInfo.isSong ? 'Bollywood Collection' : 'Auto Reel Collection',
+          url: fileInfo.url,
+          path: fileInfo.url,
+          downloadUrl: `/api/music/download/${filename}`,
+          isSystemAsset: true,
+        };
+      });
     } catch (err) {
-      logger.warn('Could not read assets/music directory:', err.message);
+      logger.warn('Could not read assets directory:', err.message);
     }
 
     let dbMusic = [];
