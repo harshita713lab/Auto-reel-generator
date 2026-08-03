@@ -2458,6 +2458,70 @@ body {
     transition: all 0.3s;
 }
 
+/* Latest Reel Header Pill Buttons Layout */
+.latest-reel-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 16px !important;
+    width: 100% !important;
+}
+
+.latest-reel-header h2 {
+    margin: 0 !important;
+    font-size: 1.3rem !important;
+}
+
+.latest-reel-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+.view-all-pill-btn {
+    background: rgba(108, 92, 231, 0.15) !important;
+    color: #a29bfe !important;
+    border: 1px solid rgba(108, 92, 231, 0.4) !important;
+    padding: 7px 15px !important;
+    border-radius: 20px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: all 0.25s ease !important;
+}
+
+.view-all-pill-btn:hover {
+    background: rgba(108, 92, 231, 0.3) !important;
+    color: #fff !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3) !important;
+}
+
+.delete-pill-btn {
+    background: rgba(255, 71, 87, 0.15) !important;
+    color: #ff4757 !important;
+    border: 1px solid rgba(255, 71, 87, 0.4) !important;
+    padding: 7px 15px !important;
+    border-radius: 20px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: all 0.25s ease !important;
+}
+
+.delete-pill-btn:hover {
+    background: rgba(255, 71, 87, 0.3) !important;
+    color: #fff !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3) !important;
+}
+
 .theme-toggle-container span.active-theme {
     color: var(--text-color);
     font-weight: 600;

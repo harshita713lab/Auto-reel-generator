@@ -192,24 +192,6 @@ function UploadSection() {
         <h2>📸 Create Your Reel</h2>
         <p>Upload 1-100 images and get a professional Reel instantly</p>
 
-        <div className="provider-toggle">
-          <label className="toggle-label">
-            <span>⚡ FFmpeg (Local)</span>
-            <input
-              type="checkbox"
-              checked={useShotstack}
-              onChange={() => setUseShotstack(!useShotstack)}
-            />
-            <span className="toggle-slider"></span>
-            <span>☁️ Shotstack (Cloud)</span>
-          </label>
-          <small className="toggle-hint">
-            {useShotstack
-              ? "🎬 Using cloud rendering (faster, better quality)"
-              : "🖥️ Using local FFmpeg (free, no API limit)"}
-          </small>
-        </div>
-
         {!reelData ? (
           <>
             <Upload onAddImages={handleAddImages} />
