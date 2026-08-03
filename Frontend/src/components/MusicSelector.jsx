@@ -2,19 +2,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faPause, faScissors, faChevronDown, faCheck, faMusic, faSliders } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPause, faScissors, faChevronDown, faCheck, faMusic, faSliders, faSearch, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const BACKEND_BASE = 'http://localhost:5000';
 
-function MusicSelector({ onSelect, selectedId, selectedTemplateId }) {
+function MusicSelector({ onSelect, onApplyDirectly, selectedId, selectedTemplateId }) {
   const [musicList, setMusicList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true); // Default open for ease of use
   const [playingId, setPlayingId] = useState(null);
   const [startTimeMap, setStartTimeMap] = useState({});
-  const [editingTrack, setEditingTrack] = useState(null); // Snapchat Trimmer Modal state
+  const [editingTrack, setEditingTrack] = useState(null);
   const [tempStartTime, setTempStartTime] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const audioRef = useRef(null);
 
@@ -54,10 +55,13 @@ function MusicSelector({ onSelect, selectedId, selectedTemplateId }) {
       if (audioRef.current) {
         audioRef.current.pause();
       }
-      audioRef.current = new Audio(fullAudioUrl);
-      audioRef.current.currentTime = trackStartSec;
-      audioRef.current.play().catch(err => console.error('Audio play error:', err));
-      audioRef.current.onended = () => setPlayingId(null);
+
+      const audio = new Audio(fullAudioUrl);
+      audio.currentTime = trackStartSec;
+      audio.play().catch(err => console.error('Audio play error:', err));
+      audio.onended = () => setPlayingId(null);
+
+      audioRef.current = audio;
       setPlayingId(track.id);
     }
   };
@@ -70,69 +74,112 @@ function MusicSelector({ onSelect, selectedId, selectedTemplateId }) {
 
   const saveSnapchatCut = () => {
     if (!editingTrack) return;
-    const trackId = editingTrack.id;
-    setStartTimeMap(prev => ({ ...prev, [trackId]: tempStartTime }));
-    onSelect(trackId, tempStartTime);
-    toast.success(`🎵 Added "${editingTrack.title}" (Starts at ${formatSeconds(tempStartTime)}) to Reel!`);
-    if (audioRef.current) audioRef.current.pause();
-    setPlayingId(null);
+    setStartTimeMap(prev => ({
+      ...prev,
+      [editingTrack.id]: tempStartTime
+    }));
+
+    onSelect(editingTrack.id, tempStartTime);
+    toast.success(`✂️ Audio cut set to ${tempStartTime}s for ${editingTrack.title}`);
+    
+    // Auto trigger direct apply if provided
+    if (onApplyDirectly) {
+      onApplyDirectly(editingTrack.id, tempStartTime);
+    }
+    
     setEditingTrack(null);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setPlayingId(null);
+    }
   };
 
   const formatSeconds = (sec) => {
-    const m = Math.floor(sec / 60);
-    const s = Math.floor(sec % 60);
-    return `${m}:${s.toString().padStart(2, '0')}`;
+    const mins = Math.floor(sec / 60);
+    const remainder = Math.floor(sec % 60);
+    return `${mins}:${remainder < 10 ? '0' : ''}${remainder}`;
   };
 
-  const isTemplateDefaultSelected = !selectedId || selectedId === 'template_default';
+  const filteredMusic = musicList.filter(track => 
+    track.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (track.artist && track.artist.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const isTemplateDefaultSelected = selectedId === 'template_default' || !selectedId;
 
   return (
-    <div className="music-selector">
-      <div className="music-selector-header" onClick={() => setExpanded(!expanded)}>
+    <div className="music-selector-container">
+      {/* Header toggle */}
+      <div 
+        className="music-selector-header"
+        onClick={() => setExpanded(!expanded)}
+      >
         <div className="music-header-title">
-          <h3>🎵 Background Song</h3>
-          <span className="selected-music-badge">
-            {isTemplateDefaultSelected
-              ? '✨ Template Default Song'
-              : (musicList.find(m => m.id === selectedId)?.title || selectedId)}
-          </span>
+          <FontAwesomeIcon icon={faMusic} className="header-icon" />
+          <span>Select Song & Cut Audio</span>
         </div>
-        <span className={`expand-icon ${expanded ? 'expanded' : ''}`}>
-          <FontAwesomeIcon icon={faChevronDown} />
-        </span>
+        <FontAwesomeIcon icon={faChevronDown} className={`chevron ${expanded ? 'open' : ''}`} />
       </div>
 
       {expanded && (
-        <div className="music-selection-panel">
-          <p className="music-subtitle">
-            Select a song or click <strong>✂️ Cut / Edit</strong> to choose exact start time for your Reel!
-          </p>
+        <div className="music-selector-body">
+          {/* 🔍 Search Bar for Searching Songs */}
+          <div className="music-search-box">
+            <FontAwesomeIcon icon={faSearch} className="search-icon" />
+            <input
+              type="text"
+              placeholder="🔍 Search songs by title or artist..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="music-search-input"
+            />
+            {searchTerm && (
+              <button className="clear-search-btn" onClick={() => setSearchTerm('')}>
+                <FontAwesomeIcon icon={faXmark} />
+              </button>
+            )}
+          </div>
 
-          {/* Option 1: Template Default Song */}
-          <div
-            className={`music-card clean-song-row ${isTemplateDefaultSelected ? 'selected' : ''}`}
+          {/* Option: Template Default Song */}
+          <div 
+            className={`music-card default-song-card ${isTemplateDefaultSelected ? 'selected' : ''}`}
             onClick={() => {
               onSelect('template_default', 0);
-              toast.info('✨ Using template\'s fixed default song');
+              toast.info('✨ Template Default Track Selected');
             }}
           >
             <div className="song-left-col">
               <div className="song-disc-icon default-disc">✨</div>
               <div className="song-meta">
-                <div className="music-title">Template Fixed Song</div>
-                <div className="music-desc">Pre-matched song for your chosen template</div>
+                <div className="music-title">Template Fixed Default Song</div>
+                <div className="music-desc">Pre-matched track for this template</div>
               </div>
             </div>
-            {isTemplateDefaultSelected && <span className="selected-badge">✓</span>}
+            <div className="song-right-actions">
+              {onApplyDirectly && (
+                <button 
+                  className="direct-apply-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelect('template_default', 0);
+                    onApplyDirectly('template_default', 0);
+                  }}
+                >
+                  <FontAwesomeIcon icon={faCheck} /> Apply
+                </button>
+              )}
+              {isTemplateDefaultSelected && <span className="selected-badge">✓</span>}
+            </div>
           </div>
 
-          {/* Custom Tracks List (Snapchat Simple Rows) */}
+          {/* Custom Tracks List */}
           <div className="music-grid-simple">
             {loading ? (
               <div className="music-loading">Loading audio tracks...</div>
+            ) : filteredMusic.length === 0 ? (
+              <div className="no-music-found">No songs match "{searchTerm}"</div>
             ) : (
-              musicList.map(track => {
+              filteredMusic.map(track => {
                 const isSelected = selectedId === track.id;
                 const isPlaying = playingId === track.id;
                 const currentStartSec = startTimeMap[track.id] || 0;
@@ -158,7 +205,7 @@ function MusicSelector({ onSelect, selectedId, selectedTemplateId }) {
                       </div>
                     </div>
 
-                    {/* Right Side: Play/Pause Button + ✂️ Edit Button */}
+                    {/* Right Side: Play Button + Cut Button + Direct Apply Button */}
                     <div className="song-right-actions" onClick={(e) => e.stopPropagation()}>
                       <button
                         className={`play-btn-round ${isPlaying ? 'playing' : ''}`}
@@ -175,6 +222,20 @@ function MusicSelector({ onSelect, selectedId, selectedTemplateId }) {
                       >
                         <FontAwesomeIcon icon={faScissors} /> Cut
                       </button>
+
+                      {onApplyDirectly && (
+                        <button
+                          className="direct-apply-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelect(track.id, currentStartSec);
+                            onApplyDirectly(track.id, currentStartSec);
+                          }}
+                          title="Apply this song immediately"
+                        >
+                          <FontAwesomeIcon icon={faCheck} /> Apply
+                        </button>
+                      )}
 
                       {isSelected && <span className="selected-badge">✓</span>}
                     </div>
@@ -235,21 +296,10 @@ function MusicSelector({ onSelect, selectedId, selectedTemplateId }) {
                 className="snapchat-done-btn"
                 onClick={saveSnapchatCut}
               >
-                <FontAwesomeIcon icon={faCheck} /> Done (Add to Reel)
+                <FontAwesomeIcon icon={faCheck} /> Done & Apply to Reel
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Collapsed state summary */}
-      {!expanded && (
-        <div className="selected-music-summary">
-          {isTemplateDefaultSelected ? (
-            <span>✨ Using Template Fixed Default Song</span>
-          ) : (
-            <span>🎵 Selected Song: <strong>{musicList.find(m => m.id === selectedId)?.title || selectedId}</strong> (Starts at {formatSeconds(startTimeMap[selectedId] || 0)})</span>
-          )}
         </div>
       )}
     </div>

@@ -2831,6 +2831,197 @@ body {
     box-shadow: 0 12px 25px rgba(16, 185, 129, 0.6);
 }
 
+/* Centered Overlay & Modal Fixes */
+.reel-modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(12px) !important;
+    z-index: 9999999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.snapchat-trimmer-modal {
+    position: relative !important;
+    margin: auto !important;
+    max-width: 440px !important;
+    width: 90% !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8) !important;
+    z-index: 10000000 !important;
+}
+
+/* Search Bar inside Music Selector */
+.music-search-box {
+    position: relative;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+}
+
+.music-search-box .search-icon {
+    position: absolute;
+    left: 14px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+.music-search-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 10px 38px 10px 38px;
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.music-search-input:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #6c5ce7;
+    box-shadow: 0 0 12px rgba(108, 92, 231, 0.3);
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.clear-search-btn:hover {
+    color: #fff;
+}
+
+/* Direct Apply Button inside Song Row */
+.direct-apply-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+}
+
+.direct-apply-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.5);
+}
+
+/* Edit Music Page Container & Sticky Video */
+.edit-music-page-container {
+    padding-top: 110px !important;
+    padding-bottom: 40px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.edit-music-page-header {
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 20px !important;
+    margin-bottom: 24px !important;
+}
+
+.edit-page-back-btn {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 9px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.edit-page-back-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateY(-1px);
+}
+
+.edit-page-title {
+    font-size: 1.8rem;
+    color: #fff;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.edit-page-title .music-title-icon {
+    color: #a29bfe;
+}
+
+.edit-music-grid {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.sticky-video-card {
+    position: sticky !important;
+    top: 110px !important;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.edit-preview-video {
+    width: 100%;
+    max-height: 480px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.current-song-badge {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(108, 92, 231, 0.15);
+    border-radius: 12px;
+    border: 1px solid rgba(108, 92, 231, 0.3);
+    color: #a29bfe;
+    font-size: 14px;
+}
+
+.current-song-badge .cut-start-info {
+    font-size: 12px;
+    margin-top: 4px;
+    color: #ffa502;
+}
+
+.scrollable-songs-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    border-radius: 20px;
+    padding: 20px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
 .theme-toggle-container span.active-theme {
     color: var(--text-color);
     font-weight: 600;
