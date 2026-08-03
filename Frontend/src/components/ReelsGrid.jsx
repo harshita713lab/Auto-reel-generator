@@ -19,6 +19,7 @@ function ReelsGrid() {
     const [openMenuId, setOpenMenuId] = useState(null); 
     const [shareModal, setShareModal] = useState(null); 
     const [activePlayReel, setActivePlayReel] = useState(null);
+    const [playingReelId, setPlayingReelId] = useState(null);
 
     // Beautiful Custom Modals State
     const [deleteModalReel, setDeleteModalReel] = useState(null);
@@ -67,6 +68,9 @@ function ReelsGrid() {
         if (reel.outputPath) {
             const filename = reel.outputPath.split('/').pop() || reel.outputPath.split('\\').pop();
             return `http://localhost:5000/output/renders/${filename}`; 
+        }
+        if (reel._id) {
+            return `http://localhost:5000/api/reel/${reel._id}/download`;
         }
         return null;
     };
@@ -340,48 +344,71 @@ function ReelsGrid() {
                                         const videoUrl = getVideoUrl(reel);
                                         const thumbnailUrl = getThumbnailUrl(reel);
                                         const isMenuOpen = openMenuId === reel._id;
+                                        const isPlaying = playingReelId === reel._id;
                                         const totalInGroup = groupedReels[groupLabel].length;
                                         const isNearBottom = index >= totalInGroup - 2;
 
                                         return (
                                             <div 
                                                 key={reel._id} 
-                                                className={`reel-list-item ${isMenuOpen ? 'active-menu-item' : ''}`}
-                                                style={{ zIndex: isMenuOpen ? 9999 : 1, position: 'relative' }}
+                                                className={`reel-list-item ${isMenuOpen ? 'active-menu-item' : ''} ${isPlaying ? 'item-playing' : ''}`}
+                                                style={{ zIndex: (isMenuOpen || isPlaying) ? 9999 : 1, position: 'relative' }}
+                                                onClick={() => {
+                                                    if (!isMenuOpen) {
+                                                        setPlayingReelId(isPlaying ? null : reel._id);
+                                                    }
+                                                }}
                                             >
                                                 <div 
-                                                    className="reel-list-thumbnail"
-                                                    onClick={() => videoUrl && setActivePlayReel(reel)}
-                                                    title="Click to play reel"
+                                                    className={`reel-list-thumbnail ${isPlaying ? 'is-playing' : ''}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setPlayingReelId(isPlaying ? null : reel._id);
+                                                    }}
+                                                    title={isPlaying ? "Click to stop" : "Click to play reel inline"}
                                                 >
-                                                    {thumbnailUrl ? (
-                                                        <img 
-                                                            src={thumbnailUrl} 
-                                                            alt={reel.title || "Reel"}
-                                                            className="thumbnail-img"
+                                                    {isPlaying && videoUrl ? (
+                                                        <video 
+                                                            src={videoUrl}
+                                                            autoPlay
+                                                            controls
+                                                            playsInline
+                                                            className="inline-reel-video"
+                                                            onEnded={() => setPlayingReelId(null)}
                                                         />
                                                     ) : (
-                                                        <div className="thumbnail-placeholder">
-                                                            <FontAwesomeIcon icon={faFilm} />
-                                                        </div>
-                                                    )}
-                                                    
-                                                    {videoUrl && (
-                                                        <div className="play-overlay">
-                                                            <FontAwesomeIcon icon={faPlay} className="play-icon-overlay" />
-                                                        </div>
-                                                    )}
+                                                        <>
+                                                            {thumbnailUrl ? (
+                                                                <img 
+                                                                    src={thumbnailUrl} 
+                                                                    alt={reel.title || "Reel"}
+                                                                    className="thumbnail-img"
+                                                                />
+                                                            ) : (
+                                                                <div className="thumbnail-placeholder">
+                                                                    <FontAwesomeIcon icon={faFilm} />
+                                                                </div>
+                                                            )}
+                                                            
+                                                            <div className="play-overlay">
+                                                                <FontAwesomeIcon icon={faPlay} className="play-icon-overlay" />
+                                                            </div>
 
-                                                    <span className="duration-badge">{reel.duration ? Math.round(reel.duration) : "0"}s</span>
+                                                            <span className="duration-badge">{reel.duration ? Math.round(reel.duration) : "0"}s</span>
+                                                        </>
+                                                    )}
                                                 </div>
 
                                                 <div className="reel-list-details">
                                                     <div className="reel-detail-top">
                                                         <h4 
                                                             className="reel-list-title clickable"
-                                                            onClick={() => videoUrl && setActivePlayReel(reel)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setPlayingReelId(isPlaying ? null : reel._id);
+                                                            }}
                                                         >
-                                                            {reel.title || "Untitled Reel"}
+                                                            {reel.title || "Untitled Reel"} {isPlaying && <span className="playing-badge">▶ Playing</span>}
                                                         </h4>
                                                         
                                                         <div className="date-and-menu">
