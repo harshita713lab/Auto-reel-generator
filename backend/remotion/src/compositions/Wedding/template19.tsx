@@ -426,192 +426,96 @@ borderRadius:12
 
 
 // =============================
+
+// =============================
 // SINGLE CINEMATIC PHOTO
 // =============================
 
 const SinglePhoto = ({
   image,
-  index
-}:{
+  index,
+}: {
   image: ImageItem;
-  index:number;
-})=>{
-
+  index: number;
+}) => {
   const frame = useCurrentFrame();
 
-
-
-  // Smooth cinematic zoom
+  // Each photo now has a full 35-frame window to animate cleanly
   const scale = interpolate(
     frame,
-    [0,50],
-    [1.12,1.03],
-    {
-      extrapolateLeft:"clamp",
-      extrapolateRight:"clamp"
-    }
+    [0, 35],
+    [1.12, 1.03],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
-
-
-  // Left / Right camera movement
   const translateX = interpolate(
     frame,
-    [0,50],
-    [
-      index % 2 === 0 ? -60 : 60,
-      0
-    ],
-    {
-      extrapolateLeft:"clamp",
-      extrapolateRight:"clamp"
-    }
+    [0, 35],
+    [index % 2 === 0 ? -40 : 40, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
-
-
 
   const translateY = interpolate(
     frame,
-    [0,50],
-    [
-      index % 2 === 0 ? 30 : -30,
-      0
-    ],
-    {
-      extrapolateLeft:"clamp",
-      extrapolateRight:"clamp"
-    }
+    [0, 35],
+    [index % 2 === 0 ? 20 : -20, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
-
-
-  // Small cinematic tilt
   const rotate = interpolate(
     frame,
-    [0,50],
-    [
-      index % 2 === 0 ? -1.5 : 1.5,
-      0
-    ],
-    {
-      extrapolateLeft:"clamp",
-      extrapolateRight:"clamp"
-    }
+    [0, 35],
+    [index % 2 === 0 ? -1 : 1, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
-
-
-  // Fade reveal
+  // Quick fade-in
   const opacity = interpolate(
     frame,
-    [0,18],
-    [0,1],
-    {
-      extrapolateLeft:"clamp",
-      extrapolateRight:"clamp"
-    }
+    [0, 10],
+    [0, 1],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
-
-
-  // Focus reveal
+  // Smooth blur clear-up
   const blur = interpolate(
     frame,
-    [0,20],
-    [12,0],
-    {
-      extrapolateLeft:"clamp",
-      extrapolateRight:"clamp"
-    }
+    [0, 15],
+    [10, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
-
-
-  // Camera exposure
   const brightness = interpolate(
     frame,
-    [0,25],
-    [0.7,1],
-    {
-      extrapolateLeft:"clamp",
-      extrapolateRight:"clamp"
-    }
+    [0, 15],
+    [0.7, 1],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
-
-
-return(
-
-<AbsoluteFill
-style={{
-overflow:"hidden",
-background:"#000"
-}}
->
-
-
-<img
-
-src={image.path}
-
-style={{
-
-width:"100%",
-
-height:"100%",
-
-objectFit:"cover",
-
-
-transform:
-`
-scale(${scale})
-translate(${translateX}px, ${translateY}px)
-rotate(${rotate}deg)
-`,
-
-
-filter:
-`
-blur(${blur}px)
-brightness(${brightness})
-`,
-
-
-opacity,
-
-
-}}
-
-/>
-
-
-
-{/* cinematic dark overlay */}
-
-<div
-
-style={{
-
-position:"absolute",
-
-inset:0,
-
-background:
-"linear-gradient(to top, rgba(0,0,0,.35), transparent 40%)"
-
-}}
-
-/>
-
-
-
-</AbsoluteFill>
-
-)
-
-}
-
+  return (
+    <AbsoluteFill style={{ overflow: "hidden", background: "#000" }}>
+      <img
+        src={image.path}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          transform: `scale(${scale}) translate(${translateX}px, ${translateY}px) rotate(${rotate}deg)`,
+          filter: `blur(${blur}px) brightness(${brightness})`,
+          opacity,
+        }}
+      />
+      {/* Cinematic dark overlay */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(to top, rgba(0,0,0,.35), transparent 40%)",
+        }}
+      />
+    </AbsoluteFill>
+  );
+};
 // PART 2 ME COMPLETE HOGA
 // =============================
 
@@ -693,50 +597,20 @@ durationInFrames={gridDuration}
 ============================= */}
 
 
-
-<Sequence
-
-from={
-heroDuration + gridDuration
-}
-
-durationInFrames={singleDuration}
-
->
-
-
-{
-
-singleImages.map((img,index)=>(
-
-
-<Sequence
-
-key={index}
-
-from={index*35}
-
-durationInFrames={35}
-
->
-
-
-<SinglePhoto
-  image={img}
-  index={index}
-/>
-
-
-</Sequence>
-
-
-))
-
-
-}
-
-
-
+{/* =============================
+    SCENE 3
+    SINGLE CINEMATIC PHOTOS
+============================= */}
+<Sequence from={heroDuration + gridDuration} durationInFrames={singleDuration}>
+  {singleImages.map((img, index) => (
+    <Sequence
+      key={index}
+      from={index * 37.5} 
+      durationInFrames={37.5}
+    >
+      <SinglePhoto image={img} index={index} />
+    </Sequence>
+  ))}
 </Sequence>
 
 

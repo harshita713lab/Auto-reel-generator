@@ -24,6 +24,8 @@ validateCompositionName(compositionName) {
           "WeddingSequenceComposition",
           "WeddingSplitSlider",
           "CinematicWeddingReel",
+          "MemoryJourneyWeddingReel",
+           "RoyalWeddingStory",
     ];
 
     if (!compositionName || typeof compositionName !== "string") {

@@ -77,30 +77,40 @@ class RenderService {
       // Decide composition based on image count
       const imageCount = reel.images.length;
 let compositionId;
+
 if (imageCount === 20) {
   compositionId = "WeddingSequenceComposition";
+
+} else if (imageCount === 18) {
+  compositionId = "MemoryJourneyWeddingReel";
+
 } else if (imageCount === 9) {
   compositionId = "CinematicWeddingReel";
+
 } else if (imageCount === 11) {
   compositionId = "WeddingSplitSlider";
+}
+   else if (imageCount === 14) {
+  compositionId = "RoyalWeddingStory";
+
 } else if (imageCount === 10) {
   compositionId = "WhiteCardCarousel";
-} //else if (imageCount === 9) {
-  //compositionId = "WhiteCardGrid3x3";
-//}
- else if (imageCount === 8) {
+
+} else if (imageCount === 8) {
   compositionId = "WhiteCardMasonry";
+
 } else if (imageCount === 6) {
   compositionId = "WhiteCardPolaroidStack";
+
 } else if (imageCount === 4) {
   compositionId = "PremiumGrid";
+
 } else if (imageCount < 4) {
   compositionId = "ReelComposition";
+
 } else {
   compositionId = "MemoryBlendReel";
 }
-
-
 console.log(
   `Image Count: ${imageCount}, Rendering with Composition ID: ${compositionId}`
 );

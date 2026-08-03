@@ -12,9 +12,9 @@ import WeddingSequenceComposition from "./compositions/Wedding/WeddingSequenceCo
 import  CinematicWeddingReel  from "./compositions/Wedding/template19";
 
 import WeddingSplitSlider from "./compositions/Wedding/SplitSlider";
+ import{ MemoryJourneyWeddingReel} from "./compositions/Wedding/template18";
 
-
-
+import { RoyalWeddingStory } from './compositions/Wedding/template14';
 
 
 
@@ -249,6 +249,39 @@ component={CinematicWeddingReel}
     images: [],
     music: undefined,
   }}
+/>
+
+<Composition
+
+id="MemoryJourneyWeddingReel"
+
+component={MemoryJourneyWeddingReel}
+
+durationInFrames={450}
+
+fps={30}
+
+width={1080}
+
+height={1920}
+
+
+defaultProps={{
+
+images:[],
+
+namesText:"JULIAN & JULI"
+
+}}
+
+/>
+<Composition
+  id="RoyalWeddingStory"
+  component={RoyalWeddingStory}
+  durationInFrames={360}
+  fps={30}
+  width={1080}
+  height={1920}
 />
     </>
   );
