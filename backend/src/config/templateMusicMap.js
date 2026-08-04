@@ -38,6 +38,8 @@ const TEMPLATE_MUSIC_MAP = {
   memory_blend: { musicId: 'ReelAudio-12.mp3', musicTitle: 'Nostalgic Harmony (Track 12)' },
   MemoryBlendReel: { musicId: 'ReelAudio-12.mp3', musicTitle: 'Nostalgic Harmony (Track 12)' },
 };
+// templte 15
+
 
 /**
  * Get fixed default music filename based on templateId OR image count
@@ -53,7 +55,7 @@ function getMusicForTemplate(templateId, imageCount) {
 
   // 2. Resolve by image count (matching renderService composition logic)
   if (typeof imageCount === 'number') {
-    if (imageCount === 20) return TEMPLATE_MUSIC_MAP.wedding_seq.musicId;      // ReelAudio-3.mp3
+    if (imageCount === 23) return TEMPLATE_MUSIC_MAP.wedding_seq.musicId;      // ReelAudio-3.mp3
     if (imageCount === 9) return TEMPLATE_MUSIC_MAP.cinematic_wedding.musicId;  // ReelAudio-4.mp3
     if (imageCount === 11) return TEMPLATE_MUSIC_MAP.wedding_split.musicId;    // ReelAudio-5.mp3
     if (imageCount === 10) return TEMPLATE_MUSIC_MAP.white_carousel.musicId;   // ReelAudio-6.mp3

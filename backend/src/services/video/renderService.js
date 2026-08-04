@@ -37,7 +37,7 @@ class RenderService {
       // Convert filesystem paths to absolute web URLs for Chromium/Remotion
       const serverBaseUrl = `http://localhost:${process.env.PORT || 5000}`;
       const audioUrl = audioPath
-        ? `${serverBaseUrl}/assets/music/${path.basename(audioPath)}`
+        ? `${serverBaseUrl}/assets/songs/${path.basename(audioPath)}`
         : null;
 
       const images = reel.images.map(img => ({
@@ -78,22 +78,37 @@ class RenderService {
       const imageCount = reel.images.length;
 let compositionId;
 
-if (imageCount === 20) {
+if (imageCount === 23) {
   compositionId = "WeddingSequenceComposition";
 
-} else if (imageCount === 18) {
+} 
+ else if (imageCount === 18) {
   compositionId = "MemoryJourneyWeddingReel";
+  
 
-} else if (imageCount === 9) {
-  compositionId = "CinematicWeddingReel";
+} //else if (imageCount === 9) {
+  //compositionId = "CinematicWeddingReel";
 
-} else if (imageCount === 11) {
+//} 
+else if (imageCount === 13) {
+  compositionId = "WeddingCinematic13"
+;
+}
+else if (imageCount === 9) {
+  compositionId = "Reel";
+}
+else if (imageCount === 11) {
   compositionId = "WeddingSplitSlider";
 }
-   else if (imageCount === 14) {
+   else if (imageCount === 16) {
   compositionId = "RoyalWeddingStory";
 
-} else if (imageCount === 10) {
+} 
+
+   else if (imageCount === 15) {
+  compositionId = "ScrapbookWedding15";
+
+}else if (imageCount === 10) {
   compositionId = "WhiteCardCarousel";
 
 } else if (imageCount === 8) {

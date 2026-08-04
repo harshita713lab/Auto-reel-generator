@@ -15,11 +15,12 @@ import WeddingSplitSlider from "./compositions/Wedding/SplitSlider";
  import{ MemoryJourneyWeddingReel} from "./compositions/Wedding/template18";
 
 import { RoyalWeddingStory } from './compositions/Wedding/template14';
+import { Reel } from './compositions/Wedding/template9';
+
+import { Cinematic13Composition } from './compositions/Wedding/template13';
 
 
-
-
-
+import { ScrapbookWedding15 } from './compositions/Wedding/template15';
 
 
 
@@ -220,7 +221,7 @@ export const Root: React.FC = () => {
   width={1080}
   height={1920}
   fps={30}
-  durationInFrames={450} // ya 60+45+60+45+90 = 300
+  durationInFrames={300} // ya 60+45+60+45+90 = 300
   defaultProps={{
     images: [],
     music: undefined,
@@ -283,6 +284,51 @@ namesText:"JULIAN & JULI"
   width={1080}
   height={1920}
 />
+      <Composition
+        id="Reel"
+        component={Reel}
+        width={1080}
+        height={1920}
+        fps={30}
+        durationInFrames={360} // ya totalDuration
+        defaultProps={{
+          images: [],
+          music: {
+            path: "",
+            volume: 0.5,
+          },
+        }}
+      />
+      <Composition
+id="WeddingCinematic13"
+
+component={ Cinematic13Composition}
+
+durationInFrames={440}
+
+fps={30}
+
+width={1080}
+
+height={1920}
+
+defaultProps={{
+  images: []
+}}
+
+/>
+<Composition
+  id="ScrapbookWedding15"
+  component={ ScrapbookWedding15}
+  width={1080}
+  height={1920}
+  fps={30}
+  durationInFrames={440}
+  defaultProps={{
+    images: [],
+  }}
+/>
+
     </>
   );
 };
