@@ -146,32 +146,80 @@ function UploadSection() {
       }
 
       const reelResponse = await reelRes.json();
-      console.log("FULL RESPONSE", reelResponse);
-
-      setProgress(100);
-      setStatus("✅ Reel Ready!");
-
-      // Extract reel data from nested response structure
       const reelObj = reelResponse.data || reelResponse;
-      const fileName = reelObj.outputPath
-        ? reelObj.outputPath.split("\\").pop()
-        : "";
+      const reelId = reelObj._id || reelObj.reelId || reelObj.renderId;
 
-      const outputUrl = reelObj.outputUrl || `/output/renders/${fileName}`;
-      console.log("FULL RESPONSE", reelResponse);
-      console.log("REEL OBJ", reelObj);
-      console.log("OUTPUT URL", outputUrl);
-      setReelData({
-        outputUrl: outputUrl,
-        music: reelObj.usedMusic || "Upbeat",
-        template: reelObj.usedTemplate || "Auto",
-        reelId: reelObj._id || reelObj.reelId || reelObj.renderId,
-        provider: useShotstack ? "Shotstack" : "FFmpeg",
-      });
-      setLoading(false);
-      toast.success(
-        `🎬 Reel created successfully with ${images.length} images!`,
-      );
+      if (!reelId) {
+        throw new Error("Reel ID not returned from server.");
+      }
+
+      // If already rendered immediately (e.g. shotstack or cached)
+      if (reelObj.status === 'rendered' && reelObj.outputUrl) {
+        const fileName = reelObj.outputPath ? reelObj.outputPath.split("\\").pop() : "";
+        const outputUrl = reelObj.outputUrl || `/output/renders/${fileName}`;
+        setProgress(100);
+        setStatus("✅ Reel Ready!");
+        setReelData({
+          outputUrl,
+          music: reelObj.usedMusic || "Upbeat",
+          template: reelObj.usedTemplate || "Auto",
+          reelId,
+          provider: useShotstack ? "Shotstack" : "FFmpeg",
+        });
+        setLoading(false);
+        toast.success(`🎬 Reel created successfully with ${images.length} images!`);
+        return;
+      }
+
+      // Poll background status every 1.5s until rendering finishes
+      setStatus("🎬 Rendering video frames...");
+      let pollCount = 0;
+      const maxPolls = 120; // 3 minutes timeout safety
+
+      const pollInterval = setInterval(async () => {
+        pollCount++;
+        try {
+          const statusRes = await fetch(`${API_URL}/reel/${reelId}/status`);
+          const statusData = await statusRes.json();
+
+          if (statusRes.ok && statusData.success && statusData.data) {
+            const { status, progress, outputPath, error } = statusData.data;
+
+            if (progress && progress > 0) {
+              setProgress(Math.min(96, Math.max(60, progress)));
+            }
+
+            if (status === 'rendered') {
+              clearInterval(pollInterval);
+              const fileName = outputPath ? outputPath.split(/[\\/]/).pop() : "";
+              const finalOutputUrl = statusData.data.outputUrl || `/output/renders/${fileName}`;
+              setProgress(100);
+              setStatus("✅ Reel Ready!");
+              setReelData({
+                outputUrl: finalOutputUrl,
+                music: statusData.data.usedMusic || reelObj.usedMusic || "Upbeat",
+                template: statusData.data.usedTemplate || reelObj.usedTemplate || "Auto",
+                reelId,
+                provider: useShotstack ? "Shotstack" : "FFmpeg",
+              });
+              setLoading(false);
+              toast.success(`🎬 Reel created successfully!`);
+            } else if (status === 'failed') {
+              clearInterval(pollInterval);
+              setLoading(false);
+              toast.error("❌ Rendering failed: " + (error || "Unknown error"));
+            }
+          }
+        } catch (pollErr) {
+          console.error("Polling status error:", pollErr);
+        }
+
+        if (pollCount >= maxPolls) {
+          clearInterval(pollInterval);
+          setLoading(false);
+          toast.error("⌛ Rendering took longer than expected. Please check All Reels.");
+        }
+      }, 1500);
     } catch (error) {
       console.error("Error:", error);
       toast.error("❌ Error: " + error.message);

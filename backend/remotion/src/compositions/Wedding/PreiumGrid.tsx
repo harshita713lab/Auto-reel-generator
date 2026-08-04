@@ -1,9 +1,7 @@
 import React from "react";
 import {
   AbsoluteFill,
-  Img,
   interpolate,
-  spring,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
@@ -13,180 +11,65 @@ import { getBeatScale } from "../../utils/beatUtils";
 
 interface PremiumGridProps {
   images?: Array<{ path: string }>;
-
   music?: {
     path: string;
     volume?: number;
   };
-
   slideDuration?: number;
-
   backgroundColor?: string;
-
   title?: string;
-
   overlayText?: string;
-
   gap?: number;
-
-  transition?:
-    | "fade"
-    | "glide"
-    | "slide"
-    | "zoom";
-
-  effect?:
-    | "none"
-    | "cinematic"
-    | "warm"
-    | "cool"
-    | "golden";
-
+  transition?: "fade" | "glide" | "slide" | "zoom";
+  effect?: "none" | "cinematic" | "warm" | "cool" | "golden";
   showCounter?: boolean;
   beatTimestamps?: number[];
 }
 
-const getEffect = (
-  effect: string,
-  frame: number,
-  duration: number
-) => {
-  const progress = frame / duration;
-
-  switch (effect) {
-    case "cinematic":
-      return {
-        filter:
-          "contrast(1.15) brightness(.95) saturate(.9)",
-        transform: `scale(${1 + progress * .08})`,
-      };
-
-    case "warm":
-      return {
-        filter:
-          "sepia(.25) saturate(1.2) brightness(1.05)",
-      };
-
-    case "cool":
-      return {
-        filter:
-          "hue-rotate(15deg) saturate(.8)",
-      };
-
-    case "golden":
-      return {
-        filter:
-          "sepia(.35) saturate(1.3)",
-      };
-
-    default:
-      return {};
-  }
-};
-
-const getTransition = (
-  transition: string,
-  frame: number,
-  duration: number
-) => {
-  const progress = frame / duration;
-
-  switch (transition) {
-    case "fade":
-      return {
-        opacity: progress,
-      };
-
-    case "slide":
-      return {
-        opacity: progress,
-        transform: `translateX(${(1 - progress) * 100}px)`,
-      };
-
-    case "zoom":
-      return {
-        opacity: progress,
-        transform: `scale(${.8 + progress * .2})`,
-      };
-
-    case "glide":
-      return {
-        opacity: progress,
-        transform: `translateY(${(1 - progress) * 60}px)
-                   scale(${.95 + progress * .05})`,
-      };
-
-    default:
-      return {};
-  }
-};
-
 const glassCardStyle = {
   background: "rgba(255,255,255,.12)",
-
   backdropFilter: "blur(20px)",
-
   WebkitBackdropFilter: "blur(20px)",
-
   border: "1px solid rgba(255,255,255,.18)",
-
   borderRadius: 22,
-
   overflow: "hidden" as const,
-
-  boxShadow:
-    "0 12px 40px rgba(0,0,0,.28)",
-
+  boxShadow: "0 12px 40px rgba(0,0,0,.28)",
   position: "relative" as const,
 };
 
 export const PremiumGrid: React.FC<PremiumGridProps> = ({
   images = [],
-
-  music,
-
-  slideDuration = 4,
-
-  backgroundColor =
-    "linear-gradient(135deg,#0a0a1a,#1a1a3e)",
-
+  backgroundColor = "linear-gradient(135deg,#0a0a1a,#1a1a3e)",
   gap = 16,
-
-  title,
-
-  overlayText,
-
-  transition = "glide",
-
-  effect = "cinematic",
-
-  showCounter = true,
+  title = "PREMIUM REEL",
   beatTimestamps = [],
 }) => {
-
   const frame = useCurrentFrame();
-
   const { fps } = useVideoConfig();
   const beatScale = getBeatScale(frame, fps, beatTimestamps);
 
-  const durationInFrames =
-    Math.round(slideDuration * fps);
-
-  const transitionStyle =
-    getTransition(
-      transition,
-      frame,
-      durationInFrames
-    );
-
-  const effectStyle =
-    getEffect(
-      effect,
-      frame,
-      durationInFrames
-    );
-
   const imageList = images.slice(0, 4);
+  
+  // Timeline setup for 15 Seconds (450 frames at 30 fps)
+  // Phase 1 (0 to 130 frames / ~4.3s): Collage Grid FIRST
+  // Phase 2 (130 to 450 frames / ~10.7s): 1-by-1 Full Images AFTER
+  const gridEndFrame = 130;
+  const isGridPhase = frame < gridEndFrame;
+
+  const spotlightFrame = Math.max(0, frame - gridEndFrame);
+  const spotlightDuration = 80; // ~2.67s per photo full showcase
+  const currentSpotlightIndex = !isGridPhase && imageList.length > 0
+    ? Math.min(imageList.length - 1, Math.floor(spotlightFrame / spotlightDuration))
+    : 0;
+
+  const spotlightLocalFrame = spotlightFrame % spotlightDuration;
+  const spotlightOpacity = interpolate(
+    spotlightLocalFrame,
+    [0, 10, spotlightDuration - 10, spotlightDuration],
+    [0, 1, 1, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+  );
+
   return (
     <AbsoluteFill
       style={{
@@ -194,10 +77,10 @@ export const PremiumGrid: React.FC<PremiumGridProps> = ({
         padding: 30,
         justifyContent: "center",
         alignItems: "center",
+        overflow: "hidden",
       }}
     >
       {/* Gold Corner Decorations */}
-
       {[
         { top: 18, left: 18 },
         { top: 18, right: 18 },
@@ -210,39 +93,20 @@ export const PremiumGrid: React.FC<PremiumGridProps> = ({
             position: "absolute",
             width: 42,
             height: 42,
-
             top: corner.top,
             bottom: corner.bottom,
             left: corner.left,
             right: corner.right,
-
-            borderTop:
-              corner.top !== undefined
-                ? "2px solid rgba(255,215,0,.45)"
-                : undefined,
-
-            borderBottom:
-              corner.bottom !== undefined
-                ? "2px solid rgba(255,215,0,.45)"
-                : undefined,
-
-            borderLeft:
-              corner.left !== undefined
-                ? "2px solid rgba(255,215,0,.45)"
-                : undefined,
-
-            borderRight:
-              corner.right !== undefined
-                ? "2px solid rgba(255,215,0,.45)"
-                : undefined,
-
-            zIndex: 20,
+            borderTop: corner.top !== undefined ? "2px solid rgba(255,215,0,.45)" : undefined,
+            borderBottom: corner.bottom !== undefined ? "2px solid rgba(255,215,0,.45)" : undefined,
+            borderLeft: corner.left !== undefined ? "2px solid rgba(255,215,0,.45)" : undefined,
+            borderRight: corner.right !== undefined ? "2px solid rgba(255,215,0,.45)" : undefined,
+            zIndex: 30,
           }}
         />
       ))}
 
-      {/* Optional Title */}
-
+      {/* Clean Title */}
       {title && (
         <div
           style={{
@@ -251,157 +115,97 @@ export const PremiumGrid: React.FC<PremiumGridProps> = ({
             width: "100%",
             textAlign: "center",
             color: "#ffffff",
-            fontSize: 42,
+            fontSize: 38,
             fontWeight: 700,
-            letterSpacing: 2,
-            zIndex: 10,
+            letterSpacing: 3,
+            zIndex: 30,
+            textShadow: "0 2px 10px rgba(0,0,0,0.6)",
           }}
         >
           {title}
         </div>
       )}
 
-      {/* 2x2 Grid */}
-
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-
-          display: "grid",
-
-          gridTemplateColumns: "1fr 1fr",
-
-          gridTemplateRows: "1fr 1fr",
-
-          gap,
-
-          paddingTop: 80,
-
-          ...transitionStyle,
-          transform: `${transitionStyle.transform || ''} scale(${beatScale})`,
-        }}
-      >
-        {imageList.map((img, index) => (
-          <div
-            key={index}
-            style={{
-              ...glassCardStyle,
-            }}
-          >
-            <AnimatedImage
-    src={img.path}
-    animation="kenBurns"
-    durationInFrames={durationInFrames}
-    style={{
-        width:"100%",
-        height:"100%",
-        objectFit:"cover"
-    }}
-/>
-            
-
-            {/* Counter */}
-
-            {showCounter && (
-              <div
+      {/* PHASE 1: Grand 2x2 Premium Grid Collage FIRST (Frames 0 - 130) */}
+      {isGridPhase && (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gridTemplateRows: "1fr 1fr",
+            gap,
+            paddingTop: 80,
+            transform: `scale(${beatScale})`,
+            opacity: interpolate(frame, [0, 15, 115, 130], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
+          }}
+        >
+          {imageList.map((img, index) => (
+            <div
+              key={index}
+              style={{
+                ...glassCardStyle,
+              }}
+            >
+              <AnimatedImage
+                src={img.path}
+                animation="kenBurns"
+                durationInFrames={130}
                 style={{
-                  position: "absolute",
-
-                  right: 12,
-
-                  bottom: 12,
-
-                  background: "rgba(0,0,0,.55)",
-
-                  backdropFilter: "blur(10px)",
-
-                  color: "#fff",
-
-                  padding: "6px 12px",
-
-                  borderRadius: 50,
-
-                  fontSize: 16,
-
-                  fontWeight: 700,
-
-                  letterSpacing: 1,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
                 }}
-              >
-                {String(index + 1).padStart(2, "0")}
-              </div>
-            )}
+              />
+            </div>
+          ))}
 
-            {/* Overlay Text */}
+          {Array.from({ length: Math.max(0, 4 - imageList.length) }).map((_, index) => (
+            <div
+              key={`empty-${index}`}
+              style={{
+                ...glassCardStyle,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "rgba(255,255,255,.25)",
+                fontSize: 60,
+                fontWeight: 300,
+                background: "rgba(255,255,255,.05)",
+              }}
+            >
+              +
+            </div>
+          ))}
+        </div>
+      )}
 
-            {overlayText && index === 0 && (
-              <div
-                style={{
-                  position: "absolute",
-
-                  left: 0,
-
-                  right: 0,
-
-                  bottom: 55,
-
-                  padding: "18px",
-
-                  textAlign: "center",
-
-                  color: "#fff",
-
-                  fontSize: 24,
-
-                  fontWeight: 600,
-
-                  textShadow:
-                    "0 2px 12px rgba(0,0,0,.5)",
-
-                  background:
-                    "linear-gradient(transparent,rgba(0,0,0,.45))",
-                }}
-              >
-                {overlayText}
-              </div>
-            )}
-          </div>
-        ))}
-                {/* Empty Cards */}
-
-        {Array.from({
-          length: Math.max(0, 4 - imageList.length),
-        }).map((_, index) => (
-          <div
-            key={`empty-${index}`}
+      {/* PHASE 2: 1-by-1 Full-Screen Images Showcase AFTER (Frames 130 - 450) */}
+      {!isGridPhase && imageList[currentSpotlightIndex] && (
+        <div
+          style={{
+            width: "90%",
+            height: "80%",
+            marginTop: 30,
+            opacity: spotlightOpacity,
+            transform: `scale(${beatScale})`,
+            zIndex: 20,
+            ...glassCardStyle,
+          }}
+        >
+          <AnimatedImage
+            src={imageList[currentSpotlightIndex].path}
+            animation="kenBurns"
+            durationInFrames={spotlightDuration}
             style={{
-              ...glassCardStyle,
-
-              display: "flex",
-
-              alignItems: "center",
-
-              justifyContent: "center",
-
-              color: "rgba(255,255,255,.25)",
-
-              fontSize: 60,
-
-              fontWeight: 300,
-
-              background:
-                "rgba(255,255,255,.05)",
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
             }}
-          >
-            +
-          </div>
-        ))}
-      </div>
-
-      {/* Music */}
-
-    
+          />
+        </div>
+      )}
     </AbsoluteFill>
   );
 };
