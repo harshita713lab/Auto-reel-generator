@@ -25,27 +25,32 @@ export const WhiteCardGrid3x3: React.FC<WhiteCardGrid3x3Props> = ({
   beatTimestamps = [],
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width } = useVideoConfig();
   const beatScale = getBeatScale(frame, fps, beatTimestamps);
 
   const imageList = images.slice(0, 9);
   
-  // Phase 1 (0 to 150 frames / 0-5s): 3x3 Collage Grid FIRST
-  // Phase 2 (150 to 450 frames / 5-15s): 1-by-1 Full Images AFTER
-  const gridEndFrame = 150;
+  // Phase 1 (0 to 120 frames / 0-4s): 3x3 Collage Grid FIRST
+  // Phase 2 (120 to 450 frames / 4-15s): 1-by-1 FAST Full Reel Showcase AFTER
+  const gridEndFrame = 120;
   const isGridPhase = frame < gridEndFrame;
 
   const spotlightFrame = Math.max(0, frame - gridEndFrame);
-  const spotlightDurationPerImage = 33; // ~1.1s per photo
+  const spotlightDurationPerImage = 36; // ~1.2s per photo
   const currentSpotlightIndex = !isGridPhase && imageList.length > 0
     ? Math.min(imageList.length - 1, Math.floor(spotlightFrame / spotlightDurationPerImage))
     : 0;
 
   const spotlightLocalFrame = spotlightFrame % spotlightDurationPerImage;
-  const spotlightOpacity = interpolate(
+
+  // FAST Left / Right Slide Entry
+  const isEven = currentSpotlightIndex % 2 === 0;
+  const startX = isEven ? -width : width;
+
+  const slideX = interpolate(
     spotlightLocalFrame,
-    [0, 8, spotlightDurationPerImage - 8, spotlightDurationPerImage],
-    [0, 1, 1, 0],
+    [0, 8], // Fast 8-frame snappy slide entry
+    [startX, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
@@ -69,29 +74,11 @@ export const WhiteCardGrid3x3: React.FC<WhiteCardGrid3x3Props> = ({
   return (
     <AbsoluteFill
       style={{
-        background: "linear-gradient(135deg,#fafafa,#ececec)",
+        background: "#000000",
         overflow: "hidden",
-        transform: `scale(${beatScale})`,
       }}
     >
-      {/* Title */}
-      <div
-        style={{
-          position: "absolute",
-          top: 45,
-          width: "100%",
-          textAlign: "center",
-          fontSize: 38,
-          fontWeight: 600,
-          letterSpacing: 4,
-          color: "#333",
-          zIndex: 30,
-        }}
-      >
-        GALLERY HIGHLIGHTS
-      </div>
-
-      {/* PHASE 1: 3x3 Card Grid Collage FIRST (Frames 0 - 150) */}
+      {/* PHASE 1: 3x3 Card Grid Collage FIRST (Frames 0 - 120) */}
       {isGridPhase && (
         <div
           style={{
@@ -99,11 +86,12 @@ export const WhiteCardGrid3x3: React.FC<WhiteCardGrid3x3Props> = ({
             width: "100%",
             height: "100%",
             overflow: "hidden",
-            opacity: interpolate(frame, [0, 15, 135, 150], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
+            transform: `scale(${beatScale})`,
+            opacity: interpolate(frame, [0, 10, 110, 120], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
           }}
         >
           {positions.map((pos, index) => {
-            const localFrame = Math.max(frame - index * 4, 0);
+            const localFrame = Math.max(frame - index * 3, 0);
             const entrance = spring({
               frame: localFrame,
               fps,
@@ -112,8 +100,8 @@ export const WhiteCardGrid3x3: React.FC<WhiteCardGrid3x3Props> = ({
 
             const imageScale =
               index === 0
-                ? interpolate(frame, [0, 150], [1, 1.08])
-                : interpolate(frame, [0, 150], [1, 1.03]);
+                ? interpolate(frame, [0, 120], [1, 1.08])
+                : interpolate(frame, [0, 120], [1, 1.03]);
 
             const floatY = Math.sin((frame + index * 10) / 20) * 3;
 
@@ -127,12 +115,12 @@ export const WhiteCardGrid3x3: React.FC<WhiteCardGrid3x3Props> = ({
                   width: pos.width,
                   height: pos.height,
                   background: "#fff",
-                  borderRadius: 22,
-                  border: "8px solid white",
+                  borderRadius: 18,
+                  border: "6px solid white",
                   overflow: "hidden",
                   opacity: entrance,
                   transform: `translateY(${40 * (1 - entrance) + floatY}px)`,
-                  boxShadow: "0 12px 40px rgba(0,0,0,.18)",
+                  boxShadow: "0 12px 40px rgba(0,0,0,.3)",
                 }}
               >
                 <Img
@@ -151,44 +139,29 @@ export const WhiteCardGrid3x3: React.FC<WhiteCardGrid3x3Props> = ({
         </div>
       )}
 
-      {/* PHASE 2: 1-by-1 Full Photos Showcase AFTER (Frames 150 - 450) */}
+      {/* PHASE 2: 1-by-1 FULL REEL Showcase (No Text, Fast Left/Right Slide) (Frames 120 - 450) */}
       {!isGridPhase && imageList[currentSpotlightIndex] && (
         <div
           style={{
             position: "absolute",
             inset: 0,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: 40,
-            paddingTop: 100,
-            opacity: spotlightOpacity,
+            width: "100%",
+            height: "100%",
+            transform: `translateX(${slideX}px) scale(${beatScale})`,
             zIndex: 20,
+            overflow: "hidden",
           }}
         >
-          <div
+          <AnimatedImage
+            src={imageList[currentSpotlightIndex].path}
+            animation="kenBurns"
+            durationInFrames={spotlightDurationPerImage}
             style={{
               width: "100%",
-              height: "80%",
-              borderRadius: 28,
-              overflow: "hidden",
-              boxShadow: "0 25px 60px rgba(0,0,0,0.22)",
-              background: "#fff",
-              border: "10px solid white",
-              position: "relative",
+              height: "100%",
+              objectFit: "cover",
             }}
-          >
-            <AnimatedImage
-              src={imageList[currentSpotlightIndex].path}
-              animation="kenBurns"
-              durationInFrames={spotlightDurationPerImage}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
-          </div>
+          />
         </div>
       )}
     </AbsoluteFill>

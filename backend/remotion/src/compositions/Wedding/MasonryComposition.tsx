@@ -28,8 +28,7 @@ interface WhiteCardMasonryProps {
 
 export const WhiteCardMasonry: React.FC<WhiteCardMasonryProps> = ({
   images = [],
-  backgroundColor = "#f5f5f5",
-  title = "MASONRY GALLERY",
+  backgroundColor = "#000000",
   beatTimestamps = [],
 }) => {
   const frame = useCurrentFrame();
@@ -38,29 +37,34 @@ export const WhiteCardMasonry: React.FC<WhiteCardMasonryProps> = ({
 
   const imageList = images.slice(0, 8);
   
-  // Phase 1 (0 to 150 frames / 0-5s): Collage FIRST
-  // Phase 2 (150 to 450 frames / 5-15s): 1-by-1 Full Images AFTER
-  const gridEndFrame = 150;
+  // Phase 1 (0 to 120 frames / 0-4s): Masonry Collage FIRST
+  // Phase 2 (120 to 450 frames / 4-15s): 1-by-1 FAST Full Reel Showcase AFTER
+  const gridEndFrame = 120;
   const isGridPhase = frame < gridEndFrame;
 
   const spotlightFrame = Math.max(0, frame - gridEndFrame);
-  const spotlightDurationPerImage = 37; // ~1.23s per photo
+  const spotlightDurationPerImage = 41; // ~1.37s per photo
   const currentSpotlightIndex = !isGridPhase && imageList.length > 0
     ? Math.min(imageList.length - 1, Math.floor(spotlightFrame / spotlightDurationPerImage))
     : 0;
 
   const spotlightLocalFrame = spotlightFrame % spotlightDurationPerImage;
-  const spotlightOpacity = interpolate(
+
+  // FAST Left / Right Slide Entry
+  const isEven = currentSpotlightIndex % 2 === 0;
+  const startX = isEven ? -width : width;
+
+  const slideX = interpolate(
     spotlightLocalFrame,
-    [0, 8, spotlightDurationPerImage - 8, spotlightDurationPerImage],
-    [0, 1, 1, 0],
+    [0, 8], // Fast 8-frame snappy slide entry
+    [startX, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
   const page1 = imageList.slice(0, 6);
   const page2 = imageList.slice(2, 8);
 
-  const slideStart = 60; // relative to frame
+  const slideStart = 50;
 
   const page1X = interpolate(
     frame,
@@ -77,7 +81,7 @@ export const WhiteCardMasonry: React.FC<WhiteCardMasonryProps> = ({
   );
 
   const renderCard = (img: ImageItem, index: number) => {
-    const delay = index * 3;
+    const delay = index * 2;
     const enter = spring({
       fps,
       frame: frame - delay,
@@ -93,9 +97,9 @@ export const WhiteCardMasonry: React.FC<WhiteCardMasonryProps> = ({
         style={{
           flex: 1,
           overflow: "hidden",
-          borderRadius: 24,
-          background: "#fff",
-          boxShadow: "0 20px 50px rgba(0,0,0,.18)",
+          borderRadius: 16,
+          background: "#111",
+          boxShadow: "0 10px 30px rgba(0,0,0,.5)",
           transform: `translateY(${y}px) scale(${scale})`,
         }}
       >
@@ -105,13 +109,6 @@ export const WhiteCardMasonry: React.FC<WhiteCardMasonryProps> = ({
             width: "100%",
             height: "100%",
             objectFit: "cover",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "linear-gradient(180deg,transparent,rgba(0,0,0,.2))",
           }}
         />
       </div>
@@ -128,15 +125,14 @@ export const WhiteCardMasonry: React.FC<WhiteCardMasonryProps> = ({
           position: "absolute",
           inset: 0,
           display: "flex",
-          gap: 20,
-          padding: 30,
-          paddingTop: 100,
+          gap: 16,
+          padding: 20,
         }}
       >
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 20 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
           {left.map((img, i) => renderCard(img, i * 2))}
         </div>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 20 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
           {right.map((img, i) => renderCard(img, i * 2 + 1))}
         </div>
       </div>
@@ -148,35 +144,16 @@ export const WhiteCardMasonry: React.FC<WhiteCardMasonryProps> = ({
       style={{
         background: backgroundColor,
         overflow: "hidden",
-        transform: `scale(${beatScale})`,
       }}
     >
-      {/* Title */}
-      {title && (
-        <div
-          style={{
-            position: "absolute",
-            top: 45,
-            width: "100%",
-            textAlign: "center",
-            fontSize: 38,
-            fontWeight: 600,
-            letterSpacing: 4,
-            color: "#222",
-            zIndex: 30,
-          }}
-        >
-          {title}
-        </div>
-      )}
-
-      {/* PHASE 1: Masonry Wall Collage FIRST (Frames 0 - 150) */}
+      {/* PHASE 1: Masonry Wall Collage FIRST (Frames 0 - 120) */}
       {isGridPhase && (
         <div
           style={{
             position: "absolute",
             inset: 0,
-            opacity: interpolate(frame, [0, 15, 135, 150], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
+            transform: `scale(${beatScale})`,
+            opacity: interpolate(frame, [0, 10, 110, 120], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
           }}
         >
           <div
@@ -201,43 +178,29 @@ export const WhiteCardMasonry: React.FC<WhiteCardMasonryProps> = ({
         </div>
       )}
 
-      {/* PHASE 2: 1-by-1 Full Photos Showcase AFTER (Frames 150 - 450) */}
+      {/* PHASE 2: 1-by-1 FULL REEL Showcase (No Text, Fast Left/Right Slide) (Frames 120 - 450) */}
       {!isGridPhase && imageList[currentSpotlightIndex] && (
         <div
           style={{
             position: "absolute",
             inset: 0,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: 40,
-            paddingTop: 100,
-            opacity: spotlightOpacity,
+            width: "100%",
+            height: "100%",
+            transform: `translateX(${slideX}px) scale(${beatScale})`,
             zIndex: 20,
+            overflow: "hidden",
           }}
         >
-          <div
+          <AnimatedImage
+            src={imageList[currentSpotlightIndex].path}
+            animation="kenBurns"
+            durationInFrames={spotlightDurationPerImage}
             style={{
               width: "100%",
-              height: "80%",
-              borderRadius: 28,
-              overflow: "hidden",
-              boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
-              background: "#fff",
-              position: "relative",
+              height: "100%",
+              objectFit: "cover",
             }}
-          >
-            <AnimatedImage
-              src={imageList[currentSpotlightIndex].path}
-              animation="kenBurns"
-              durationInFrames={spotlightDurationPerImage}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
-          </div>
+          />
         </div>
       )}
     </AbsoluteFill>

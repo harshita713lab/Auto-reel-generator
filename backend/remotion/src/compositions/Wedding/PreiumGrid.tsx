@@ -26,47 +26,39 @@ interface PremiumGridProps {
   beatTimestamps?: number[];
 }
 
-const glassCardStyle = {
-  background: "rgba(255,255,255,.12)",
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
-  border: "1px solid rgba(255,255,255,.18)",
-  borderRadius: 22,
-  overflow: "hidden" as const,
-  boxShadow: "0 12px 40px rgba(0,0,0,.28)",
-  position: "relative" as const,
-};
-
 export const PremiumGrid: React.FC<PremiumGridProps> = ({
   images = [],
-  backgroundColor = "linear-gradient(135deg,#0a0a1a,#1a1a3e)",
+  backgroundColor = "#000000",
   gap = 16,
-  title = "PREMIUM REEL",
   beatTimestamps = [],
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width } = useVideoConfig();
   const beatScale = getBeatScale(frame, fps, beatTimestamps);
 
   const imageList = images.slice(0, 4);
   
-  // Timeline setup for 15 Seconds (450 frames at 30 fps)
-  // Phase 1 (0 to 130 frames / ~4.3s): Collage Grid FIRST
-  // Phase 2 (130 to 450 frames / ~10.7s): 1-by-1 Full Images AFTER
-  const gridEndFrame = 130;
+  // Phase 1 (0 to 120 frames / 0-4s): 2x2 Collage Grid FIRST
+  // Phase 2 (120 to 450 frames / 4-15s): 1-by-1 FAST Full Reel Showcase AFTER
+  const gridEndFrame = 120;
   const isGridPhase = frame < gridEndFrame;
 
   const spotlightFrame = Math.max(0, frame - gridEndFrame);
-  const spotlightDuration = 80; // ~2.67s per photo full showcase
+  const spotlightDurationPerImage = 82; // ~2.73s per photo
   const currentSpotlightIndex = !isGridPhase && imageList.length > 0
-    ? Math.min(imageList.length - 1, Math.floor(spotlightFrame / spotlightDuration))
+    ? Math.min(imageList.length - 1, Math.floor(spotlightFrame / spotlightDurationPerImage))
     : 0;
 
-  const spotlightLocalFrame = spotlightFrame % spotlightDuration;
-  const spotlightOpacity = interpolate(
+  const spotlightLocalFrame = spotlightFrame % spotlightDurationPerImage;
+
+  // FAST Left / Right Slide Entry (-width if even index, +width if odd index)
+  const isEven = currentSpotlightIndex % 2 === 0;
+  const startX = isEven ? -width : width;
+
+  const slideX = interpolate(
     spotlightLocalFrame,
-    [0, 10, spotlightDuration - 10, spotlightDuration],
-    [0, 1, 1, 0],
+    [0, 10], // Fast 10-frame (~0.33s) snappy slide entry
+    [startX, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
@@ -74,59 +66,12 @@ export const PremiumGrid: React.FC<PremiumGridProps> = ({
     <AbsoluteFill
       style={{
         background: backgroundColor,
-        padding: 30,
         justifyContent: "center",
         alignItems: "center",
         overflow: "hidden",
       }}
     >
-      {/* Gold Corner Decorations */}
-      {[
-        { top: 18, left: 18 },
-        { top: 18, right: 18 },
-        { bottom: 18, left: 18 },
-        { bottom: 18, right: 18 },
-      ].map((corner, i) => (
-        <div
-          key={i}
-          style={{
-            position: "absolute",
-            width: 42,
-            height: 42,
-            top: corner.top,
-            bottom: corner.bottom,
-            left: corner.left,
-            right: corner.right,
-            borderTop: corner.top !== undefined ? "2px solid rgba(255,215,0,.45)" : undefined,
-            borderBottom: corner.bottom !== undefined ? "2px solid rgba(255,215,0,.45)" : undefined,
-            borderLeft: corner.left !== undefined ? "2px solid rgba(255,215,0,.45)" : undefined,
-            borderRight: corner.right !== undefined ? "2px solid rgba(255,215,0,.45)" : undefined,
-            zIndex: 30,
-          }}
-        />
-      ))}
-
-      {/* Clean Title */}
-      {title && (
-        <div
-          style={{
-            position: "absolute",
-            top: 45,
-            width: "100%",
-            textAlign: "center",
-            color: "#ffffff",
-            fontSize: 38,
-            fontWeight: 700,
-            letterSpacing: 3,
-            zIndex: 30,
-            textShadow: "0 2px 10px rgba(0,0,0,0.6)",
-          }}
-        >
-          {title}
-        </div>
-      )}
-
-      {/* PHASE 1: Grand 2x2 Premium Grid Collage FIRST (Frames 0 - 130) */}
+      {/* PHASE 1: 2x2 Collage Grid FIRST (Frames 0 - 120) */}
       {isGridPhase && (
         <div
           style={{
@@ -136,22 +81,25 @@ export const PremiumGrid: React.FC<PremiumGridProps> = ({
             gridTemplateColumns: "1fr 1fr",
             gridTemplateRows: "1fr 1fr",
             gap,
-            paddingTop: 80,
+            padding: 20,
             transform: `scale(${beatScale})`,
-            opacity: interpolate(frame, [0, 15, 115, 130], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
+            opacity: interpolate(frame, [0, 10, 110, 120], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
           }}
         >
           {imageList.map((img, index) => (
             <div
               key={index}
               style={{
-                ...glassCardStyle,
+                borderRadius: 16,
+                overflow: "hidden",
+                position: "relative",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
               }}
             >
               <AnimatedImage
                 src={img.path}
                 animation="kenBurns"
-                durationInFrames={130}
+                durationInFrames={120}
                 style={{
                   width: "100%",
                   height: "100%",
@@ -165,39 +113,32 @@ export const PremiumGrid: React.FC<PremiumGridProps> = ({
             <div
               key={`empty-${index}`}
               style={{
-                ...glassCardStyle,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "rgba(255,255,255,.25)",
-                fontSize: 60,
-                fontWeight: 300,
-                background: "rgba(255,255,255,.05)",
+                borderRadius: 16,
+                overflow: "hidden",
+                background: "rgba(255,255,255,.08)",
               }}
-            >
-              +
-            </div>
+            />
           ))}
         </div>
       )}
 
-      {/* PHASE 2: 1-by-1 Full-Screen Images Showcase AFTER (Frames 130 - 450) */}
+      {/* PHASE 2: 1-by-1 FULL REEL Showcase (No Text, Fast Left/Right Slide) (Frames 120 - 450) */}
       {!isGridPhase && imageList[currentSpotlightIndex] && (
         <div
           style={{
-            width: "90%",
-            height: "80%",
-            marginTop: 30,
-            opacity: spotlightOpacity,
-            transform: `scale(${beatScale})`,
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            transform: `translateX(${slideX}px) scale(${beatScale})`,
             zIndex: 20,
-            ...glassCardStyle,
+            overflow: "hidden",
           }}
         >
           <AnimatedImage
             src={imageList[currentSpotlightIndex].path}
             animation="kenBurns"
-            durationInFrames={spotlightDuration}
+            durationInFrames={spotlightDurationPerImage}
             style={{
               width: "100%",
               height: "100%",
