@@ -75,7 +75,7 @@ export const Root: React.FC = () => {
         calculateMetadata={async ({ props }) => {
           const typedProps = props as any;
           const { generateScenes } = await import("./utils/SceneGenrator");
-          const scenes = generateScenes(typedProps.images || []);
+          const scenes = generateScenes(typedProps.images || [], typedProps.beatTimestamps || []);
           const totalFrames = scenes.reduce(
             (sum: number, scene: any) => sum + scene.duration,
             0
@@ -107,7 +107,7 @@ export const Root: React.FC = () => {
   fps={30}
   width={1080}
   height={1920}
-  durationInFrames={300}
+  durationInFrames={450}
   defaultProps={{
     images: [],
     music: undefined,
@@ -127,7 +127,7 @@ export const Root: React.FC = () => {
 
     return {
       durationInFrames: Math.max(
-        30,
+        450,
         images.length * slideDuration * 30
       ),
     };
@@ -169,7 +169,7 @@ export const Root: React.FC = () => {
     const groups = Math.max(1, Math.ceil(images.length / 6));
 
     return {
-      durationInFrames: groups * 240, // 4 sec per stack (30fps)
+      durationInFrames: Math.max(450, groups * 240), // min 15 sec
     };
   }}
   defaultProps={{
@@ -190,7 +190,7 @@ export const Root: React.FC = () => {
  fps={30}
  width={1080}
  height={1920}
- durationInFrames={180}
+ durationInFrames={450}
  defaultProps={{
    images:[],
    music:undefined
@@ -202,7 +202,7 @@ export const Root: React.FC = () => {
   width={1080}
   height={1920}
   fps={30}
-  durationInFrames={120}
+  durationInFrames={450}
   defaultProps={{
     images: [],
     slideDuration: 4,
@@ -232,7 +232,7 @@ export const Root: React.FC = () => {
   width={1080}
   height={1920}
   fps={30}
-  durationInFrames={300}
+  durationInFrames={450}
   defaultProps={{
     images: [],
     music: undefined,

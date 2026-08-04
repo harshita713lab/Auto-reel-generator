@@ -10,6 +10,8 @@ import {
 //import { MusicPlayer } from "../../components";
 
 
+import { getBeatScale } from "../../utils/beatUtils";
+
 interface ImageItem {
   path: string;
 }
@@ -25,6 +27,7 @@ interface WhiteCardMasonryProps {
 
   backgroundColor?:string;
   title?:string;
+  beatTimestamps?: number[];
 }
 
 
@@ -33,12 +36,14 @@ export const WhiteCardMasonry:React.FC<WhiteCardMasonryProps> = ({
   images=[],
   music,
   backgroundColor="#f5f5f5",
-  title="Memories"
+  title="Memories",
+  beatTimestamps=[],
 })=>{
 
 
 const frame = useCurrentFrame();
 const {fps,width} = useVideoConfig();
+const beatScale = getBeatScale(frame, fps, beatTimestamps);
 
 
 
@@ -273,7 +278,8 @@ return (
 <AbsoluteFill
 style={{
 background:backgroundColor,
-overflow:"hidden"
+overflow:"hidden",
+transform: `scale(${beatScale})`
 }}
 >
 

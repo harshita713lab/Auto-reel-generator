@@ -8,6 +8,8 @@ import {
   useVideoConfig,
 } from "remotion";
 //import { MusicPlayer } from "../../components";
+import { getBeatScale } from "../../utils/beatUtils";
+
 interface ImageItem {
   path: string;
 }
@@ -22,6 +24,7 @@ interface WhiteCardPolaroidStackProps {
   backgroundColor?: string;
   cardColor?: string;
   showCounter?: boolean;
+  beatTimestamps?: number[];
 }
 
 export const WhiteCardPolaroidStack: React.FC<
@@ -34,9 +37,11 @@ export const WhiteCardPolaroidStack: React.FC<
   backgroundColor = "#f7f7f7",
   cardColor = "#ffffff",
   showCounter = true,
+  beatTimestamps = [],
 }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
+  const beatScale = getBeatScale(frame, fps, beatTimestamps);
 
   const imageList = images.slice(0, 8);
 
@@ -46,6 +51,7 @@ export const WhiteCardPolaroidStack: React.FC<
         background: backgroundColor,
         justifyContent: "center",
         alignItems: "center",
+        transform: `scale(${beatScale})`,
       }}
     >
       

@@ -9,6 +9,7 @@ import {
 } from "remotion";
 
 import { AnimatedImage } from "../../components";
+import { getBeatScale } from "../../utils/beatUtils";
 
 interface PremiumGridProps {
   images?: Array<{ path: string }>;
@@ -42,6 +43,7 @@ interface PremiumGridProps {
     | "golden";
 
   showCounter?: boolean;
+  beatTimestamps?: number[];
 }
 
 const getEffect = (
@@ -159,11 +161,13 @@ export const PremiumGrid: React.FC<PremiumGridProps> = ({
   effect = "cinematic",
 
   showCounter = true,
+  beatTimestamps = [],
 }) => {
 
   const frame = useCurrentFrame();
 
   const { fps } = useVideoConfig();
+  const beatScale = getBeatScale(frame, fps, beatTimestamps);
 
   const durationInFrames =
     Math.round(slideDuration * fps);
@@ -275,6 +279,7 @@ export const PremiumGrid: React.FC<PremiumGridProps> = ({
           paddingTop: 80,
 
           ...transitionStyle,
+          transform: `${transitionStyle.transform || ''} scale(${beatScale})`,
         }}
       >
         {imageList.map((img, index) => (

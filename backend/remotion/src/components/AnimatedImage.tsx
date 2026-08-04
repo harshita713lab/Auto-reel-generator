@@ -108,6 +108,12 @@ const frame = Math.max(0, globalFrame - startFrame);
       });
   }
 
+  // Beat Micro-Zoom Effect (1.05x pulse during the first 6 frames of a scene transition)
+  const beatPulse = interpolate(frame, [0, 3, 6], [1.05, 1.02, 1], {
+    extrapolateRight: "clamp",
+  });
+  const finalScale = scale * beatPulse;
+
   return (
     <AbsoluteFill
       style={{
@@ -123,7 +129,7 @@ const frame = Math.max(0, globalFrame - startFrame);
 
           transform: `
             translate(${x}px, ${y}px)
-            scale(${scale})
+            scale(${finalScale})
             rotate(${rotate}deg)
           `,
 

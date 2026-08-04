@@ -18,64 +18,38 @@ import {
 } from "../../components";
 
 interface WeddingCompositionProps {
-
   images?: Array<{
-
     path: string;
-
     duration: number;
-
     animation: string;
-
     transition: string;
-
   }>;
 
-
-
   music?: {
-
     path: string;
-
     volume?: number;
-
   };
 
-
+  beatTimestamps?: number[];
 
   config?: {
-
     backgroundColor?: string;
-
     effects?: string[];
-
   };
-
 }
 
-
-
 const WeddingComposition: React.FC<WeddingCompositionProps> = ({
-
   images = [],
-
   music,
-
+  beatTimestamps = [],
   config = {},
-
 }) => {
-
   const {
-
     backgroundColor = "#000",
-
     effects = ["vignette"],
-
   } = config;
 
-
-
-  const scenes = generateScenes(images);
+  const scenes = generateScenes(images, beatTimestamps);
 
 
 

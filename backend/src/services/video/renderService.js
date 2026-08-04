@@ -9,7 +9,7 @@ const fileService = require('../storage/fileService');
 const { DIRECTORIES } = require('../../config/constants');
 
 class RenderService {
-  constructor() {
+  constructor() { 
     this.renderDir = DIRECTORIES.RENDERS;
     this.tempDir = DIRECTORIES.TEMP;
   }
@@ -36,26 +36,30 @@ class RenderService {
       // Prepare input props for Remotion
       // Convert filesystem paths to absolute web URLs for Chromium/Remotion
       const serverBaseUrl = `http://localhost:${process.env.PORT || 5000}`;
-      const audioUrl = audioPath
-        ? `${serverBaseUrl}/assets/music/${path.basename(audioPath)}`
-        : null;
+      let audioUrl = null;
+      if (audioPath) {
+        const subfolder = audioPath.includes('songs') ? 'songs' : 'music';
+        audioUrl = `${serverBaseUrl}/assets/${subfolder}/${path.basename(audioPath)}`;
+      }
 
-      const images = reel.images.map(img => ({
-        path: `${serverBaseUrl}/uploads/images/${path.basename(img.path)}`,
-        duration: img.duration || 3,
-        animation: img.animation || "kenBurns",
-        transition: img.transition || "fade"
-      }));
+      const images = reel.images.map(img => {
+        let imageWebUrl = img.path;
+        if (img.path && !img.path.startsWith('http://') && !img.path.startsWith('https://')) {
+          imageWebUrl = `${serverBaseUrl}/uploads/images/${path.basename(img.path)}`;
+        }
+        return {
+          path: imageWebUrl,
+          duration: img.duration || 3,
+          animation: img.animation || "kenBurns",
+          transition: img.transition || "fade"
+        };
+      });
       console.log("REEL IMAGES");
       console.log(reel.images);
       const inputProps = {
         images,
-        music: audioUrl
-          ? {
-              path: audioUrl,
-              volume: 1,
-            }
-          : null,
+        music: null, // Set to null to bypass Remotion internal audio compositor & Windows Defender blocks
+        beatTimestamps: reel.beatTimestamps || [],
         config: {
           width: 1080,
           height: 1920,
@@ -120,16 +124,10 @@ console.log(
         inputProps,
       });
 
-      // Post-process with FFmpeg
-      let processedPath = await this.postProcess(result.outputPath, {
-        quality,
-        format,
-        width,
-        height,
-        fps,
-      });
+      // Use Remotion H.264 rendered output directly (avoids 3+ minutes of redundant re-encoding)
+      let processedPath = result.outputPath;
 
-      // Add music/audio to the video via FFmpeg (Remotion compositions don't render audio)
+      // Add music/audio to the video via FFmpeg (fast stream copy < 1 second)
       if (audioPath) {
         try {
           const audioFile = fsSync.existsSync(audioPath) ? audioPath : null;
@@ -175,8 +173,12 @@ console.log(
       console.log("Final Exists     :", fsSync.existsSync(finalPath.path));
       console.log("Final Path       :", finalPath.path);
 
-      // Clean up temp files
-      await fileService.cleanupTemp();
+      // Clean up temp files safely
+      try {
+        await fileService.cleanupTemp();
+      } catch (cleanupErr) {
+        logger.warn("Non-critical temp cleanup warning:", cleanupErr.message);
+      }
 
       // Build web-accessible URLs (relative paths for static serving)
       // FIXED: Videos are served from /output/renders/ and /output/previews/

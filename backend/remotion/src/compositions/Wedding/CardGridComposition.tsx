@@ -9,28 +9,31 @@ import {
 } from "remotion";
 //import { MusicPlayer } from "../../components";
 
+import { getBeatScale } from "../../utils/beatUtils";
+
 interface WhiteCardGrid3x3Props {
   images?: Array<{ path: string }>;
   music?: {
     path: string;
     volume?: number;
   };
+  beatTimestamps?: number[];
 }
 
 export const WhiteCardGrid3x3: React.FC<WhiteCardGrid3x3Props> = ({
   images = [],
   music,
+  beatTimestamps = [],
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
-
-  const imageList = images.slice(0, 9);
+  const beatScale = getBeatScale(frame, fps, beatTimestamps);
 
   const cameraScale = interpolate(
     frame,
     [0, durationInFrames],
     [1, 1.05]
-  );
+  ) * beatScale;
 const positions = [
   // Hero
   { left: 90, top: 60, width: 900, height: 650 },

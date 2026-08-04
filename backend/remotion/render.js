@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import fs from 'fs';
 
+import { execSync } from 'child_process';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -36,7 +38,31 @@ const {
   images = [],
   music = null,
   config = {},
+  beatTimestamps = [],
 } = inputProps;
+
+// ============================================================
+// ✅ AUTO-FIX BUGGY REMOTION FFMPEG BINARY (325KB MSVC crash fix)
+// ============================================================
+function fixRemotionFFmpeg() {
+    try {
+        const targetFFmpeg = path.join(__dirname, 'node_modules/@remotion/compositor-win32-x64-msvc/ffmpeg.exe');
+        if (fs.existsSync(path.dirname(targetFFmpeg))) {
+            const targetStats = fs.existsSync(targetFFmpeg) ? fs.statSync(targetFFmpeg) : null;
+            if (!targetStats || targetStats.size < 5 * 1024 * 1024) {
+                const systemFFmpeg = execSync('where ffmpeg', { encoding: 'utf8' }).trim().split(/[\r\n]+/)[0];
+                if (systemFFmpeg && fs.existsSync(systemFFmpeg)) {
+                    console.log(`🛠️ Replacing broken Remotion ffmpeg.exe (${targetStats ? targetStats.size : 0} B) with working system FFmpeg (${systemFFmpeg})...`);
+                    fs.copyFileSync(systemFFmpeg, targetFFmpeg);
+                    console.log(`✅ Successfully replaced Remotion FFmpeg binary!`);
+                }
+            }
+        }
+    } catch (err) {
+        console.log(`⚠️ Note on FFmpeg auto-replace:`, err.message);
+    }
+}
+try { fixRemotionFFmpeg(); } catch(e) {}
 
 console.log(`\n🎬 Starting Remotion Render for ${images.length} images...`);
 
@@ -63,14 +89,18 @@ try {
 
     // Step 2: Select Composition
     console.log(`🎬 Selecting composition...`);
+   const renderInputProps = {
+    ...(inputProps || {}),
+    images,
+    config,
+    beatTimestamps,
+    music: null, // Bypass Remotion audio compositor (prevents Windows Defender blocks & code 3236495362)
+   };
+
    const composition = await selectComposition({
     serveUrl: bundleLocation,
-    id: compositionId,   // ✅ Dynamic
-    inputProps: {
-      images,
-      music,
-      config,
-    },
+    id: compositionId,
+    inputProps: renderInputProps,
     chromiumOptions,
 });
     // Step 3: Render
@@ -80,15 +110,10 @@ try {
     serveUrl: bundleLocation,
     codec: "h264",
     outputLocation: outputPath,
-
-    inputProps: {
-        images,
-        music,
-        config,
-    },
-
+    inputProps: renderInputProps,
     concurrency: 1,
     chromiumOptions,
+    muted: true,
 });
 
     if (fs.existsSync(outputPath)) {

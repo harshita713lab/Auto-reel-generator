@@ -54,13 +54,27 @@ function nextTransition(index: number): string {
   return transitions[index % transitions.length];
 }
 
-export function generateScenes(images: ReelImage[]): Scene[] {
+export function generateScenes(images: ReelImage[], beatTimestamps?: number[]): Scene[] {
   const scenes: Scene[] = [];
+  const fps = 30;
+
+  // Convert beat timestamps (in seconds) to frame numbers
+  const beatFrames: number[] = (beatTimestamps && Array.isArray(beatTimestamps) && beatTimestamps.length > 0)
+    ? beatTimestamps.map(ts => Math.round(ts * fps)).filter(f => f > 0).sort((a, b) => a - b)
+    : [];
 
   for (let i = 0; i < images.length; i += 4) {
-
     const group = images.slice(i, i + 4);
-const collageDuration = scenes.length === 0 ? 120 : 45;
+
+    // Calculate collage scene duration from beat frames if available
+    let collageDuration = scenes.length === 0 ? 120 : 45;
+    if (beatFrames.length > scenes.length) {
+      const prevBeatFrame = scenes.length > 0 ? beatFrames[scenes.length - 1] : 0;
+      const targetBeatFrame = beatFrames[scenes.length];
+      if (targetBeatFrame > prevBeatFrame) {
+        collageDuration = Math.max(15, targetBeatFrame - prevBeatFrame);
+      }
+    }
 
     // Collage Scene
     scenes.push({
@@ -80,14 +94,24 @@ const collageDuration = scenes.length === 0 ? 120 : 45;
     });
 
     // Single Scenes
-    group.forEach((img,index
-    ) => {
+    group.forEach((img, index) => {
+      let singleDuration = 60;
+      const currentSceneIndex = scenes.length;
+      
+      if (beatFrames.length > currentSceneIndex) {
+        const prevBeatFrame = currentSceneIndex > 0 ? beatFrames[currentSceneIndex - 1] : 0;
+        const targetBeatFrame = beatFrames[currentSceneIndex];
+        if (targetBeatFrame > prevBeatFrame) {
+          singleDuration = Math.max(15, targetBeatFrame - prevBeatFrame);
+        }
+      }
+
       scenes.push({
         layout: "hero",
         images: [img],
         animation: index % 2 === 0 ? "slideLeft" : "slideRight",
         transition: "zoom",
-        duration: 60,
+        duration: singleDuration,
       });
     });
   }
