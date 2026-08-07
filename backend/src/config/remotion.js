@@ -10,7 +10,7 @@ class RemotionConfig {
     this.remotionSrc = path.join(DIRECTORIES.REMOTION, 'src');
     this.outputDir = DIRECTORIES.RENDERS;
     this.concurrency = env.REMOTION_CONCURRENCY || 1;
-    this.timeout = 300 * 1000; // 5 minutes
+    this.timeout = 600 * 1000; // 10 minutes timeout for 11+ image reels
   }
 validateCompositionName(compositionName) {
     const validCompositions = [
