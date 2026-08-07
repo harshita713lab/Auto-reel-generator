@@ -42,31 +42,58 @@ An automated short video/reel generation platform powered by **Node.js**, **Expr
 ```text
 Auto-reel-generator/
 ├── backend/
-│   ├── output/                   # Rendered videos (.mp4) and previews
-│   ├── remotion/                 # Remotion React compositions & TS code
+│   ├── src/
+│   │   ├── routes/
+│   │   │   ├── healthRoutes.js    
+│   │   │   ├── templateRoutes.js    
+│   │   │   ├── renderRoutes.js      
+│   │   │   ├── musicRoutes.js       
+│   │   │   └── uploadRoutes.js    
+│   │   └── utils/
+│   │       ├── helpers.js          
+│   │       ├── math.js            
+│   │       ├── random.js           
+│   │       └── duration.js          
+│   ├── remotion/
 │   │   ├── package.json
 │   │   ├── tsconfig.json
 │   │   └── src/
-│   │       ├── compositions/     # Reel compositions (Wedding, Grid, WhiteCard, etc.)
-│   │       ├── components/       # Animated Image & video sub-components
-│   │       ├── hooks/            # Animation & transition hooks
-│   │       └── utils/            # Remotion helper functions
-│   ├── src/
-│   │   ├── config/               # FFmpeg, Remotion, Database & Env configs
-│   │   ├── controllers/          # API Controllers (Reel, Render, Music, Upload)
-│   │   ├── models/               # Mongoose schemas (Reel, Music, Template)
-│   │   ├── routes/               # Express API routes
-│   │   ├── services/             # Video, Audio, & Storage services
-│   │   └── utils/                # Logger & utility helpers
-│   ├── tests/                    # Remotion & Reel test scripts
-│   ├── package.json
-│   └── server.js                 # Express server entry point
+│   │       ├── index.tsx            
+│   │       ├── Root.tsx            
+│   │       ├── layouts/             
+│   │       │   ├── hero.ts         
+│   │       │   ├── grid2.ts        
+│   │       │   ├── grid3.ts        
+│   │       │   ├── grid4.ts         
+│   │       │   ├── grid6.ts       
+│   │       │   ├── mosaic.ts       
+│   │       │   ├── index.ts        
+│   │       │   └── types.ts        
+│   │       └── animations/       
+│   │           ├── panUp.ts         
+│   │           ├── panDown.ts       
+│   │           ├── panLeft.ts      
+│   │           └── panRight.ts      
+│   └── uploads/
+│       └── images/                  
 ├── Frontend/
-│   ├── src/                      # React frontend components, pages, & assets
-│   ├── index.html
-│   ├── vite.config.js
-│   └── package.json
-└── README.md
+│   ├── index.html               
+│   ├── vite.config.js            
+│   ├── package.json              
+│   └── src/
+│       ├── main.jsx               
+│       ├── assets/
+│       │   ├── font/              
+│       │   └── logo/                
+│       ├── components/
+│       │   ├── ImageCard.jsx       
+│       │   └── ImagePreview.jsx     
+│       └── pages/
+│           ├── HomePage.jsx         
+│           └── AllReels.jsx         
+└── server-test.log  
+|__README.md             
+
 ```
 
 ---
