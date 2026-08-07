@@ -18,7 +18,7 @@ export const WhipTransition: React.FC<WhipTransitionProps> = ({
 }) => {
   const frame = useCurrentFrame();
   const progress = Math.max(0, Math.min((frame - delay) / durationInFrames, 1));
-  const eased = Easing.easeInOut(progress);
+  const eased = Easing.inOut(Easing.ease)(progress);
 
   // Whip pan - fast movement with overshoot
   let x = 0;
@@ -72,7 +72,7 @@ export const WhipTransition: React.FC<WhipTransitionProps> = ({
 export const WhipStreakTransition: React.FC<WhipTransitionProps> = (props) => {
   const frame = useCurrentFrame();
   const progress = Math.max(0, Math.min((frame - (props.delay || 0)) / (props.durationInFrames || 20), 1));
-  const eased = Easing.easeInOut(progress);
+  const eased = Easing.inOut(Easing.ease)(progress);
 
   const distance = 300 * (props.intensity || 1);
   let x = 0;

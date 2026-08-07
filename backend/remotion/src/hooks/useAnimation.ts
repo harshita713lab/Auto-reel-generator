@@ -13,7 +13,7 @@ export const useAnimation = (config: AnimationConfig) => {
   const {
     durationInFrames,
     delay = 0,
-    easing = Easing.easeInOut,
+    easing = Easing.inOut(Easing.ease),
     from = { opacity: 0, scale: 0.8 },
     to = { opacity: 1, scale: 1 },
   } = config;

@@ -1,0 +1,147 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { AbsoluteFill, Sequence, useCurrentFrame, interpolate, } from "remotion";
+import { AnimatedImage, } from "../../components";
+const CinematicWeddingReel = ({ images = [], music }) => {
+    // =============================
+    // IMAGE DISTRIBUTION
+    // =============================
+    const heroImage = images[0];
+    const bottomGridImages = images.slice(1, 4);
+    const singleImages = images.slice(4, 8);
+    const endingImage = images[8];
+    // =============================
+    // TIMING (30 FPS)
+    // =============================
+    const heroDuration = 60;
+    // 2 sec
+    const gridDuration = 90;
+    // 3 sec
+    const singleDuration = 150;
+    // 5 sec
+    const endingDuration = 60;
+    // 2 sec
+    const totalDuration = heroDuration +
+        gridDuration +
+        singleDuration +
+        endingDuration;
+    // =============================
+    // FULL SCREEN HERO
+    // =============================
+    const FullScreenHero = ({ image, title, animation = "zoomIn" }) => {
+        if (!image)
+            return null;
+        return (_jsxs(AbsoluteFill, { children: [_jsx(AnimatedImage, { src: image.path, animation: animation, durationInFrames: 60, style: {
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover"
+                    } }), title &&
+                    _jsx("div", { style: {
+                            position: "absolute",
+                            bottom: 180,
+                            width: "100%",
+                            textAlign: "center",
+                            color: "#fff",
+                            fontSize: 80,
+                            fontWeight: 900,
+                            letterSpacing: 12,
+                            textShadow: "0 5px 25px rgba(0,0,0,.8)"
+                        }, children: title })] }));
+    };
+    // =============================
+    // HERO + BOTTOM GRID
+    // =============================
+    // HERO + BOTTOM 3 GRID
+    // =============================
+    const HeroBottomGrid = () => {
+        return (_jsxs(AbsoluteFill, { children: [_jsx("div", { style: {
+                        position: "absolute",
+                        top: 0,
+                        height: "75%",
+                        width: "100%"
+                    }, children: heroImage &&
+                        _jsx(AnimatedImage, { src: heroImage.path, animation: "zoomIn", durationInFrames: 90, style: {
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover"
+                            } }) }), _jsx("div", { style: {
+                        position: "absolute",
+                        bottom: 0,
+                        height: "25%",
+                        width: "100%",
+                        display: "flex",
+                        gap: 8,
+                        padding: 8,
+                        background: "#000"
+                    }, children: bottomGridImages.map((img, index) => {
+                        const frame = useCurrentFrame();
+                        const y = interpolate(frame, [
+                            index * 10,
+                            index * 10 + 20
+                        ], [
+                            200,
+                            0
+                        ], {
+                            extrapolateLeft: "clamp",
+                            extrapolateRight: "clamp"
+                        });
+                        const opacity = interpolate(frame, [
+                            index * 10,
+                            index * 10 + 20
+                        ], [
+                            0,
+                            1
+                        ], {
+                            extrapolateLeft: "clamp",
+                            extrapolateRight: "clamp"
+                        });
+                        return (_jsx("div", { style: {
+                                width: "33.33%",
+                                height: "100%",
+                                transform: `translateY(${y}px)`,
+                                opacity
+                            }, children: _jsx("img", { src: img.path, style: {
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                    borderRadius: 12
+                                } }) }, index));
+                    }) })] }));
+    };
+    // =============================
+    // =============================
+    // SINGLE CINEMATIC PHOTO
+    // =============================
+    const SinglePhoto = ({ image, index, }) => {
+        const frame = useCurrentFrame();
+        // Each photo now has a full 35-frame window to animate cleanly
+        const scale = interpolate(frame, [0, 35], [1.12, 1.03], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        const translateX = interpolate(frame, [0, 35], [index % 2 === 0 ? -40 : 40, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        const translateY = interpolate(frame, [0, 35], [index % 2 === 0 ? 20 : -20, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        const rotate = interpolate(frame, [0, 35], [index % 2 === 0 ? -1 : 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        // Quick fade-in
+        const opacity = interpolate(frame, [0, 10], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        // Smooth blur clear-up
+        const blur = interpolate(frame, [0, 15], [10, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        const brightness = interpolate(frame, [0, 15], [0.7, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        return (_jsxs(AbsoluteFill, { style: { overflow: "hidden", background: "#000" }, children: [_jsx("img", { src: image.path, style: {
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        transform: `scale(${scale}) translate(${translateX}px, ${translateY}px) rotate(${rotate}deg)`,
+                        filter: `blur(${blur}px) brightness(${brightness})`,
+                        opacity,
+                    } }), _jsx("div", { style: {
+                        position: "absolute",
+                        inset: 0,
+                        background: "linear-gradient(to top, rgba(0,0,0,.35), transparent 40%)",
+                    } })] }));
+    };
+    // PART 2 ME COMPLETE HOGA
+    // =============================
+    return (_jsxs(AbsoluteFill, { style: {
+            background: "#000"
+        }, children: [_jsx(Sequence, { from: 0, durationInFrames: heroDuration, children: _jsx(FullScreenHero, { image: heroImage, title: "FOREVER", animation: "zoomIn" }) }), _jsx(Sequence, { from: heroDuration, durationInFrames: gridDuration, children: _jsx(HeroBottomGrid, {}) }), _jsx(Sequence, { from: heroDuration + gridDuration, durationInFrames: singleDuration, children: singleImages.map((img, index) => (_jsx(Sequence, { from: index * 37.5, durationInFrames: 37.5, children: _jsx(SinglePhoto, { image: img, index: index }) }, index))) }), _jsx(Sequence, { from: heroDuration +
+                    gridDuration +
+                    singleDuration, durationInFrames: endingDuration, children: _jsx(FullScreenHero, { image: endingImage, title: "THE END", animation: "zoomOut" }) })] }));
+};
+export default CinematicWeddingReel;

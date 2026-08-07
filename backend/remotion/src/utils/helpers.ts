@@ -102,7 +102,7 @@ export const deepMerge = <T extends Record<string, any>>(target: T, source: Part
   const result = { ...target };
   for (const key in source) {
     if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-      result[key] = deepMerge(result[key] || {}, source[key] as any);
+      result[key] = deepMerge((result[key] || {}) as any, source[key] as any);
     } else {
       result[key] = source[key] as any;
     }

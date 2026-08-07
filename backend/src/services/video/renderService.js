@@ -44,8 +44,15 @@ class RenderService {
 
       const images = reel.images.map(img => {
         let imageWebUrl = img.path;
-        if (img.path && !img.path.startsWith('http://') && !img.path.startsWith('https://')) {
-          imageWebUrl = `${serverBaseUrl}/uploads/images/${path.basename(img.path)}`;
+        if (img.path && !img.path.startsWith('http://') && !img.path.startsWith('https://') && !img.path.startsWith('data:')) {
+          if (fsSync.existsSync(img.path)) {
+            const ext = path.extname(img.path).toLowerCase().replace('.', '') || 'png';
+            const mimeType = (ext === 'jpg' || ext === 'jpeg') ? 'image/jpeg' : `image/${ext}`;
+            const fileBuf = fsSync.readFileSync(img.path);
+            imageWebUrl = `data:${mimeType};base64,${fileBuf.toString('base64')}`;
+          } else {
+            imageWebUrl = `${serverBaseUrl}/uploads/images/${path.basename(img.path)}`;
+          }
         }
         return {
           path: imageWebUrl,

@@ -198,8 +198,8 @@ class ThumbnailService {
     try {
       const outputPath = path.join(this.thumbnailDir, `video_thumb_${Date.now()}.jpg`);
       
+      const ffmpegConfig = require('../../config/ffmpeg');
       const args = [
-        'ffmpeg',
         '-ss', timestamp,
         '-i', videoPath,
         '-vf', `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2`,
@@ -207,14 +207,7 @@ class ThumbnailService {
         '-y', outputPath,
       ];
 
-      await new Promise((resolve, reject) => {
-        const child = require('child_process').spawn(args[0], args.slice(1));
-        child.on('close', (code) => {
-          if (code === 0) resolve();
-          else reject(new Error(`FFmpeg failed with code ${code}`));
-        });
-        child.on('error', reject);
-      });
+      await ffmpegConfig.execute(args);
 
       const buffer = await fs.readFile(outputPath);
       await fs.unlink(outputPath).catch(() => {});

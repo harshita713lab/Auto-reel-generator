@@ -18,7 +18,7 @@ export const FlashTransition: React.FC<FlashTransitionProps> = ({
 }) => {
   const frame = useCurrentFrame();
   const progress = Math.max(0, Math.min((frame - delay) / durationInFrames, 1));
-  const eased = Easing.easeInOut(progress);
+  const eased = Easing.inOut(Easing.ease)(progress);
 
   // Flash effect - quick bright flash
   const flashIntensity = Math.sin(eased * Math.PI) * intensity;

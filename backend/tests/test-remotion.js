@@ -8,8 +8,8 @@ async function testRemotionRender() {
   const testOptions = {
     inputProps: {
       images: [
-        'https://picsum.photos/1080/1920?random=1',
-        'https://picsum.photos/1080/1920?random=2',
+        { path: 'https://picsum.photos/1080/1920?random=1', duration: 3 },
+        { path: 'https://picsum.photos/1080/1920?random=2', duration: 3 },
       ],
       template: {
         name: 'Test Template',

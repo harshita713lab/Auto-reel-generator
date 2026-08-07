@@ -25,7 +25,7 @@ export const reveal = ({ progress, direction = 'center' }: RevealParams) => {
       translateY = (1 - progress) * 50;
       break;
     default:
-      scale(0.8 + 0.2 * progress);
+      break;
   }
   
   return {

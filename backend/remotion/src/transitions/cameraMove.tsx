@@ -18,7 +18,7 @@ export const CameraMoveTransition: React.FC<CameraMoveTransitionProps> = ({
 }) => {
   const frame = useCurrentFrame();
   const progress = Math.max(0, Math.min((frame - delay) / durationInFrames, 1));
-  const eased = Easing.easeInOut(progress);
+  const eased = Easing.inOut(Easing.ease)(progress);
 
   let x = 0;
   let y = 0;

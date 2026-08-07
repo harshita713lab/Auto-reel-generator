@@ -12,8 +12,8 @@ const env = {
   MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/reel-generator',
 
   // FFmpeg
-  FFMPEG_PATH: process.env.FFMPEG_PATH || 'ffmpeg',
-  FFPROBE_PATH: process.env.FFPROBE_PATH || 'ffprobe',
+  FFMPEG_PATH: process.env.FFMPEG_PATH || null,
+  FFPROBE_PATH: process.env.FFPROBE_PATH || null,
   FFMPEG_USE_GPU: process.env.FFMPEG_USE_GPU === 'true',
 
   // Remotion
