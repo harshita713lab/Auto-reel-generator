@@ -287,7 +287,7 @@ namesText:"JULIAN & JULI"
 <Composition
   id="FastBeatWeddingStory"
   component={FastBeatWeddingStory}
-  durationInFrames={620}
+  durationInFrames={450}
   fps={30}
   width={1080}
   height={1920}
