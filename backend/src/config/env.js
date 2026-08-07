@@ -17,7 +17,7 @@ const env = {
   FFMPEG_USE_GPU: process.env.FFMPEG_USE_GPU === 'true',
 
   // Remotion
-  REMOTION_CONCURRENCY: parseInt(process.env.REMOTION_CONCURRENCY, 10) || 1,
+  REMOTION_CONCURRENCY: parseInt(process.env.REMOTION_CONCURRENCY, 10) || Math.max(1, require('os').cpus().length - 1),
 
   // Upload
   UPLOAD_LIMIT: parseInt(process.env.UPLOAD_LIMIT, 10) || 100,

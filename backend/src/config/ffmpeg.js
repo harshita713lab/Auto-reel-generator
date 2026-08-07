@@ -43,23 +43,19 @@ class FFmpegConfig {
     return command === 'ffmpeg' ? this.ffmpegPath : this.ffprobePath;
   }
 
-  getHardwareAccelerationFlags() {
-    if (!this.useGPU) return [];
-
-    if (process.platform === 'darwin') {
-      return ['-hwaccel', 'videotoolbox'];
-    }
-
+  getFastVideoCodecFlags() {
     try {
+      if (process.platform === 'darwin') {
+        return ['-c:v', 'h264_videotoolbox', '-b:v', '6M'];
+      }
       const result = require('child_process').execSync('nvidia-smi', { encoding: 'utf8' });
-      if (result.includes('CUDA')) {
-        return ['-hwaccel', 'cuda', '-hwaccel_output_format', 'cuda'];
+      if (result.includes('CUDA') || result.includes('NVIDIA')) {
+        return ['-c:v', 'h264_nvenc', '-preset', 'p1', '-tune', 'hq', '-b:v', '6M'];
       }
     } catch (e) {
-      // No NVIDIA GPU detected
+      // CPU fallback with ultrafast preset
     }
-
-    return [];
+    return ['-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '22'];
   }
 
   /**

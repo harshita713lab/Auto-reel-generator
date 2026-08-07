@@ -6,6 +6,7 @@ import { dirname } from 'path';
 import fs from 'fs';
 
 import { execSync } from 'child_process';
+import os from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -80,12 +81,21 @@ const chromiumOptions = {
 };
 
 try {
-    // Step 1: Bundle
-    console.log(`📦 Bundling Remotion project...`);
-    const bundleLocation = await bundle({
-        entryPoint: path.join(__dirname, 'src/index.tsx'),
-        webpackOverride: (config) => config,
-    });
+    // Step 1: Bundle with disk caching
+    const bundleCacheDir = path.join(__dirname, 'dist-bundle');
+    let bundleLocation;
+
+    if (fs.existsSync(path.join(bundleCacheDir, 'index.html'))) {
+        console.log(`⚡ Using cached Remotion bundle...`);
+        bundleLocation = bundleCacheDir;
+    } else {
+        console.log(`📦 Bundling Remotion project (caching to dist-bundle)...`);
+        bundleLocation = await bundle({
+            entryPoint: path.join(__dirname, 'src/index.tsx'),
+            outDir: bundleCacheDir,
+            webpackOverride: (config) => config,
+        });
+    }
 
     // Step 2: Select Composition
     console.log(`🎬 Selecting composition...`);
@@ -104,14 +114,15 @@ try {
     chromiumOptions,
 });
     // Step 3: Render
-    console.log(`🎬 Rendering video...`);
+    const systemConcurrency = Math.max(1, (os.cpus() || []).length - 1);
+    console.log(`🎬 Rendering video with ${systemConcurrency} parallel worker threads...`);
   await renderMedia({
     composition,
     serveUrl: bundleLocation,
     codec: "h264",
     outputLocation: outputPath,
     inputProps: renderInputProps,
-    concurrency: 1,
+    concurrency: systemConcurrency,
     chromiumOptions,
     muted: true,
 });

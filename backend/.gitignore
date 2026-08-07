@@ -161,3 +161,4 @@ tmp/
 backend/remotion/node_modules/
 backend/remotion/.remotion/
 backend/remotion/out/
+backend/remotion/dist-bundle/
