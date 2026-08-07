@@ -1,5 +1,5 @@
 // Clean test script - suppresses noisy base64 logging
-const renderService = require('./src/services/video/renderService');
+const renderService = require('../src/services/video/renderService');
 const path = require('path');
 const fs = require('fs');
 const sharp = require('sharp');

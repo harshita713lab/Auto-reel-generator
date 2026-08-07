@@ -1,5 +1,5 @@
 // Test RoyalWeddingStory template individually
-const renderService = require('./src/services/video/renderService');
+const renderService = require('../src/services/video/renderService');
 const path = require('path');
 const fs = require('fs');
 const sharp = require('sharp');
