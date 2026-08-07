@@ -52,34 +52,35 @@ const WeddingSequenceComposition: React.FC<
     CardDuration +
     gridDuration;
 
-  // Images
+  const safeImages = images.length > 0 ? images : [{ path: "" }];
+  const getImg = (idx: number) => safeImages[idx % safeImages.length];
 
-  const img1 = images[0];
-  const img2 = images[1];
-  const img3 = images[2];
+  const img1 = getImg(0);
+  const img2 = getImg(1);
+  const img3 = getImg(2);
 
-  const img4 = images[3];
-  const img5 = images[4];
-  const img6 = images[5];
-  const img7 = images[6];
-  const img8 = images[7];
+  const img4 = getImg(3);
+  const img5 = getImg(4);
+  const img6 = getImg(5);
+  const img7 = getImg(6);
+  const img8 = getImg(7);
 
-  const img9 = images[8];
-  const img10 = images[9];
-  const img11 = images[10];
+  const img9 = getImg(8);
+  const img10 = getImg(9);
+  const img11 = getImg(10);
 
-  const img12 = images[11];
-  const img13 = images[12];
-  const img14 = images[13];
-  const img15 = images[14];
-  const img16 = images[15];
+  const img12 = getImg(11);
+  const img13 = getImg(12);
+  const img14 = getImg(13);
+  const img15 = getImg(14);
+  const img16 = getImg(15);
 
   const gridImages = [
-    images[16],
-    images[17],
-    images[18],
-    images[19],
-  ].filter(Boolean);
+    getImg(16),
+    getImg(17),
+    getImg(18),
+    getImg(19),
+  ];
 
   // -----------------------------------
   // Row Image

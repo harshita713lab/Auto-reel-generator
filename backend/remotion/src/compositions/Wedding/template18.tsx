@@ -77,17 +77,19 @@ const startPositions = [
 
 
 
+const pos = startPositions[index % startPositions.length];
+
 const translateX = interpolate(
 progress,
 [0,1],
-[startPositions[index].x,0]
+[pos.x,0]
 );
 
 
 const translateY = interpolate(
 progress,
 [0,1],
-[startPositions[index].y,0]
+[pos.y,0]
 );
 
 

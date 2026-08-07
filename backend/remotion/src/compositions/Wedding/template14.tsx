@@ -29,18 +29,16 @@ export const RoyalWeddingStory : React.FC<RoyalWeddingStoryProps> = ({
 }) => {
 
   // ==========================
-  // IMAGE DISTRIBUTION (17 IMAGES)
+  // IMAGE DISTRIBUTION (SAFE FALLBACK FOR ANY IMAGE COUNT)
   // ==========================
 
-  const heroImg = images[0];
+  const safeImages = images.length > 0 ? images : [{ path: "" }];
+  const getImg = (idx: number) => safeImages[idx % safeImages.length];
 
-  const gridImgs = images.slice(1, 5);
-
-  const splitImgs = images.slice(5, 10);
-
-
-
-  const masonryImgs = images.slice(10, 14);
+  const heroImg = getImg(0);
+  const gridImgs = [getImg(1), getImg(2), getImg(3), getImg(4)];
+  const splitImgs = [getImg(5), getImg(6), getImg(7), getImg(8), getImg(9)];
+  const masonryImgs = [getImg(10), getImg(11), getImg(12), getImg(13)];
 
 
 

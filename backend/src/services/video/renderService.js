@@ -96,7 +96,10 @@ class RenderService {
       const imageCount = reel.images.length;
 let compositionId;
 
-if (imageCount === 20) {
+// ✅ FIX: Pehle explicit reel.compositionId ko respect karo
+if (reel.compositionId) {
+  compositionId = reel.compositionId;
+} else if (imageCount === 20) {
   compositionId = "WeddingSequenceComposition";
 
 } else if (imageCount === 18) {

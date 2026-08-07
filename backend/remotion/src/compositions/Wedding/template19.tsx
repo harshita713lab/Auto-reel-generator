@@ -47,21 +47,13 @@ music
 // =============================
 
 
-const heroImage = images[0];
+  const safeImages = images.length > 0 ? images : [{ path: "" }];
+  const getImg = (idx: number) => safeImages[idx % safeImages.length];
 
-
-const bottomGridImages =
-images.slice(1,4);
-
-
-
-const singleImages =
-images.slice(4,8);
-
-
-
-const endingImage =
-images[8];
+  const heroImage = getImg(0);
+  const bottomGridImages = [getImg(1), getImg(2), getImg(3)];
+  const singleImages = [getImg(4), getImg(5), getImg(6), getImg(7)];
+  const endingImage = getImg(8);
 
 
 
