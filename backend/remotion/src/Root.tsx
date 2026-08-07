@@ -15,6 +15,7 @@ import WeddingSplitSlider from "./compositions/Wedding/SplitSlider";
  import{ MemoryJourneyWeddingReel} from "./compositions/Wedding/template18";
 
 import { RoyalWeddingStory } from './compositions/Wedding/template14';
+import FastBeatWeddingStory from './compositions/Wedding/FastBeatWeddingStory';
 
 
 
@@ -282,6 +283,18 @@ namesText:"JULIAN & JULI"
   fps={30}
   width={1080}
   height={1920}
+/>
+<Composition
+  id="FastBeatWeddingStory"
+  component={FastBeatWeddingStory}
+  durationInFrames={620}
+  fps={30}
+  width={1080}
+  height={1920}
+  defaultProps={{
+    images: [],
+    music: undefined,
+  }}
 />
     </>
   );

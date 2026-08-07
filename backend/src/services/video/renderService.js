@@ -103,7 +103,7 @@ if (reel.compositionId) {
   compositionId = "WeddingSequenceComposition";
 
 } else if (imageCount === 18) {
-  compositionId = "MemoryJourneyWeddingReel";
+  compositionId = "FastBeatWeddingStory";
 
 } else if (imageCount === 9) {
   compositionId = "CinematicWeddingReel";
