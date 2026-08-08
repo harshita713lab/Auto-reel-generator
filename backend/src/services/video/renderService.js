@@ -101,13 +101,21 @@ if (reel.compositionId) {
   compositionId = reel.compositionId;
 } else if (reel.templateId === "Template26" || reel.template?.id === "Template26") {
   compositionId = "Template26";
+} else if (reel.templateId === "Template25" || reel.template?.id === "Template25") {
+  compositionId = "Template25";
+} else if (reel.templateId === "Template27" || reel.template?.id === "Template27") {
+  compositionId = "Template27";
 } else if (imageCount === 20) {
   compositionId = "WeddingSequenceComposition";
 
 } else if (imageCount === 18) {
   compositionId = "Template26";
 
-} else if (imageCount === 9) {
+} else if (imageCount === 13) {
+  compositionId = "Template27";
+}
+
+else if (imageCount === 9) {
   compositionId = "CinematicWeddingReel";
 
 } else if (imageCount === 11) {

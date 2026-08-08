@@ -20,6 +20,13 @@ const TEMPLATE_MUSIC_MAP = {
   // Wedding Split Slider (18 photos)
   Template_26: { musicId: 'ReelAudio-20.mp3', musicTitle: 'Acoustic Love (Track 20)' },
   Template26: { musicId: 'ReelAudio-20.mp3', musicTitle: 'Acoustic Love (Track 20)' },
+  template26: { musicId: 'ReelAudio-20.mp3', musicTitle: 'Acoustic Love (Track 20)' },
+  Template_25: { musicId: 'ReelAudio-19.mp3', musicTitle: 'Romantic Beats (Track 19)' },
+  Template25: { musicId: 'ReelAudio-19.mp3', musicTitle: 'Romantic Beats (Track 19)' },
+  template25: { musicId: 'ReelAudio-19.mp3', musicTitle: 'Romantic Beats (Track 19)' },
+  Template_27: { musicId: 'ReelAudio-17.mp3', musicTitle: 'Cinematic Vibe (Track 17)' },
+  Template27: { musicId: 'ReelAudio-17.mp3', musicTitle: 'Cinematic Vibe (Track 17)' },
+  template27: { musicId: 'ReelAudio-17.mp3', musicTitle: 'Cinematic Vibe (Track 17)' },
   // White Card Carousel (10 photos)
   white_carousel: { musicId: 'ReelAudio-6.mp3', musicTitle: 'Modern Pop Beats (Track 6)' },
   WhiteCardCarousel: { musicId: 'ReelAudio-6.mp3', musicTitle: 'Modern Pop Beats (Track 6)' },
@@ -62,6 +69,7 @@ function getMusicForTemplate(templateId, imageCount) {
   // 2. Resolve by image count (matching renderService composition logic)
   if (typeof imageCount === 'number') {
     if (imageCount === 18) return TEMPLATE_MUSIC_MAP.Template26.musicId;      // ReelAudio-20.mp3
+    if (imageCount === 13) return TEMPLATE_MUSIC_MAP.Template25.musicId;      // ReelAudio-19.mp3
     if (imageCount === 20) return TEMPLATE_MUSIC_MAP.wedding_seq.musicId;      // ReelAudio-3.mp3
     if (imageCount === 23) return TEMPLATE_MUSIC_MAP.wedding_seq.musicId;      // ReelAudio-3.mp3
     if (imageCount === 9) return TEMPLATE_MUSIC_MAP.cinematic_wedding.musicId;  // ReelAudio-4.mp3

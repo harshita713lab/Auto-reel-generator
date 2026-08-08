@@ -731,4 +731,6 @@ export const WeddingTemplate14= ({
 </AbsoluteFill>
 
 );
-}
+};
+export const Template25 = WeddingTemplate14;
+

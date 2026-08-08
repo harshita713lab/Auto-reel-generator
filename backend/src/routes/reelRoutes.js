@@ -162,6 +162,36 @@ router.get('/templates', (req, res) => {
       fixedMusic: TEMPLATE_MUSIC_MAP.Template26.musicId,
       fixedMusicTitle: TEMPLATE_MUSIC_MAP.Template26.musicTitle,
       description: 'Animated 3-scene wedding & love story for 18 photos'
+    },
+    {
+      id: 'Template25',
+      name: '🌹 Template 25 (Romantic Story)',
+      slideDuration: 3,
+      transition: 'fade',
+      effect: 'cinematic',
+      colorGrade: 'rose',
+      vignette: true,
+      quality: 'high',
+      minPhotos: 13,
+      maxPhotos: 15,
+      fixedMusic: TEMPLATE_MUSIC_MAP.Template25.musicId,
+      fixedMusicTitle: TEMPLATE_MUSIC_MAP.Template25.musicTitle,
+      description: 'Romantic 3-scene wedding story for 13-15 photos'
+    },
+    {
+      id: 'Template27',
+      name: '🎬 Template 27 (Cinematic Grid Slider)',
+      slideDuration: 3,
+      transition: 'slide',
+      effect: 'cinematic',
+      colorGrade: 'hdr',
+      vignette: true,
+      quality: 'high',
+      minPhotos: 13,
+      maxPhotos: 16,
+      fixedMusic: TEMPLATE_MUSIC_MAP.Template27.musicId,
+      fixedMusicTitle: TEMPLATE_MUSIC_MAP.Template27.musicTitle,
+      description: 'Multi-scene grid & slider showcase for 13-16 photos'
     }
   ];
   return res.json({ success: true, templates });

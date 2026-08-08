@@ -31,7 +31,9 @@ validateCompositionName(compositionName) {
           "ScrapbookWedding15",
           "WeddingTemplate14",
           "Template26",
+          "Template25",
           "FastBeatWeddingStory",
+          "Template27",
     ];
 
     if (!compositionName || typeof compositionName !== "string") {
