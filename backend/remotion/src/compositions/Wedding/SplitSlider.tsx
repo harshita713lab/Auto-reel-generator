@@ -8,6 +8,7 @@ import {
 } from "remotion";
 
 import { AnimatedImage} from "../../components";
+import { getBeatScale } from "../../utils/beatUtils";
 
 interface WeddingSplitSliderProps {
   images?: Array<{
@@ -19,17 +20,20 @@ interface WeddingSplitSliderProps {
     path: string;
     volume?: number;
   };
+  beatTimestamps?: number[];
 }
 
 
 const WeddingSplitSlider: React.FC<WeddingSplitSliderProps> = ({
   images = [],
   music,
+  beatTimestamps = [],
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const beatScale = getBeatScale(frame, fps, beatTimestamps);
 
-  const totalDuration = 300;
+  const totalDuration = 450;
 
   // ----------------------------
   // Image Mapping (11 Images)
@@ -254,6 +258,7 @@ const translate =
       style={{
         backgroundColor: "#000",
         overflow: "hidden",
+        transform: `scale(${beatScale})`,
       }}
     >
       {/* Blur Background */}

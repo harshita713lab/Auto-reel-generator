@@ -18,7 +18,7 @@ export const FilmBurnTransition: React.FC<FilmBurnTransitionProps> = ({
 }) => {
   const frame = useCurrentFrame();
   const progress = Math.max(0, Math.min((frame - delay) / durationInFrames, 1));
-  const eased = Easing.easeInOut(progress);
+  const eased = Easing.inOut(Easing.ease)(progress);
 
   // Burn effect intensity
   const burnIntensity = intensity * Math.sin(eased * Math.PI) * 2;

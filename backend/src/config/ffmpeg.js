@@ -9,20 +9,26 @@ const { DIRECTORIES } = require('./constants');
 let detectedFFmpegPath = env.FFMPEG_PATH;
 let detectedFFprobePath = env.FFPROBE_PATH;
 
-try {
-  if (!detectedFFmpegPath) {
-    detectedFFmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+if (!detectedFFmpegPath || detectedFFmpegPath === 'ffmpeg') {
+  try {
+    const ffmpegStatic = require('ffmpeg-static');
+    if (ffmpegStatic) {
+      detectedFFmpegPath = ffmpegStatic;
+    }
+  } catch (e) {
+    detectedFFmpegPath = 'ffmpeg'; // System binary fallback
   }
-} catch (e) {
-  detectedFFmpegPath = 'ffmpeg'; // System binary fallback
 }
 
-try {
-  if (!detectedFFprobePath) {
-    detectedFFprobePath = require('@ffprobe-installer/ffprobe').path;
+if (!detectedFFprobePath || detectedFFprobePath === 'ffprobe') {
+  try {
+    const ffprobeStatic = require('ffprobe-static');
+    if (ffprobeStatic && ffprobeStatic.path) {
+      detectedFFprobePath = ffprobeStatic.path;
+    }
+  } catch (e) {
+    detectedFFprobePath = 'ffprobe'; // System binary fallback
   }
-} catch (e) {
-  detectedFFprobePath = 'ffprobe'; // System binary fallback
 }
 
 class FFmpegConfig {
@@ -37,23 +43,19 @@ class FFmpegConfig {
     return command === 'ffmpeg' ? this.ffmpegPath : this.ffprobePath;
   }
 
-  getHardwareAccelerationFlags() {
-    if (!this.useGPU) return [];
-
-    if (process.platform === 'darwin') {
-      return ['-hwaccel', 'videotoolbox'];
-    }
-
+  getFastVideoCodecFlags() {
     try {
+      if (process.platform === 'darwin') {
+        return ['-c:v', 'h264_videotoolbox', '-b:v', '6M'];
+      }
       const result = require('child_process').execSync('nvidia-smi', { encoding: 'utf8' });
-      if (result.includes('CUDA')) {
-        return ['-hwaccel', 'cuda', '-hwaccel_output_format', 'cuda'];
+      if (result.includes('CUDA') || result.includes('NVIDIA')) {
+        return ['-c:v', 'h264_nvenc', '-preset', 'p1', '-tune', 'hq', '-b:v', '6M'];
       }
     } catch (e) {
-      // No NVIDIA GPU detected
+      // CPU fallback with ultrafast preset
     }
-
-    return [];
+    return ['-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '22'];
   }
 
   /**
@@ -70,9 +72,9 @@ class FFmpegConfig {
       let executable = this.ffmpegPath;
       let processArgs = [];
 
-      // Check if first arg is already an executable path/string like 'ffmpeg'
-      if (args[0] === 'ffmpeg' || args[0] === this.ffmpegPath || args[0] === this.ffprobePath) {
-        executable = args[0] === 'ffprobe' ? this.ffprobePath : (args[0] === 'ffmpeg' ? this.ffmpegPath : args[0]);
+      // Check if first arg is already an executable path/string like 'ffmpeg' or 'ffprobe'
+      if (args[0] === 'ffmpeg' || args[0] === 'ffprobe' || args[0] === this.ffmpegPath || args[0] === this.ffprobePath) {
+        executable = (args[0] === 'ffprobe' || args[0] === this.ffprobePath) ? this.ffprobePath : this.ffmpegPath;
         processArgs = args.slice(1);
       } else {
         // If args is directly the array of flags e.g., ['-i', 'file.mp4', ...]

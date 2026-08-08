@@ -50,11 +50,13 @@ const WeddingSequenceComposition: React.FC<
     fastDuration 
   
 
-  // Images
+  const safeImages = images.length > 0 ? images : [{ path: "" }];
+  const getImg = (idx: number) => safeImages[idx % safeImages.length];
 
-  const img1 = images[0];
-  const img2 = images[1];
-  const img3 = images[2];
+  const img1 = getImg(0);
+  const img2 = getImg(1);
+  const img3 = getImg(2);
+
 
   const img4 = images[3];
   const img5 = images[4];
@@ -77,6 +79,14 @@ const img20 = images[19];
   const img21 = images[20];
   const img22 = images[21];
   const img23 = images[22];
+ 
+  const gridImages = [
+    getImg(16),
+    getImg(17),
+    getImg(18),
+    getImg(19),
+  ];
+
 
   // -----------------------------------
   // Row Image

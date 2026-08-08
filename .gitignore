@@ -1,0 +1,7 @@
+node_modules/
+backend/remotion/dist-bundle/
+backend/remotion/dist/
+backend/uploads/
+backend/output/
+.DS_Store
+*.log

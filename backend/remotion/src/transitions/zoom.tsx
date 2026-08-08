@@ -18,7 +18,7 @@ export const ZoomTransition: React.FC<ZoomTransitionProps> = ({
 }) => {
   const frame = useCurrentFrame();
   const progress = Math.max(0, Math.min((frame - delay) / durationInFrames, 1));
-  const eased = Easing.easeInOut(progress);
+  const eased = Easing.inOut(Easing.ease)(progress);
 
   let currentScale = 1;
   let opacity = 1;
@@ -68,7 +68,7 @@ export const ZoomRotateTransition: React.FC<ZoomTransitionProps & { rotation?: n
 }) => {
   const frame = useCurrentFrame();
   const progress = Math.max(0, Math.min((frame - delay) / durationInFrames, 1));
-  const eased = Easing.easeInOut(progress);
+  const eased = Easing.inOut(Easing.ease)(progress);
 
   let currentScale = 1;
   let rotate = 0;

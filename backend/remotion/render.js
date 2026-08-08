@@ -5,6 +5,9 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import fs from 'fs';
 
+import { execSync } from 'child_process';
+import os from 'os';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -36,7 +39,31 @@ const {
   images = [],
   music = null,
   config = {},
+  beatTimestamps = [],
 } = inputProps;
+
+// ============================================================
+// ✅ AUTO-FIX BUGGY REMOTION FFMPEG BINARY (325KB MSVC crash fix)
+// ============================================================
+function fixRemotionFFmpeg() {
+    try {
+        const targetFFmpeg = path.join(__dirname, 'node_modules/@remotion/compositor-win32-x64-msvc/ffmpeg.exe');
+        if (fs.existsSync(path.dirname(targetFFmpeg))) {
+            const targetStats = fs.existsSync(targetFFmpeg) ? fs.statSync(targetFFmpeg) : null;
+            if (!targetStats || targetStats.size < 5 * 1024 * 1024) {
+                const systemFFmpeg = execSync('where ffmpeg', { encoding: 'utf8' }).trim().split(/[\r\n]+/)[0];
+                if (systemFFmpeg && fs.existsSync(systemFFmpeg)) {
+                    console.log(`🛠️ Replacing broken Remotion ffmpeg.exe (${targetStats ? targetStats.size : 0} B) with working system FFmpeg (${systemFFmpeg})...`);
+                    fs.copyFileSync(systemFFmpeg, targetFFmpeg);
+                    console.log(`✅ Successfully replaced Remotion FFmpeg binary!`);
+                }
+            }
+        }
+    } catch (err) {
+        console.log(`⚠️ Note on FFmpeg auto-replace:`, err.message);
+    }
+}
+try { fixRemotionFFmpeg(); } catch(e) {}
 
 console.log(`\n🎬 Starting Remotion Render for ${images.length} images...`);
 
@@ -54,41 +81,50 @@ const chromiumOptions = {
 };
 
 try {
-    // Step 1: Bundle
-    console.log(`📦 Bundling Remotion project...`);
-    const bundleLocation = await bundle({
-        entryPoint: path.join(__dirname, 'src/index.tsx'),
-        webpackOverride: (config) => config,
-    });
+    // Step 1: Bundle with disk caching
+    const bundleCacheDir = path.join(__dirname, 'dist-bundle');
+    let bundleLocation;
+
+    if (fs.existsSync(path.join(bundleCacheDir, 'index.html'))) {
+        console.log(`⚡ Using cached Remotion bundle...`);
+        bundleLocation = bundleCacheDir;
+    } else {
+        console.log(`📦 Bundling Remotion project (caching to dist-bundle)...`);
+        bundleLocation = await bundle({
+            entryPoint: path.join(__dirname, 'src/index.tsx'),
+            outDir: bundleCacheDir,
+            webpackOverride: (config) => config,
+        });
+    }
 
     // Step 2: Select Composition
     console.log(`🎬 Selecting composition...`);
+   const renderInputProps = {
+    ...(inputProps || {}),
+    images,
+    config,
+    beatTimestamps,
+    music: null, // Bypass Remotion audio compositor (prevents Windows Defender blocks & code 3236495362)
+   };
+
    const composition = await selectComposition({
     serveUrl: bundleLocation,
-    id: compositionId,   // ✅ Dynamic
-    inputProps: {
-      images,
-      music,
-      config,
-    },
+    id: compositionId,
+    inputProps: renderInputProps,
     chromiumOptions,
 });
     // Step 3: Render
-    console.log(`🎬 Rendering video...`);
+    const systemConcurrency = Math.max(1, (os.cpus() || []).length - 1);
+    console.log(`🎬 Rendering video with ${systemConcurrency} parallel worker threads...`);
   await renderMedia({
     composition,
     serveUrl: bundleLocation,
     codec: "h264",
     outputLocation: outputPath,
-
-    inputProps: {
-        images,
-        music,
-        config,
-    },
-
-    concurrency: 1,
+    inputProps: renderInputProps,
+    concurrency: systemConcurrency,
     chromiumOptions,
+    muted: true,
 });
 
     if (fs.existsSync(outputPath)) {

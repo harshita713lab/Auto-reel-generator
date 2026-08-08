@@ -18,7 +18,7 @@ export const SlideTransition: React.FC<SlideTransitionProps> = ({
 }) => {
   const frame = useCurrentFrame();
   const progress = Math.max(0, Math.min((frame - delay) / durationInFrames, 1));
-  const eased = Easing.easeInOut(progress);
+  const eased = Easing.inOut(Easing.ease)(progress);
 
   let x = 0;
   let y = 0;
@@ -64,7 +64,7 @@ export const SlideTransitionInOut: React.FC<SlideTransitionProps & { outDirectio
 }) => {
   const frame = useCurrentFrame();
   const progress = Math.max(0, Math.min((frame - delay) / durationInFrames, 1));
-  const eased = Easing.easeInOut(progress);
+  const eased = Easing.inOut(Easing.ease)(progress);
 
   const outDir = outDirection || direction;
 

@@ -8,6 +8,7 @@ const renderService = require("../services/video/renderService");
 const logger = require("../utils/logger");
 const { RENDER_CONFIG } = require("../config/constants");
 const { getMusicForTemplate } = require("../config/templateMusicMap");
+const beatDetector = require("../services/audio/beatDetector");
 
 /**
  * Get Latest Reel
@@ -158,12 +159,26 @@ exports.createReel = async (req, res) => {
       ? title.trim() 
       : generateUniqueDefaultTitle(templateId, formattedImages.length);
 
+    const musicStartSec = parseFloat(req.body.musicStartTime) || 0;
+    let detectedBeats = [];
+    try {
+      detectedBeats = await beatDetector.detectBeats(
+        selectedAudioPath,
+        musicStartSec,
+        totalDuration,
+        formattedImages.length
+      );
+    } catch (bErr) {
+      logger.error("Beat detection error fallback:", bErr.message);
+    }
+
     const reelData = {
       title: finalTitle,
       images: formattedImages,
       music: musicId && musicId.match(/^[0-9a-fA-F]{24}$/) ? musicId : null,
       audioPath: selectedAudioPath,
-      musicStartTime: parseFloat(req.body.musicStartTime) || 0,
+      musicStartTime: musicStartSec,
+      beatTimestamps: detectedBeats,
       usedMusic: musicFileName.replace('.mp3', '').replace(/-\(PaagalWorld\.Com\)/gi, '').replace(/[-_]/g, ' '),
       usedTemplate: template ? template.name : (templateId || "Default"),
       duration: totalDuration,
@@ -183,45 +198,41 @@ exports.createReel = async (req, res) => {
     }
 
     const reel = new Reel(reelData);
-    await reel.save();
-
-    logger.info(`Reel document created: ${reel.title} (${reel._id}). Starting render...`);
-
     reel.status = 'rendering';
-    reel.progress = 0;
+    reel.progress = 10;
     await reel.save();
 
-    let renderResult;
-    try {
-      renderResult = await renderService.renderReel(reel, { audioPath: selectedAudioPath });
+    logger.info(`Reel document created: ${reel.title} (${reel._id}). Starting background render...`);
 
-      reel.status = 'rendered';
-      reel.progress = 100;
-      reel.outputPath = renderResult.outputPath;
-      reel.outputUrl = renderResult.outputUrl;
-      reel.previewPath = renderResult.previewPath;
-      reel.previewUrl = renderResult.previewUrl;
-      reel.thumbnailPath = renderResult.thumbnailPath;
-      reel.renderedAt = new Date();
-      await reel.save();
+    // Trigger background rendering non-blocking to prevent HTTP connection resets
+    renderService.renderReel(reel, { audioPath: selectedAudioPath })
+      .then(async (renderResult) => {
+        reel.status = 'rendered';
+        reel.progress = 100;
+        reel.outputPath = renderResult.outputPath;
+        reel.outputUrl = renderResult.outputUrl;
+        reel.previewPath = renderResult.previewPath;
+        reel.previewUrl = renderResult.previewUrl;
+        reel.thumbnailPath = renderResult.thumbnailPath;
+        reel.renderedAt = new Date();
+        await reel.save();
+        logger.info(`Reel background rendering completed: ${reel.title} (${reel._id})`);
+      })
+      .catch(async (renderError) => {
+        logger.error(`❌ REEL RENDERING ERROR FOR REEL ${reel._id}:`, renderError);
+        console.error("================ REMOTION / FFMPEG ERROR DETAIL ================");
+        console.error(renderError.stack || renderError);
+        console.error("================================================================");
 
-      logger.info(`Reel rendering completed: ${reel.title} (${reel._id})`);
-    } catch (renderError) {
-      logger.error(`❌ REAL RENDERING ERROR FOR REEL ${reel._id}:`, renderError);
-      console.error("================ REMOTION / FFMPEG ERROR DETAIL ================");
-      console.error(renderError.stack || renderError);
-      console.error("================================================================");
-
-      reel.status = 'failed';
-      reel.error = renderError.message;
-      await reel.save();
-      throw renderError;
-    }
+        reel.status = 'failed';
+        reel.error = renderError.message;
+        await reel.save();
+      });
 
     return res.status(201).json({
       success: true,
       data: reel,
-      message: "Reel created and rendered successfully",
+      message: "Reel created and rendering started",
     });
   } catch (error) {
     logger.error("Failed to create reel:", error);
@@ -535,12 +546,16 @@ exports.getReelStatus = async (req, res) => {
       return res.status(404).json({ error: "Reel not found" });
     }
 
+    const filename = reel.outputPath ? path.basename(reel.outputPath) : '';
     res.json({
       success: true,
       data: {
         status: reel.status,
         progress: reel.progress || 0,
         outputPath: reel.outputPath,
+        outputUrl: filename ? `/output/renders/${filename}` : null,
+        usedMusic: reel.usedMusic || 'Upbeat',
+        usedTemplate: reel.usedTemplate || 'Auto',
         previewPath: reel.previewPath,
         error: reel.error,
       },
@@ -733,8 +748,21 @@ exports.changeMusic = async (req, res) => {
     }
 
     const cleanMusicName = musicFileName.replace('.mp3', '').replace(/-\(PaagalWorld\.Com\)/gi, '').replace(/[-_]/g, ' ');
+    let newBeats = [];
+    try {
+      newBeats = await beatDetector.detectBeats(
+        audioPath,
+        parseFloat(musicStartTime) || 0,
+        reel.duration || 15,
+        reel.images ? reel.images.length : 4
+      );
+    } catch (bErr) {
+      logger.error("Beat detection error fallback in changeMusic:", bErr.message);
+    }
+
     reel.usedMusic = cleanMusicName;
     reel.musicStartTime = parseFloat(musicStartTime) || 0;
+    reel.beatTimestamps = newBeats;
     await reel.save();
 
     logger.info(`Reel music updated for reel ${reel._id}: ${cleanMusicName}`);

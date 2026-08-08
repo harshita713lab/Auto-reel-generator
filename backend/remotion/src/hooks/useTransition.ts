@@ -16,7 +16,7 @@ export const useTransition = (config: TransitionConfig) => {
     durationInFrames,
     type = 'fade',
     direction = 'center',
-    easing = Easing.easeInOut,
+    easing = Easing.inOut(Easing.ease),
     delay = 0,
   } = config;
 
@@ -121,7 +121,7 @@ export const useTransitionBetween = (config: TransitionConfig & {
     type = 'fade',
     elementCount = 2,
     activeIndex = 0,
-    easing = Easing.easeInOut,
+    easing = Easing.inOut(Easing.ease),
   } = config;
 
   const progress = Math.min(frame / durationInFrames, 1);

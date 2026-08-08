@@ -18,12 +18,12 @@ async function testReelController() {
         templateId: 'simple_1',
         images: [
           {
-            path: 'https://picsum.photos/800/1200',
-            filename: 'sample1.jpg',
+            path: path.join(__dirname, '../uploads/images/image_1785484720786.jpg'),
+            filename: 'image_1785484720786.jpg',
           },
           {
-            path: 'https://picsum.photos/800/1201',
-            filename: 'sample2.jpg',
+            path: path.join(__dirname, '../uploads/images/image_1785484723543.jpg'),
+            filename: 'image_1785484723543.jpg',
           },
         ],
         duration: 6,

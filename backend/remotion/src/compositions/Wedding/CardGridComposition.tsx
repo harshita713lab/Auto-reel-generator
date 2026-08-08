@@ -7,7 +7,9 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-//import { MusicPlayer } from "../../components";
+
+import { AnimatedImage } from "../../components";
+import { getBeatScale } from "../../utils/beatUtils";
 
 interface WhiteCardGrid3x3Props {
   images?: Array<{ path: string }>;
@@ -15,143 +17,155 @@ interface WhiteCardGrid3x3Props {
     path: string;
     volume?: number;
   };
+  beatTimestamps?: number[];
 }
 
 export const WhiteCardGrid3x3: React.FC<WhiteCardGrid3x3Props> = ({
   images = [],
-  music,
+  beatTimestamps = [],
 }) => {
   const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
+  const { fps, width } = useVideoConfig();
+  const beatScale = getBeatScale(frame, fps, beatTimestamps);
 
   const imageList = images.slice(0, 9);
+  
+  // Phase 1 (0 to 120 frames / 0-4s): 3x3 Collage Grid FIRST
+  // Phase 2 (120 to 450 frames / 4-15s): 1-by-1 FAST Full Reel Showcase AFTER
+  const gridEndFrame = 120;
+  const isGridPhase = frame < gridEndFrame;
 
-  const cameraScale = interpolate(
-    frame,
-    [0, durationInFrames],
-    [1, 1.05]
+  const spotlightFrame = Math.max(0, frame - gridEndFrame);
+  const spotlightDurationPerImage = 36; // ~1.2s per photo
+  const currentSpotlightIndex = !isGridPhase && imageList.length > 0
+    ? Math.min(imageList.length - 1, Math.floor(spotlightFrame / spotlightDurationPerImage))
+    : 0;
+
+  const spotlightLocalFrame = spotlightFrame % spotlightDurationPerImage;
+
+  // FAST Left / Right Slide Entry
+  const isEven = currentSpotlightIndex % 2 === 0;
+  const startX = isEven ? -width : width;
+
+  const slideX = interpolate(
+    spotlightLocalFrame,
+    [0, 8], // Fast 8-frame snappy slide entry
+    [startX, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
-const positions = [
-  // Hero
-  { left: 90, top: 60, width: 900, height: 650 },
 
-  // Row 1
-  { left: 120, top: 820, width: 400, height: 220 },
-  { left: 560, top: 820, width: 400, height: 220 },
-
-  // Row 2
-  { left: 120, top: 1070, width: 400, height: 220 },
-  { left: 560, top: 1070, width: 400, height: 220 },
-
-  // Row 3
-  { left: 120, top: 1320, width: 400, height: 220 },
-  { left: 560, top: 1320, width: 400, height: 220 },
-
-  // Row 4
-  { left: 120, top: 1570, width: 400, height: 220 },
-  { left: 560, top: 1570, width: 400, height: 220 },
-];
- 
+  const positions = [
+    // Hero
+    { left: 90, top: 60, width: 900, height: 650 },
+    // Row 1
+    { left: 120, top: 820, width: 400, height: 220 },
+    { left: 560, top: 820, width: 400, height: 220 },
+    // Row 2
+    { left: 120, top: 1070, width: 400, height: 220 },
+    { left: 560, top: 1070, width: 400, height: 220 },
+    // Row 3
+    { left: 120, top: 1320, width: 400, height: 220 },
+    { left: 560, top: 1320, width: 400, height: 220 },
+    // Row 4
+    { left: 120, top: 1570, width: 400, height: 220 },
+    { left: 560, top: 1570, width: 400, height: 220 },
+  ];
 
   return (
     <AbsoluteFill
       style={{
-          background:"linear-gradient(135deg,#fafafa,#ececec)",
-   overflow:"hidden"
+        background: "#000000",
+        overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          height: "100%",
-          overflow:"hidden",
-        }}
-      >
-        {positions.map((pos, index) => {
-          const localFrame = Math.max(frame - index * 5, 0);
+      {/* PHASE 1: 3x3 Card Grid Collage FIRST (Frames 0 - 120) */}
+      {isGridPhase && (
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            height: "100%",
+            overflow: "hidden",
+            transform: `scale(${beatScale})`,
+            opacity: interpolate(frame, [0, 10, 110, 120], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
+          }}
+        >
+          {positions.map((pos, index) => {
+            const localFrame = Math.max(frame - index * 3, 0);
+            const entrance = spring({
+              frame: localFrame,
+              fps,
+              config: { damping: 15, stiffness: 120 },
+            });
 
-          const entrance = spring({
-            frame: localFrame,
-            fps,
-            config: {
-              damping: 15,
-              stiffness: 120,
-            },
-          });
+            const imageScale =
+              index === 0
+                ? interpolate(frame, [0, 120], [1, 1.08])
+                : interpolate(frame, [0, 120], [1, 1.03]);
 
-          const imageScale =
-            index === 0
-              ? interpolate(frame, [0, durationInFrames], [1, 1.08])
-              : interpolate(frame, [0, durationInFrames], [1, 1.03]);
+            const floatY = Math.sin((frame + index * 10) / 20) * 3;
 
-   const rotate = [0,0,0,0,0,0,0,0,0];
-
-          const floatY =
-            Math.sin((frame + index * 10) / 20) * 3;
-
-          return (
-            <div
-              key={index}
-              style={{
-                position: "absolute",
-
-                left: pos.left,
-                top: pos.top,
-
-                width: pos.width,
-                height: pos.height,
-
-                background: "#fff",
-                borderRadius: 22,
-                border: "8px solid white",
-
-                overflow: "hidden",
-
-                opacity: entrance,
-
-                transform: `
-                  translateY(${40 * (1 - entrance) + floatY}px)
-                  rotate(${rotate[index]}deg)
-                `,
-
-                boxShadow: "0 12px 40px rgba(0,0,0,.18)",
-              }}
-            >
-              <Img
-                src={imageList[index]?.path}
+            return (
+              <div
+                key={index}
                 style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-
-                      objectPosition: "center",
-
-                  transform: `scale(${imageScale + 0.08})`,
+                  position: "absolute",
+                  left: pos.left,
+                  top: pos.top,
+                  width: pos.width,
+                  height: pos.height,
+                  background: "#fff",
+                  borderRadius: 18,
+                  border: "6px solid white",
+                  overflow: "hidden",
+                  opacity: entrance,
+                  transform: `translateY(${40 * (1 - entrance) + floatY}px)`,
+                  boxShadow: "0 12px 40px rgba(0,0,0,.3)",
                 }}
-              />
-            </div>
-          );
-        })}
-      </div>
-<div
-  style={{
-    position: "absolute",
-    top: 760, // Hero image ke neeche
-    left: 0,
-    width: "100%",
-    textAlign: "center",
-    fontSize: 42,
-    fontWeight: 600,
-    color: "#444",
-    fontFamily: "Playfair Display, serif",
-    letterSpacing: "2px",
-    zIndex: 100,
-  }}
->
-  Captured with Love
-</div>
-    
+              >
+                <Img
+                  src={imageList[index]?.path}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "center",
+                    transform: `scale(${imageScale})`,
+                  }}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* PHASE 2: 1-by-1 FULL REEL Showcase (No Text, Fast Left/Right Slide) (Frames 120 - 450) */}
+      {!isGridPhase && imageList[currentSpotlightIndex] && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            transform: `translateX(${slideX}px) scale(${beatScale})`,
+            zIndex: 20,
+            overflow: "hidden",
+          }}
+        >
+          <AnimatedImage
+            src={imageList[currentSpotlightIndex].path}
+            animation="kenBurns"
+            durationInFrames={spotlightDurationPerImage}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+        </div>
+      )}
     </AbsoluteFill>
   );
 };
+
+export default WhiteCardGrid3x3;

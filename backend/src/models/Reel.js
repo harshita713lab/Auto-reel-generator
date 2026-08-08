@@ -100,6 +100,10 @@ const ReelSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  beatTimestamps: {
+    type: [Number],
+    default: [],
+  },
   musicVolume: {
     type: Number,
     default: 1,

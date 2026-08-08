@@ -86,7 +86,6 @@ class VideoService {
       }
 
       const args = [
-        ffmpegService.ffmpegPath,
         '-ss', String(startTime),
         '-i', inputPath,
         '-t', String(duration),
@@ -117,7 +116,6 @@ class VideoService {
       const speedFactor = Math.max(0.25, Math.min(4, speed));
 
       const args = [
-        ffmpegService.ffmpegPath,
         '-i', inputPath,
         '-filter_complex', `[0:v]setpts=${1/speedFactor}*PTS[v];[0:a]atempo=${speedFactor}[a]`,
         '-map', '[v]',
@@ -150,7 +148,6 @@ class VideoService {
       }
 
       const args = [
-        ffmpegService.ffmpegPath,
         '-i', inputPath,
         '-vf', 'reverse',
         '-af', 'areverse',
@@ -187,7 +184,6 @@ class VideoService {
       await fs.writeFile(concatFile, concatContent);
 
       const args = [
-        ffmpegService.ffmpegPath,
         '-f', 'concat',
         '-safe', '0',
         '-i', concatFile,
@@ -236,7 +232,6 @@ class VideoService {
       const filter = positions[position] || positions['bottom-right'];
 
       const args = [
-        ffmpegService.ffmpegPath,
         '-i', inputPath,
         '-i', watermarkPath,
         '-filter_complex', `[1:v]scale=${size}:-1[wm];[0:v][wm]${filter}`,
