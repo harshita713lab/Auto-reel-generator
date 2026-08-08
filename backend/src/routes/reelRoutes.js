@@ -147,6 +147,21 @@ router.get('/templates', (req, res) => {
       fixedMusic: TEMPLATE_MUSIC_MAP.memory_blend.musicId,
       fixedMusicTitle: TEMPLATE_MUSIC_MAP.memory_blend.musicTitle,
       description: 'Dynamic blend suited for any photo count'
+    },
+    {
+      id: 'Template26',
+      name: '💖 Template 26 (Love Story)',
+      slideDuration: 3,
+      transition: 'fade',
+      effect: 'cinematic',
+      colorGrade: 'warm',
+      vignette: true,
+      quality: 'high',
+      minPhotos: 18,
+      maxPhotos: 18,
+      fixedMusic: TEMPLATE_MUSIC_MAP.Template26.musicId,
+      fixedMusicTitle: TEMPLATE_MUSIC_MAP.Template26.musicTitle,
+      description: 'Animated 3-scene wedding & love story for 18 photos'
     }
   ];
   return res.json({ success: true, templates });

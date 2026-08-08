@@ -294,7 +294,7 @@ const Scene1 = ({
             left: 0,
             right: 0,
 
-            bottom: 120,
+            bottom: 200,
 
             textAlign: "center",
 

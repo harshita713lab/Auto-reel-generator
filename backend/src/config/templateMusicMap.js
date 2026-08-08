@@ -61,16 +61,15 @@ function getMusicForTemplate(templateId, imageCount) {
 
   // 2. Resolve by image count (matching renderService composition logic)
   if (typeof imageCount === 'number') {
-    if (imageCount === 23) return TEMPLATE_MUSIC_MAP.wedding_seq.musicId;      // ReelAudio-3.mp3
-    if (imageCount === 18) return TEMPLATE_MUSIC_MAP.fast_beat_story.musicId;  // ReelAudio-13.mp3
+    if (imageCount === 18) return TEMPLATE_MUSIC_MAP.Template26.musicId;      // ReelAudio-20.mp3
     if (imageCount === 20) return TEMPLATE_MUSIC_MAP.wedding_seq.musicId;      // ReelAudio-3.mp3
+    if (imageCount === 23) return TEMPLATE_MUSIC_MAP.wedding_seq.musicId;      // ReelAudio-3.mp3
     if (imageCount === 9) return TEMPLATE_MUSIC_MAP.cinematic_wedding.musicId;  // ReelAudio-4.mp3
     if (imageCount === 11) return TEMPLATE_MUSIC_MAP.wedding_split.musicId;    // ReelAudio-5.mp3
     if (imageCount === 10) return TEMPLATE_MUSIC_MAP.white_carousel.musicId;   // ReelAudio-6.mp3
     if (imageCount === 8) return TEMPLATE_MUSIC_MAP.white_masonry.musicId;     // ReelAudio-8.mp3
     if (imageCount === 6) return TEMPLATE_MUSIC_MAP.white_polaroid.musicId;    // ReelAudio-9.mp3
-    if (imageCount === 4) return TEMPLATE_MUSIC_MAP.premium_grid.musicId; 
-    if(imageCount=== 18) return TEMPLATE_MUSIC_MAP.Template_26.musicId;     // ReelAudio-10.mp3
+    if (imageCount === 4) return TEMPLATE_MUSIC_MAP.premium_grid.musicId;     // ReelAudio-10.mp3
     if (imageCount < 4) return TEMPLATE_MUSIC_MAP.simple_1.musicId;            // ReelAudio-1.mp3
     return TEMPLATE_MUSIC_MAP.memory_blend.musicId;                            // ReelAudio-12.mp3
   }
@@ -79,7 +78,7 @@ function getMusicForTemplate(templateId, imageCount) {
     return TEMPLATE_MUSIC_MAP[templateId].musicId;
   }
 
-  return 'ReelAudio-1.mp3';
+  return 'ReelAudio-20.mp3';
 }
 
 module.exports = {

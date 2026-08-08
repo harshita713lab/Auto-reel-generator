@@ -36,6 +36,7 @@ function UploadSection() {
     // Auto-select template based on photo count
     const count = newImages.length;
     if (count === 20) setSelectedTemplateId("wedding_seq");
+    else if (count === 18) setSelectedTemplateId("Template26");
     else if (count === 9) setSelectedTemplateId("cinematic_wedding");
     else if (count === 11) setSelectedTemplateId("wedding_split");
     else if (count === 10) setSelectedTemplateId("white_carousel");

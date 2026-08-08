@@ -17,6 +17,7 @@ import WeddingSplitSlider from "./compositions/Wedding/SplitSlider";
 
 import { RoyalWeddingStory } from './compositions/Wedding/template14';
 import FastBeatWeddingStory from './compositions/Wedding/FastBeatWeddingStory';
+import { Template26 } from './compositions/Wedding/template26';
 
 
 const DefaultComposition: React.FC<any> = ({ images = [], template = {} }) => {
@@ -286,6 +287,17 @@ namesText:"JULIAN & JULI"
   defaultProps={{
     images: [],
     music: undefined,
+  }}
+/>
+<Composition
+  id="Template26"
+  component={Template26}
+  durationInFrames={420}
+  fps={30}
+  width={1080}
+  height={1920}
+  defaultProps={{
+    images: [],
   }}
 />
     </>

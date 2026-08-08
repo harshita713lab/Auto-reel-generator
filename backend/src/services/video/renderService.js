@@ -99,11 +99,13 @@ let compositionId;
 // ✅ FIX: Pehle explicit reel.compositionId ko respect karo
 if (reel.compositionId) {
   compositionId = reel.compositionId;
+} else if (reel.templateId === "Template26" || reel.template?.id === "Template26") {
+  compositionId = "Template26";
 } else if (imageCount === 20) {
   compositionId = "WeddingSequenceComposition";
 
 } else if (imageCount === 18) {
-  compositionId = "FastBeatWeddingStory";
+  compositionId = "Template26";
 
 } else if (imageCount === 9) {
   compositionId = "CinematicWeddingReel";
