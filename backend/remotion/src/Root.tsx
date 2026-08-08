@@ -23,11 +23,16 @@ import WhiteCardMasonry from "./compositions/Wedding/MasonryComposition";
 import { PremiumGrid } from "./compositions/Wedding/PreiumGrid";
 
 import WeddingSequenceComposition from "./compositions/Wedding/WeddingSequenceComposition";
+<<<<<<< HEAD
 
 import CinematicWeddingReel from "./compositions/Wedding/template19";
+=======
+import  CinematicWeddingReel  from "./compositions/Wedding/template9";
+>>>>>>> f7682df6889e1cbff163b07a5556be283dcacd7f
 
 import WeddingSplitSlider from "./compositions/Wedding/SplitSlider";
 
+<<<<<<< HEAD
 import { MemoryJourneyWeddingReel } from "./compositions/Wedding/template18";
 
 import { RoyalWeddingStory } from "./compositions/Wedding/template14";
@@ -41,6 +46,10 @@ import { ScrapbookWedding15 } from "./compositions/Wedding/template15";
 import { WeddingTemplate14 } from "./compositions/Wedding/template25";
 
 import { Template26 } from "./compositions/Wedding/template26";
+=======
+import { RoyalWeddingStory } from './compositions/Wedding/template14';
+import FastBeatWeddingStory from './compositions/Wedding/FastBeatWeddingStory';
+>>>>>>> f7682df6889e1cbff163b07a5556be283dcacd7f
 
 
 // ======================================================
@@ -237,6 +246,7 @@ export const Root: React.FC = () => {
           const slideDuration =
             typedProps.slideDuration || 3;
 
+<<<<<<< HEAD
           return {
             durationInFrames:
               Math.max(
@@ -547,6 +557,29 @@ export const Root: React.FC = () => {
           images: [],
         }}
       />
+=======
+/>
+<Composition
+  id="RoyalWeddingStory"
+  component={RoyalWeddingStory}
+  durationInFrames={360}
+  fps={30}
+  width={1080}
+  height={1920}
+/>
+<Composition
+  id="FastBeatWeddingStory"
+  component={FastBeatWeddingStory}
+  durationInFrames={450}
+  fps={30}
+  width={1080}
+  height={1920}
+  defaultProps={{
+    images: [],
+    music: undefined,
+  }}
+/>
+>>>>>>> f7682df6889e1cbff163b07a5556be283dcacd7f
     </>
   );
 };

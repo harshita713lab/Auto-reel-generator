@@ -36,6 +36,10 @@ const TEMPLATE_MUSIC_MAP = {
   premium_grid: { musicId: 'ReelAudio-10.mp3', musicTitle: 'Luxury Ambient (Track 10)' },
   PremiumGrid: { musicId: 'ReelAudio-10.mp3', musicTitle: 'Luxury Ambient (Track 10)' },
 
+  // Fast Beat Wedding Story (18 photos)
+  fast_beat_story: { musicId: 'ReelAudio-13.mp3', musicTitle: 'Fast Beat Montage (Track 13)' },
+  FastBeatWeddingStory: { musicId: 'ReelAudio-13.mp3', musicTitle: 'Fast Beat Montage (Track 13)' },
+
   // Memory Blend Reel (Other photo counts)
   memory_blend: { musicId: 'ReelAudio-12.mp3', musicTitle: 'Nostalgic Harmony (Track 12)' },
   MemoryBlendReel: { musicId: 'ReelAudio-12.mp3', musicTitle: 'Nostalgic Harmony (Track 12)' },
@@ -58,6 +62,8 @@ function getMusicForTemplate(templateId, imageCount) {
   // 2. Resolve by image count (matching renderService composition logic)
   if (typeof imageCount === 'number') {
     if (imageCount === 23) return TEMPLATE_MUSIC_MAP.wedding_seq.musicId;      // ReelAudio-3.mp3
+    if (imageCount === 18) return TEMPLATE_MUSIC_MAP.fast_beat_story.musicId;  // ReelAudio-13.mp3
+    if (imageCount === 20) return TEMPLATE_MUSIC_MAP.wedding_seq.musicId;      // ReelAudio-3.mp3
     if (imageCount === 9) return TEMPLATE_MUSIC_MAP.cinematic_wedding.musicId;  // ReelAudio-4.mp3
     if (imageCount === 11) return TEMPLATE_MUSIC_MAP.wedding_split.musicId;    // ReelAudio-5.mp3
     if (imageCount === 10) return TEMPLATE_MUSIC_MAP.white_carousel.musicId;   // ReelAudio-6.mp3

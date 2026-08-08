@@ -1,16 +1,15 @@
-
-const fs = require("fs").promises;
-const path = require("path");
-const logger = require("../../utils/logger");
-const remotionConfig = require("../../config/remotion");
-const ffmpegService = require("./ffmpegService");
-const outputService = require("../storage/outputService");
-const previewService = require("./previewService");
-const fileService = require("../storage/fileService");
-const { DIRECTORIES } = require("../../config/constants");
+const fs = require('fs').promises;
+const path = require('path');
+const logger = require('../../utils/logger');
+const remotionConfig = require('../../config/remotion');
+const ffmpegService = require('./ffmpegService');
+const outputService = require('../storage/outputService');
+const previewService = require('./previewService');
+const fileService = require('../storage/fileService');
+const { DIRECTORIES } = require('../../config/constants');
 
 class RenderService {
-  constructor() {
+  constructor() { 
     this.renderDir = DIRECTORIES.RENDERS;
     this.tempDir = DIRECTORIES.TEMP;
   }
@@ -24,11 +23,9 @@ class RenderService {
   async renderReel(reel, options = {}) {
     try {
       const fsSync = require("fs");
-      const sharp = require("sharp");
-
       const {
-        quality = "high",
-        format = "mp4",
+        quality = 'high',
+        format = 'mp4',
         width = 1080,
         height = 1920,
         fps = 30,
@@ -36,538 +33,200 @@ class RenderService {
         audioPath = null,
       } = options;
 
-      // =====================================================
-      // SERVER URL
-      // =====================================================
-
+      // Prepare input props for Remotion
+      // Convert filesystem paths to absolute web URLs for Chromium/Remotion
       const serverBaseUrl = `http://localhost:${process.env.PORT || 5000}`;
+      let audioUrl = null;
+      if (audioPath) {
+        const subfolder = audioPath.includes('songs') ? 'songs' : 'music';
+        audioUrl = `${serverBaseUrl}/assets/${subfolder}/${path.basename(audioPath)}`;
+      }
 
-      // =====================================================
-      // PREPARE IMAGES
-      // =====================================================
-
-      const images = await Promise.all(
-        reel.images.map(async (img) => {
-          let imageWebUrl = img.path;
-
-          if (
-            img.path &&
-            !img.path.startsWith("http://") &&
-            !img.path.startsWith("https://") &&
-            !img.path.startsWith("data:")
-          ) {
-            // =================================================
-            // LOCAL FILE EXISTS
-            // =================================================
-
-            if (fsSync.existsSync(img.path)) {
-              try {
-                /*
-                 * contain = complete image visible
-                 * cover = image crop
-                 */
-
-                const resizedBuf = await sharp(img.path)
-                  .resize(1080, 1920, {
-                    fit: "contain",
-                    background: {
-                      r: 0,
-                      g: 0,
-                      b: 0,
-                      alpha: 1,
-                    },
-                  })
-                  .jpeg({
-                    quality: 90,
-                  })
-                  .toBuffer();
-
-                imageWebUrl =
-                  `data:image/jpeg;base64,${resizedBuf.toString("base64")}`;
-              } catch (sharpErr) {
-                console.error(
-                  "Sharp image processing failed:",
-                  sharpErr.message
-                );
-
-                const fileBuf = fsSync.readFileSync(img.path);
-
-                imageWebUrl =
-                  `data:image/jpeg;base64,${fileBuf.toString("base64")}`;
-              }
-            } else {
-              // =================================================
-              // FILE DOES NOT EXIST
-              // =================================================
-
-              imageWebUrl =
-                `${serverBaseUrl}/uploads/images/${path.basename(img.path)}`;
+      const sharp = require('sharp');
+      const images = await Promise.all(reel.images.map(async (img) => {
+        let imageWebUrl = img.path;
+        if (img.path && !img.path.startsWith('http://') && !img.path.startsWith('https://') && !img.path.startsWith('data:')) {
+          if (fsSync.existsSync(img.path)) {
+            try {
+              const resizedBuf = await sharp(img.path)
+                .resize(1080, 1920, { fit: 'cover', position: 'center' })
+                .jpeg({ quality: 80 })
+                .toBuffer();
+              imageWebUrl = `data:image/jpeg;base64,${resizedBuf.toString('base64')}`;
+            } catch (sharpErr) {
+              const fileBuf = fsSync.readFileSync(img.path);
+              imageWebUrl = `data:image/jpeg;base64,${fileBuf.toString('base64')}`;
             }
+          } else {
+            imageWebUrl = `${serverBaseUrl}/uploads/images/${path.basename(img.path)}`;
           }
-
-          return {
-            path: imageWebUrl,
-
-            duration:
-              typeof img.duration === "number"
-                ? img.duration
-                : 3,
-
-            animation:
-              img.animation || "kenBurns",
-
-            transition:
-              img.transition || "fade",
-          };
-        })
-      );
-
-      // =====================================================
-      // DEBUG IMAGES
-      // =====================================================
-
-      console.log("========================================");
+        }
+        return {
+          path: imageWebUrl,
+          duration: img.duration || 3,
+          animation: img.animation || "kenBurns",
+          transition: img.transition || "fade"
+        };
+      }));
       console.log("REEL IMAGES");
-      console.log("Image Count:", images.length);
-      console.log("========================================");
-
-      // =====================================================
-      // INPUT PROPS
-      // =====================================================
-
+      console.log(reel.images);
       const inputProps = {
         images,
-
-        // Audio is added later using FFmpeg
-        music: null,
-
-        beatTimestamps:
-          reel.beatTimestamps || [],
-
+        music: null, // Set to null to bypass Remotion internal audio compositor & Windows Defender blocks
+        beatTimestamps: reel.beatTimestamps || [],
         config: {
           width: 1080,
           height: 1920,
           fps: 30,
-
           backgroundColor: "#000",
-
           transitionDuration: 0.5,
-
-          effects: [
-            "vignette",
-            "lightLeak",
-          ],
-        },
+          effects: ["vignette", "lightLeak"]
+        }
       };
-
-      console.log("========================================");
       console.log("INPUT PROPS");
-      console.log("========================================");
+      console.log(JSON.stringify(inputProps, null, 2));
 
-      console.log(
-        JSON.stringify(
-          {
-            imageCount: images.length,
-            music: null,
-            beatTimestamps: inputProps.beatTimestamps,
-          },
-          null,
-          2
-        )
+      // Render with Remotion
+      const compositionName = remotionConfig.validateCompositionName(
+        reel.template?.name || 'Memories'
       );
 
-      // =====================================================
-      // COMPOSITION SELECTION
-      // =====================================================
-
+      // आप चाहें तो यहाँ नाम को Remotion के composition id से मैच करा सकती हैं
+      // Decide composition based on image count
       const imageCount = reel.images.length;
+let compositionId;
 
-      let compositionId;
+// ✅ FIX: Pehle explicit reel.compositionId ko respect karo
+if (reel.compositionId) {
+  compositionId = reel.compositionId;
+} else if (imageCount === 20) {
+  compositionId = "WeddingSequenceComposition";
 
-      /*
-       * Explicit compositionId gets first priority.
-       */
+} else if (imageCount === 18) {
+  compositionId = "FastBeatWeddingStory";
 
-      if (reel.compositionId) {
-        compositionId = reel.compositionId;
-      } else {
-        switch (imageCount) {
-          // =================================================
-          // 23 IMAGES
-          // =================================================
+} else if (imageCount === 9) {
+  compositionId = "CinematicWeddingReel";
 
-          case 23:
-            compositionId = "MemoryBlendReel";
-            break;
+} else if (imageCount === 11) {
+  compositionId = "WeddingSplitSlider";
+}
+   else if (imageCount === 14) {
+  compositionId = "RoyalWeddingStory";
 
-          // =================================================
-          // 20 IMAGES
-          // =================================================
+} else if (imageCount === 10) {
+  compositionId = "WhiteCardCarousel";
 
-          case 20:
-            compositionId = "WeddingSequenceComposition";
-            break;
+} else if (imageCount === 8) {
+  compositionId = "WhiteCardMasonry";
 
-          // =================================================
-          // 18 IMAGES
-          // =================================================
+} else if (imageCount === 6) {
+  compositionId = "WhiteCardPolaroidStack";
 
-          case 18:
-            compositionId = "Template26";
-            break;
+} else if (imageCount === 4) {
+  compositionId = "PremiumGrid";
 
-          // =================================================
-          // 16 IMAGES
-          // =================================================
+} else if (imageCount < 4) {
+  compositionId = "ReelComposition";
 
-          //case 16:
-            //compositionId = //"RoyalWeddingStory";
-            //break;
- case 16:
-            compositionId = "WeddingTemplate14";
-            break;
-          // =================================================
-          // 15 IMAGES
-          // =================================================
+} else {
+  compositionId = "MemoryBlendReel";
+}
+console.log(
+  `Image Count: ${imageCount}, Rendering with Composition ID: ${compositionId}`
+);
 
-          case 15:
-            compositionId = "ScrapbookWedding15";
-            break;
 
-          // =================================================
-          // 13 IMAGES
-          // =================================================
+      const result = await remotionConfig.render(compositionId, {
+        inputProps,
+      });
 
-          case 13:
-            compositionId = "WeddingCinematic13";
-            break;
-
-          // =================================================
-          // 11 IMAGES
-          // =================================================
-
-          case 11:
-            compositionId = "WeddingSplitSlider";
-            break;
-
-          // =================================================
-          // 10 IMAGES
-          // =================================================
-
-          case 10:
-            compositionId = "WhiteCardCarousel";
-            break;
-
-          // =================================================
-          // 9 IMAGES
-          // =================================================
-
-          case 9:
-            compositionId = "Reel";
-            break;
-
-          // =================================================
-          // 8 IMAGES
-          // =================================================
-
-          case 8:
-            compositionId = "WhiteCardMasonry";
-            break;
-
-          // =================================================
-          // 6 IMAGES
-          // =================================================
-
-          case 6:
-            compositionId = "WhiteCardPolaroidStack";
-            break;
-
-          // =================================================
-          // 4 IMAGES
-          // =================================================
-
-          case 4:
-            compositionId = "PremiumGrid";
-            break;
-
-          // =================================================
-          // 1-3 IMAGES
-          // =================================================
-
-          case 1:
-          case 2:
-          case 3:
-            compositionId = "ReelComposition";
-            break;
-
-          // =================================================
-          // DEFAULT
-          // =================================================
-
-          default:
-            compositionId = "MemoryBlendReel";
-            break;
-        }
-      }
-
-      console.log("========================================");
-      console.log("COMPOSITION SELECTION");
-      console.log("Image Count:", imageCount);
-      console.log("Composition ID:", compositionId);
-      console.log("========================================");
-
-      // =====================================================
-      // RENDER WITH REMOTION
-      // =====================================================
-
-      const result = await remotionConfig.render(
-        compositionId,
-        {
-          inputProps,
-        }
-      );
-
-      if (!result || !result.outputPath) {
-        throw new Error(
-          `Remotion render failed: No output path returned for ${compositionId}`
-        );
-      }
-
+      // Use Remotion H.264 rendered output directly (avoids 3+ minutes of redundant re-encoding)
       let processedPath = result.outputPath;
 
-      console.log(
-        "🎬 Remotion render completed:",
-        processedPath
-      );
-
-      // =====================================================
-      // ADD AUDIO USING FFMPEG
-      // =====================================================
-
+      // Add music/audio to the video via FFmpeg (fast stream copy < 1 second)
       if (audioPath) {
         try {
-          const audioFile =
-            fsSync.existsSync(audioPath)
-              ? audioPath
-              : null;
-
+          const audioFile = fsSync.existsSync(audioPath) ? audioPath : null;
           if (audioFile) {
-            const withAudioPath =
-              await ffmpegService.addAudio(
-                processedPath,
-                audioFile,
-                {
-                  volume: 1,
-
-                  startTime:
-                    reel.musicStartTime || 0,
-
-                  outputPath:
-                    path.join(
-                      this.tempDir,
-                      `with_audio_${Date.now()}.${format}`
-                    ),
-                }
-              );
-
+            const withAudioPath = await ffmpegService.addAudio(processedPath, audioFile, {
+              volume: 1,
+              startTime: reel.musicStartTime || 0,
+              outputPath: path.join(this.tempDir, `with_audio_${Date.now()}.${format}`),
+            });
             if (withAudioPath) {
               processedPath = withAudioPath;
-
-              console.log(
-                "🎵 Music added:",
-                audioFile
-              );
+              console.log("🎵 Music added to video:", audioFile);
             }
-          } else {
-            console.warn(
-              "⚠️ Audio file does not exist:",
-              audioPath
-            );
           }
         } catch (audioError) {
-          console.error(
-            "⚠️ Failed to add music:",
-            audioError.message
-          );
-
-          // Continue without audio
+          console.error("⚠️ Failed to add music (continuing without audio):", audioError.message);
         }
       }
 
-      // =====================================================
-      // CHECK RENDERED FILE
-      // =====================================================
+      // Get file info
+      const stats = await fs.stat(processedPath);
+      const duration = await this.getVideoDuration(processedPath);
 
-      if (!fsSync.existsSync(processedPath)) {
-        throw new Error(
-          `Rendered video does not exist: ${processedPath}`
-        );
-      }
+      // Generate preview
+      const preview = await previewService.generatePreview(processedPath, {
+        duration: 15,
+        quality: 'low',
+      });
 
-      // =====================================================
-      // FILE INFO
-      // =====================================================
+      const finalPath = await outputService.saveVideo(processedPath, {
+        type: "render",
+        filename: `reel_${Date.now()}.${format}`,
+        metadata: {
+          reelId: reel._id,
+          quality,
+          width,
+          height,
+          fps,
+        },
+      });
 
-      const stats =
-        await fs.stat(processedPath);
+      console.log("Processed Exists :", fsSync.existsSync(processedPath));
+      console.log("Final Exists     :", fsSync.existsSync(finalPath.path));
+      console.log("Final Path       :", finalPath.path);
 
-      const duration =
-        await this.getVideoDuration(processedPath);
-
-      console.log(
-        "🎞️ Video duration:",
-        duration
-      );
-
-      // =====================================================
-      // GENERATE PREVIEW
-      // =====================================================
-
-      const preview =
-        await previewService.generatePreview(
-          processedPath,
-          {
-            duration: 15,
-            quality: "low",
-          }
-        );
-
-      // =====================================================
-      // SAVE FINAL VIDEO
-      // =====================================================
-
-      const finalPath =
-        await outputService.saveVideo(
-          processedPath,
-          {
-            type: "render",
-
-            filename:
-              `reel_${Date.now()}.${format}`,
-
-            metadata: {
-              reelId: reel._id,
-
-              quality,
-
-              width,
-
-              height,
-
-              fps,
-
-              compositionId,
-
-              imageCount,
-            },
-          }
-        );
-
-      // =====================================================
-      // DEBUG FINAL FILE
-      // =====================================================
-
-      console.log("========================================");
-      console.log("FINAL VIDEO");
-      console.log("========================================");
-
-      console.log(
-        "Processed Exists:",
-        fsSync.existsSync(processedPath)
-      );
-
-      console.log(
-        "Final Exists:",
-        fsSync.existsSync(finalPath.path)
-      );
-
-      console.log(
-        "Final Path:",
-        finalPath.path
-      );
-
-      // =====================================================
-      // CLEAN TEMP FILES
-      // =====================================================
-
+      // Clean up temp files safely
       try {
         await fileService.cleanupTemp();
       } catch (cleanupErr) {
-        logger.warn(
-          "Non-critical temp cleanup warning:",
-          cleanupErr.message
-        );
+        logger.warn("Non-critical temp cleanup warning:", cleanupErr.message);
       }
 
-      // =====================================================
-      // URLS
-      // =====================================================
-
-      const outputFilename =
-        path.basename(finalPath.path);
-
-      const previewFilename =
-        path.basename(preview.path);
-
-      const outputUrl =
-        `/output/renders/${outputFilename}`;
-
-      const previewUrl =
-        `/output/previews/${previewFilename}`;
-
-      // =====================================================
-      // RETURN
-      // =====================================================
+      // Build web-accessible URLs (relative paths for static serving)
+      // FIXED: Videos are served from /output/renders/ and /output/previews/
+      const outputFilename = path.basename(finalPath.path);
+      const previewFilename = path.basename(preview.path);
+      const outputUrl = `/output/renders/${outputFilename}`;
+      const previewUrl = `/output/previews/${previewFilename}`;
 
       return {
         path: finalPath.path,
-
         filename: finalPath.filename,
-
         size: stats.size,
-
         duration,
-
         width,
-
         height,
-
         fps,
-
         quality,
-
         format,
-
-        compositionId,
-
-        imageCount,
-
         outputPath: finalPath.path,
-
-        outputUrl,
-
+        outputUrl: `/output/renders/${path.basename(finalPath.path)}`,
         previewPath: preview.path,
-
-        previewUrl,
-
+        previewUrl: `/output/previews/${path.basename(preview.path)}`,
         thumbnailPath: preview.path,
-
-        preview,
-
+        preview: preview,
         url: finalPath.url,
       };
     } catch (error) {
-      console.error(
-        "========== RENDER SERVICE ERROR =========="
-      );
-
+      console.error("========== RENDER SERVICE ERROR ==========");
       console.error(error);
-
       console.error(error.stack);
-
-      console.error(
-        "=========================================="
-      );
+      console.error("==========================================");
 
       throw error;
     }
@@ -582,77 +241,37 @@ class RenderService {
   async postProcess(inputPath, options = {}) {
     try {
       const {
-        quality = "high",
-        format = "mp4",
+        quality = 'high',
+        format = 'mp4',
         width = 1080,
         height = 1920,
         fps = 30,
       } = options;
 
-      const outputPath =
-        path.join(
-          this.tempDir,
-          `processed_${Date.now()}.${format}`
-        );
+      const outputPath = path.join(this.tempDir, `processed_${Date.now()}.${format}`);
 
-      const crf =
-        quality === "high"
-          ? 18
-          : quality === "medium"
-            ? 23
-            : 28;
-
-      const bitrate =
-        quality === "high"
-          ? "8M"
-          : quality === "medium"
-            ? "4M"
-            : "2M";
-
-      const preset =
-        quality === "high"
-          ? "medium"
-          : "fast";
+      // Determine encoding settings based on quality
+      const crf = quality === 'high' ? 18 : quality === 'medium' ? 23 : 28;
+      const bitrate = quality === 'high' ? '8M' : quality === 'medium' ? '4M' : '2M';
+      const preset = quality === 'high' ? 'medium' : 'fast';
 
       const args = [
-        "-i",
-        inputPath,
-
-        "-c:v",
-        "libx264",
-
-        "-preset",
-        preset,
-
-        "-crf",
-        String(crf),
-
-        "-b:v",
-        bitrate,
-
-        "-vf",
-        `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,fps=${fps}`,
-
-        "-c:a",
-        "aac",
-
-        "-b:a",
-        "192k",
-
-        "-pix_fmt",
-        "yuv420p",
-
-        "-y",
-        outputPath,
+        '-i', inputPath,
+        '-c:v', 'libx264',
+        '-preset', preset,
+        '-crf', String(crf),
+        '-b:v', bitrate,
+        '-vf', `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,fps=${fps}`,
+        '-c:a', 'aac',
+        '-b:a', '192k',
+        '-pix_fmt', 'yuv420p',
+        '-y', outputPath,
       ];
 
       await ffmpegService.execute(args);
-
       return outputPath;
     } catch (error) {
-      throw new Error(
-        `Post-processing failed: ${error.message}`
-      );
+      throw new Error(`Post-processing failed: ${error.message}`);
     }
   }
 
@@ -663,9 +282,7 @@ class RenderService {
    */
   async getVideoDuration(videoPath) {
     try {
-      const info =
-        await ffmpegService.getVideoInfo(videoPath);
-
+      const info = await ffmpegService.getVideoInfo(videoPath);
       return info.duration;
     } catch (error) {
       return 0;
@@ -679,28 +296,18 @@ class RenderService {
    */
   async cleanupReel(reel) {
     try {
+      // Delete rendered files
       if (reel.outputPath) {
-        await fileService.deleteFile(
-          reel.outputPath
-        );
+        await fileService.deleteFile(reel.outputPath);
       }
-
       if (reel.previewPath) {
-        await fileService.deleteFile(
-          reel.previewPath
-        );
+        await fileService.deleteFile(reel.previewPath);
       }
-
       if (reel.thumbnailPath) {
-        await fileService.deleteFile(
-          reel.thumbnailPath
-        );
+        await fileService.deleteFile(reel.thumbnailPath);
       }
     } catch (error) {
-      logger.error(
-        "Failed to cleanup reel:",
-        error
-      );
+      logger.error('Failed to cleanup reel:', error);
     }
   }
 
@@ -710,9 +317,11 @@ class RenderService {
    * @returns {Promise<object>}
    */
   async getRenderStatus(jobId) {
+    // This would be implemented with a queue system
+    // For now, return a simple status
     return {
       jobId,
-      status: "processing",
+      status: 'processing',
       progress: 50,
     };
   }
@@ -723,9 +332,9 @@ class RenderService {
    * @returns {Promise<boolean>}
    */
   async cancelRender(jobId) {
+    // This would be implemented with a queue system
     return true;
   }
 }
 
 module.exports = new RenderService();
-
