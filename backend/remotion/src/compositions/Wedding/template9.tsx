@@ -67,7 +67,7 @@ const heroDuration = 60;
 // 2 sec
 
 
-const gridDuration = 90;
+const gridDuration = 180;
 // 3 sec
 
 
@@ -85,8 +85,6 @@ heroDuration +
 gridDuration +
 singleDuration +
 endingDuration;
-
-
 
 
 
@@ -575,7 +573,6 @@ durationInFrames={gridDuration}
 
 
 </Sequence>
-
 
 
 

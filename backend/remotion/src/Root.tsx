@@ -9,7 +9,7 @@ import WhiteCardPolaroidStack from "./compositions/Wedding/WhitePolaroidComposit
 import WhiteCardMasonry from "./compositions/Wedding/MasonryComposition";
 import { PremiumGrid } from "./compositions/Wedding/PreiumGrid";
 import WeddingSequenceComposition from "./compositions/Wedding/WeddingSequenceComposition";
-import  CinematicWeddingReel  from "./compositions/Wedding/template19";
+import  CinematicWeddingReel  from "./compositions/Wedding/template9";
 
 import WeddingSplitSlider from "./compositions/Wedding/SplitSlider";
  import{ MemoryJourneyWeddingReel} from "./compositions/Wedding/template18";
