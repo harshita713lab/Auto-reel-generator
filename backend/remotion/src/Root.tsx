@@ -4,11 +4,11 @@ import { Composition, AbsoluteFill, Sequence } from 'remotion';
 import { default as AnimatedImage } from './components/AnimatedImage';
 import WeddingComposition from './compositions/Wedding/WeddingComposition'; // <-- यहाँ से कलीब्रेट ब्रेसेस हटा दिए गए हैं क्योंकि यह default export है
 import { MemoryBlendComposition } from './compositions/Wedding/MemoryBlendComposition';
-import { WhiteCardGrid3x3 } from './compositions/Wedding/CardGridComposition';
+import { WhiteCardGrid3x3 } from './compositions/Wedding/template1';
 import WhiteCardCarousel from "./compositions/Wedding/WhiteCarouselComposition";
 import WhiteCardPolaroidStack from "./compositions/Wedding/WhitePolaroidComposition";
 import WhiteCardMasonry from "./compositions/Wedding/MasonryComposition";
-import { PremiumGrid } from "./compositions/Wedding/PreiumGrid";
+import { PremiumGrid } from "./compositions/Wedding/template3";
 import WeddingSequenceComposition from "./compositions/Wedding/WeddingSequenceComposition";
 import  CinematicWeddingReel  from "./compositions/Wedding/template9";
 
@@ -20,7 +20,9 @@ import { RoyalWeddingStory } from './compositions/Wedding/template14';
 import { Template26 } from './compositions/Wedding/template26';
 import { Template25 } from './compositions/Wedding/template25';
 import { Template27 } from './compositions/Wedding/template27';
-
+import { Template28 } from './compositions/Wedding/template28';
+import { Template29 } from './compositions/Wedding/template29';
+import { Template5 } from './compositions/Wedding/template5';
 
 const DefaultComposition: React.FC<any> = ({ images = [], template = {} }) => {
   const slideDuration = template.slideDuration || 3;
@@ -28,7 +30,7 @@ const DefaultComposition: React.FC<any> = ({ images = [], template = {} }) => {
   const slideFrames = Math.round(slideDuration * fps);
 
   return (
-    <AbsoluteFill style={{ backgroundColor: template.backgroundColor || '#000000' }}>
+    <AbsoluteFill style={{ backgroundColor: template.backgroundColor || '#986363' }}>
       {images.map((img: any, index: number) => {
         const imageSrc = typeof img === 'string' ? img : img.path || img.url;
         const animation = (typeof img === 'object' && img.animation) || 'kenBurns';
@@ -305,13 +307,43 @@ namesText:"JULIAN & JULI"
 <Composition
   id="Template27"
   component={Template27}
-  durationInFrames={720}
+  durationInFrames={450}
   fps={30}
   width={1080}
   height={1920}
   defaultProps={{
     images: [],
   }}
+/>
+<Composition
+  id="Template28"
+  component={Template28}
+  durationInFrames={360}
+  fps={30}
+  width={1080}
+  height={1920}
+  defaultProps={{
+    images: [],
+  }}
+/>
+      <Composition
+        id="Template29"
+        component={Template29}
+        durationInFrames={210}
+        fps={30}
+        width={1080}
+        height={1920}
+        defaultProps={{
+          images: [],
+        }}
+      />
+<Composition
+  id="Template5"
+  component={Template5}
+  durationInFrames={270}
+  fps={30}
+  width={1080}
+  height={1920}
 />
     </>
   );

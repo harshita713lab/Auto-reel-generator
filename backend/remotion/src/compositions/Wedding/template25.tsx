@@ -39,19 +39,12 @@ interface WeddingTemplate14Props {
 const Scene1: React.FC<{
   images: ImageItem[];
 }> = ({ images }) => {
-
   const frame = useCurrentFrame();
 
+  // ==============================
+  // ANIMATIONS
+  // ==============================
 
-  const { fps, width, height } = useVideoConfig();
-
-  // ======================================================
-  // SCENE DURATIONS
-  // ======================================================
-
-
-  // SCENE 1 ANIMATIONS
-  // ======================================================
   const img1Opacity = interpolate(
     frame,
     [0, 20],
@@ -72,189 +65,213 @@ const Scene1: React.FC<{
     }
   );
 
-
-  // -----------------------------
-  // IMAGE 2 (Bottom Left)
-  // 8-14 frames
-  // -----------------------------
   const img2Opacity = interpolate(
     frame,
-    [50,70],
-    [0,1],
+    [50, 70],
+    [0, 1],
     {
-      extrapolateLeft:"clamp",
-      extrapolateRight:"clamp",
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
     }
   );
 
   const img2X = interpolate(
     frame,
-    [50,70],
-    [-80,0],
+    [50, 70],
+    [-80, 0],
     {
-      extrapolateLeft:"clamp",
-      extrapolateRight:"clamp",
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
     }
   );
 
-
-  // -----------------------------
-  // IMAGE 3 (Bottom Right)
-  // 15-21 frames
-  // -----------------------------
   const img3Opacity = interpolate(
     frame,
-    [100,120],
-    [0,1],
+    [100, 120],
+    [0, 1],
     {
-      extrapolateLeft:"clamp",
-      extrapolateRight:"clamp",
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
     }
   );
 
   const img3X = interpolate(
     frame,
-    [100,120],
-    [80,0],
+    [100, 120],
+    [80, 0],
     {
-      extrapolateLeft:"clamp",
-      extrapolateRight:"clamp",
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
     }
   );
 
-
-  // -----------------------------
-  // IMAGE 4 (Bottom Full)
-  // 22-28 frames
-  // -----------------------------
   const img4Opacity = interpolate(
     frame,
-    [150,170],
-    [0,1],
+    [150, 170],
+    [0, 1],
     {
-      extrapolateLeft:"clamp",
-      extrapolateRight:"clamp",
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
     }
   );
 
   const img4Y = interpolate(
     frame,
-    [150,170],
-    [80,0],
+    [150, 170],
+    [80, 0],
     {
-      extrapolateLeft:"clamp",
-      extrapolateRight:"clamp",
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
     }
   );
 
-const darkEffect = interpolate(
-  frame,
-  [180,190,205],
-  [0,1,0],
-  {
-    extrapolateLeft:"clamp",
-    extrapolateRight:"clamp",
-  }
-);
-  // ======================================================
-  // SCENE 2 ANIMATIONS
-  // ======================================================
+  const darkEffect = interpolate(
+    frame,
+    [180, 190, 205],
+    [0, 1, 0],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
 
-  // ======================================================
-  // SCENE 11 ANIMATIONS
-  // ======================================================
-
-   return (
+  return (
     <AbsoluteFill
       style={{
-        backgroundColor:"#fff",
-        padding:18,
+        backgroundColor: "#fff",
+        padding: 18,
+        boxSizing: "border-box",
       }}
     >
 
       <div
         style={{
-          width:"100%",
-          height:"100%",
-          display:"flex",
-          flexDirection:"column",
-          gap:18,
-           filter:
- `
- brightness(${1 - darkEffect * 0.75})
- grayscale(${darkEffect})
- `
+          width: "100%",
+          height: "100%",
 
+          display: "flex",
+          flexDirection: "column",
+
+          gap: 18,
+
+          filter: `
+            brightness(${1 - darkEffect * 0.75})
+            grayscale(${darkEffect})
+          `,
         }}
       >
 
-        {/* IMAGE 1 */}
+        {/* ==============================
+            IMAGE 1 - TOP
+        ============================== */}
+
         <div
           style={{
-            flex:1.3,
-            overflow:"hidden",
-            borderRadius:12,
-            opacity:img1Opacity,
-            transform:`translateY(${img1Y}px)`
+            flex: 1.3,
+
+            minHeight: 0,
+
+            overflow: "hidden",
+
+            borderRadius: 12,
+
+            opacity: img1Opacity,
+
+            transform: `translateY(${img1Y}px)`,
           }}
         >
           <Img
-            src={images[0].path}
+            src={images[0]?.path}
             style={{
-              width:"100%",
-              height:"100%",
-              objectFit:"cover",
+              width: "100%",
+              height: "100%",
+
+              objectFit: "cover",
+              objectPosition: "center",
+
+              display: "block",
             }}
           />
         </div>
 
 
-        {/* IMAGE 2 + IMAGE 3 */}
+        {/* ==============================
+            IMAGE 2 + IMAGE 3
+        ============================== */}
+
         <div
           style={{
-            flex:0.8,
-            display:"flex",
-            gap:18,
+            flex: 0.8,
+
+            minHeight: 0,
+
+            display: "flex",
+
+            gap: 18,
           }}
         >
 
           {/* IMAGE 2 */}
+
           <div
             style={{
-              flex:1,
-              overflow:"hidden",
-              borderRadius:12,
-              opacity:img2Opacity,
-              transform:`translateX(${img2X}px)`
+              flex: 1,
+
+              minWidth: 0,
+              minHeight: 0,
+
+              overflow: "hidden",
+
+              borderRadius: 12,
+
+              opacity: img2Opacity,
+
+              transform: `translateX(${img2X}px)`,
             }}
           >
             <Img
-              src={images[1].path}
+              src={images[1]?.path}
               style={{
-                width:"100%",
-                height:"100%",
-                objectFit:"cover",
+                width: "100%",
+                height: "100%",
+
+                objectFit: "cover",
+                objectPosition: "center",
+
+                display: "block",
               }}
             />
           </div>
 
 
           {/* IMAGE 3 */}
+
           <div
             style={{
-              flex:1,
-              overflow:"hidden",
-              borderRadius:12,
-              opacity:img3Opacity,
-              transform:`translateX(${img3X}px)`
+              flex: 1,
+
+              minWidth: 0,
+              minHeight: 0,
+
+              overflow: "hidden",
+
+              borderRadius: 12,
+
+              opacity: img3Opacity,
+
+              transform: `translateX(${img3X}px)`,
             }}
           >
             <Img
-              src={images[2].path}
+              src={images[2]?.path}
               style={{
-                width:"100%",
-                height:"100%",
-                objectFit:"cover",
+                width: "100%",
+                height: "100%",
+
+                objectFit: "cover",
+                objectPosition: "center",
+
+                display: "block",
               }}
             />
           </div>
@@ -262,35 +279,40 @@ const darkEffect = interpolate(
         </div>
 
 
+        {/* ==============================
+            IMAGE 4 - BOTTOM
+        ============================== */}
 
-        {/* IMAGE 4 */}
         <div
           style={{
-            flex:1,
-            overflow:"hidden",
-            borderRadius:12,
-            opacity:img4Opacity,
-            transform:`translateY(${img4Y}px)`
+            flex: 1,
+
+            minHeight: 0,
+
+            overflow: "hidden",
+
+            borderRadius: 12,
+
+            opacity: img4Opacity,
+
+            transform: `translateY(${img4Y}px)`,
           }}
         >
-
           <Img
-            src={images[3].path}
+            src={images[3]?.path}
             style={{
-              width:"100%",
-              height:"100%",
-              objectFit:"cover",
+              width: "100%",
+              height: "100%",
+
+              objectFit: "cover",
+              objectPosition: "center",
+
+              display: "block",
             }}
           />
-
         </div>
 
-
       </div>
-
-
-   
-
 
     </AbsoluteFill>
   );
@@ -496,63 +518,65 @@ extrapolateRight:"clamp"
 );
 
 
-
-const scale=interpolate(
-frame,
-[
-start,
-start+imageDuration
-],
-[
-1,
-1.12
-],
-{
-extrapolateRight:"clamp"
-}
+const scale = interpolate(
+  frame,
+  [
+    start,
+    start + imageDuration
+  ],
+  [
+    1,
+    1.08
+  ],
+  {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  }
 );
 
 
 
 return (
 
+
 <div
-key={index}
-style={{
-position:"absolute",
+  style={{
+    width: "86%",
+    height: "60%",
 
-width:"86%",
-height:"60%",
+    overflow: "hidden",
 
-overflow:"hidden",
+    borderRadius: 8,
 
-borderRadius:8,
+    opacity,
 
-opacity,
+    boxShadow: "0 0 40px rgba(0,0,0,.8)",
 
-boxShadow:
-"0 0 40px rgba(0,0,0,.8)"
-}}
+    position: "relative",
+  }}
 >
+  <Img
+    src={img.path}
+    style={{
+      position: "absolute",
 
+      top: 0,
+      left: 0,
 
-<Img
-src={img.path}
+      width: "100%",
+      height: "100%",
 
-style={{
-width:"100%",
-height:"100%",
-objectFit:"cover",
+      objectFit: "cover",
+      objectPosition: "center",
 
-transform:
-`scale(${scale})`
-}}
+      transform: `scale(${scale})`,
 
-/>
+      transformOrigin: "center center",
 
-
+      display: "block",
+    }}
+  />
 </div>
-
 )
 
 })

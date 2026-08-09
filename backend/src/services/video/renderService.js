@@ -93,36 +93,33 @@ class RenderService {
 
       // आप चाहें तो यहाँ नाम को Remotion के composition id से मैच करा सकती हैं
       // Decide composition based on image count
-      const imageCount = reel.images.length;
+
+
+const imageCount = reel.images.length;
 let compositionId;
 
-// ✅ FIX: Pehle explicit reel.compositionId ko respect karo
-if (reel.compositionId) {
-  compositionId = reel.compositionId;
-} else if (reel.templateId === "Template26" || reel.template?.id === "Template26") {
-  compositionId = "Template26";
-} else if (reel.templateId === "Template25" || reel.template?.id === "Template25") {
-  compositionId = "Template25";
-} else if (reel.templateId === "Template27" || reel.template?.id === "Template27") {
-  compositionId = "Template27";
-} else if (imageCount === 20) {
+// ======================================================
+// IMAGE COUNT BASED OVERRIDE
+// 14 IMAGES = ALWAYS TEMPLATE29
+// ======================================================
+ if (imageCount === 20) {
   compositionId = "WeddingSequenceComposition";
 
-} else if (imageCount === 18) {
+} 
+ else if (imageCount === 14) {
+  compositionId = "Template29";
+
+}else if (imageCount === 18) {
   compositionId = "Template26";
 
 } else if (imageCount === 13) {
   compositionId = "Template27";
-}
-
-else if (imageCount === 9) {
-  compositionId = "CinematicWeddingReel";
 
 } else if (imageCount === 11) {
-  compositionId = "WeddingSplitSlider";
-}
-   else if (imageCount === 14) {
-  compositionId = "RoyalWeddingStory";
+  compositionId = "Template28";
+
+} else if (imageCount === 9) {
+  compositionId = "CinematicWeddingReel";
 
 } else if (imageCount === 10) {
   compositionId = "WhiteCardCarousel";
@@ -136,20 +133,46 @@ else if (imageCount === 9) {
 } else if (imageCount === 4) {
   compositionId = "PremiumGrid";
 
-} else if (imageCount < 4) {
-  compositionId = "ReelComposition";
+} 
+else if (imageCount === 5) {
+  compositionId = "Template5";
 
-} else {
+} 
+else if (imageCount < 4) {
+  compositionId = "ReelComposition";
+}
+// ======================================================
+// EXPLICIT COMPOSITION / TEMPLATE
+// ======================================================
+
+else {
   compositionId = "MemoryBlendReel";
 }
-console.log(
-  `Image Count: ${imageCount}, Rendering with Composition ID: ${compositionId}`
-);
 
 
-      const result = await remotionConfig.render(compositionId, {
-        inputProps,
-      });
+// ======================================================
+// DEBUG
+// ======================================================
+
+console.log("========================================");
+console.log("🎬 IMAGE COUNT:", imageCount);
+console.log("🎬 DB COMPOSITION ID:", reel.compositionId);
+console.log("🎬 TEMPLATE ID:", reel.templateId);
+console.log("🎬 TEMPLATE OBJECT ID:", reel.template?.id);
+console.log("🎯 FINAL COMPOSITION:", compositionId);
+console.log("========================================");
+
+
+// ======================================================
+// RENDER
+// ======================================================
+
+const result = await remotionConfig.render(compositionId, {
+  inputProps,
+});
+
+
+     
 
       // Use Remotion H.264 rendered output directly (avoids 3+ minutes of redundant re-encoding)
       let processedPath = result.outputPath;

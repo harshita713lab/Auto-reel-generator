@@ -19,99 +19,296 @@ interface Template27Props {
 // TOP 3 FIXED + MIDDLE SLIDER + BOTTOM 3 FIXED
 // =====================================
 
-const Scene2 = ({ images = [] }: { images: ImageItem[] }) => {
+// =====================================
+// SCENE 2
+// 2 PHOTO CARDS
+// BOTH COME TOGETHER
+// DURATION = 3 SECONDS
+// =====================================
+
+const Scene2 = ({
+  images = [],
+}: {
+  images: ImageItem[];
+}) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Scene 2 ke first 5 images
-  const sceneImages = images.slice(0, 5);
+  // =====================================
+  // SCENE 2
+  // 6s → 8s
+  // 2 PHOTO CARDS
+  // =====================================
+
+  const sceneImages = [
+    images[0],
+    images[10],
+    images[1],
+    images[11],
+  ];
+
+  // =====================================
+  // CARD ANIMATION
+  // =====================================
+
+  const progress = spring({
+    frame,
+    fps,
+    config: {
+      damping: 12,
+      stiffness: 150,
+      mass: 0.7,
+    },
+  });
+
+  const translateY = interpolate(
+    progress,
+    [0, 1],
+    [500, 0],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
+  const scale = interpolate(
+    progress,
+    [0, 1],
+    [0.75, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
+  const opacity = interpolate(
+    progress,
+    [0, 0.15, 1],
+    [0, 1, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
 
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: "#f5f1eb",
-        justifyContent: "center",
-        alignItems: "center",
+        width: 1080,
+        height: 1920,
+
         overflow: "hidden",
+
+        background:
+          "linear-gradient(180deg, #d8c9c0 0%, #d9bfd0 48%, #d89da2 100%)",
       }}
     >
-      {sceneImages.map((image, index) => {
-        // Har card 7 frames ke gap se enter hoga
-        const delay = index * 7;
 
-        const progress = spring({
-          frame: frame - delay,
-          fps,
-          config: {
-            damping: 14,
-            stiffness: 150,
-            mass: 0.8,
-          },
-        });
+      {/* =====================================
+          TOP PHOTO CARD
+      ===================================== */}
 
-        const translateY = interpolate(
-          progress,
-          [0, 1],
-          [-500, 0],
-          {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          }
-        );
+      <div
+        style={{
+          position: "absolute",
 
-        const scale = interpolate(
-          progress,
-          [0, 1],
-          [0.75, 1],
-          {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          }
-        );
+          top: 170,
+          left: 45,
 
-        // Har card ka thoda different rotation
-        const rotations = [-8, 6, -5, 8, -3];
+          width: 990,
+          height: 700,
 
-        return (
-          <div
-            key={index}
+          opacity,
+
+          transform: `
+            translateY(${translateY}px)
+            scale(${scale})
+          `,
+
+          transformOrigin: "center center",
+        }}
+      >
+
+        {/* BACK PHOTO */}
+
+        <div
+          style={{
+            position: "absolute",
+
+            top: 20,
+            left: 55,
+
+            width: 900,
+            height: 590,
+
+            padding: 20,
+
+            boxSizing: "border-box",
+
+            backgroundColor: "#f1e3d4",
+
+            transform: "rotate(4deg)",
+
+            boxShadow:
+              "0 18px 38px rgba(0,0,0,0.16)",
+          }}
+        >
+          <Img
+            src={sceneImages[0]?.path}
             style={{
-              position: "absolute",
-              width: 520,
-              height: 680,
+              width: "100%",
+              height: "100%",
 
-              backgroundColor: "white",
+              objectFit: "cover",
 
-              padding: 18,
-
-              boxSizing: "border-box",
-
-              boxShadow:
-                "0 18px 45px rgba(0,0,0,0.22)",
-
-              transform: `
-                translateY(${translateY}px)
-                scale(${scale})
-                rotate(${rotations[index % rotations.length]}deg)
-              `,
-
-              zIndex: index,
-
-              transformOrigin: "center center",
+              display: "block",
             }}
-          >
-            <Img
-              src={image.path}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                display: "block",
-              }}
-            />
-          </div>
-        );
-      })}
+          />
+        </div>
+
+
+        {/* FRONT PHOTO */}
+
+        <div
+          style={{
+            position: "absolute",
+
+            top: 55,
+            left: 45,
+
+            width: 900,
+            height: 600,
+
+            padding: 20,
+
+            boxSizing: "border-box",
+
+            backgroundColor: "#f5e6d5",
+
+            transform: "rotate(-6deg)",
+
+            boxShadow:
+              "0 22px 45px rgba(0,0,0,0.22)",
+          }}
+        >
+          <Img
+            src={sceneImages[1]?.path}
+            style={{
+              width: "100%",
+              height: "100%",
+
+              objectFit: "cover",
+
+              display: "block",
+            }}
+          />
+        </div>
+
+      </div>
+
+
+      {/* =====================================
+          BOTTOM PHOTO CARD
+      ===================================== */}
+
+      <div
+        style={{
+          position: "absolute",
+
+          top: 1030,
+          left: 45,
+
+          width: 990,
+          height: 700,
+
+          opacity,
+
+          transform: `
+            translateY(${translateY}px)
+            scale(${scale})
+          `,
+
+          transformOrigin: "center center",
+        }}
+      >
+
+        {/* BACK PHOTO */}
+
+        <div
+          style={{
+            position: "absolute",
+
+            top: 20,
+            left: 55,
+
+            width: 900,
+            height: 590,
+
+            padding: 20,
+
+            boxSizing: "border-box",
+
+            backgroundColor: "#f1e3d4",
+
+            transform: "rotate(-4deg)",
+
+            boxShadow:
+              "0 18px 38px rgba(0,0,0,0.16)",
+          }}
+        >
+          <Img
+            src={sceneImages[2]?.path}
+            style={{
+              width: "100%",
+              height: "100%",
+
+              objectFit: "cover",
+
+              display: "block",
+            }}
+          />
+        </div>
+
+
+        {/* FRONT PHOTO */}
+
+        <div
+          style={{
+            position: "absolute",
+
+            top: 55,
+            left: 45,
+
+            width: 900,
+            height: 600,
+
+            padding: 20,
+
+            boxSizing: "border-box",
+
+            backgroundColor: "#f5e6d5",
+
+            transform: "rotate(6deg)",
+
+            boxShadow:
+              "0 22px 45px rgba(0,0,0,0.22)",
+          }}
+        >
+          <Img
+            src={sceneImages[3]?.path}
+            style={{
+              width: "100%",
+              height: "100%",
+
+              objectFit: "cover",
+
+              display: "block",
+            }}
+          />
+        </div>
+
+      </div>
+
     </AbsoluteFill>
   );
 };
@@ -120,48 +317,61 @@ const Scene1 = ({
 }: {
   images: ImageItem[];
 }) => {
-
   const frame = useCurrentFrame();
 
   // =====================================
-  // MIDDLE SLIDER
+  // FIXED SIZES
+  // REEL = 1080 x 1920
   // =====================================
 
-  const middleImages = images.slice(6, 10);
+  const REEL_WIDTH = 1080;
 
-  const imageWidth = 716;
+  const TOP_HEIGHT = 300;
+  const MIDDLE_TOP = 320;
+  const MIDDLE_HEIGHT = 1280;
+  const BOTTOM_HEIGHT = 300;
 
-  // har image ke beech slide
+  // =====================================
+  // MIDDLE SLIDER
+  // Images 4,5,6,7
+  // =====================================
+
+  const middleImages = images.slice(3, 7);
+
   const slideDuration = 45;
 
   const totalImages = middleImages.length;
 
   const sliderPosition =
-    (frame / slideDuration) % totalImages;
+    totalImages > 0
+      ? (frame / slideDuration) % totalImages
+      : 0;
 
-  const currentIndex =
-    Math.floor(sliderPosition);
+  const currentIndex = Math.floor(sliderPosition);
 
   const progress =
     sliderPosition - currentIndex;
 
   const translateX =
-    -currentIndex * imageWidth -
-    progress * imageWidth;
-
+    -currentIndex * REEL_WIDTH -
+    progress * REEL_WIDTH;
 
   return (
     <AbsoluteFill
       style={{
-        background: "#111",
+        width: REEL_WIDTH,
+        height: 1920,
+
+        backgroundColor: "#111",
+
         overflow: "hidden",
       }}
     >
 
-      {/* =================================
-          TOP ROW
-          FIXED 3 IMAGES
-      ================================= */}
+      {/* =====================================
+          TOP 3 IMAGES
+          EXACT: 1080 x 300
+      ===================================== */}
 
       <div
         style={{
@@ -170,122 +380,109 @@ const Scene1 = ({
           top: 0,
           left: 0,
 
-          width: "100%",
-          height: 310,
+          width: REEL_WIDTH,
+          height: TOP_HEIGHT,
 
           display: "flex",
 
-          gap: 10,
+          gap: 6,
 
-          padding: 12,
-
-          boxSizing: "border-box",
-
-          background: "#111",
+          overflow: "hidden",
         }}
       >
-
         {images.slice(0, 3).map((img, index) => (
-
           <div
             key={index}
             style={{
-              flex: 1,
+              width: 356,
+              height: TOP_HEIGHT,
 
-              height: "100%",
+              flex: "0 0 356px",
 
               overflow: "hidden",
-
-              borderRadius: 10,
-
-              background: "#111",
             }}
           >
-
             <Img
               src={img.path}
               style={{
-                width: "100%",
-                height: "100%",
+                width: 356,
+                height: TOP_HEIGHT,
 
                 objectFit: "cover",
+
                 objectPosition: "center",
 
                 display: "block",
               }}
             />
-
           </div>
-
         ))}
-
       </div>
 
 
-      {/* =================================
+      {/* =====================================
           MIDDLE SLIDER
-      ================================= */}
+          EXACT: 1080 x 1280
+      ===================================== */}
 
       <div
         style={{
           position: "absolute",
 
-          top: 320,
+          top: MIDDLE_TOP,
           left: 0,
 
-          width: "100%",
-          height: 635,
+          width: REEL_WIDTH,
+          height: MIDDLE_HEIGHT,
 
           overflow: "hidden",
-
-          background: "#111",
         }}
       >
 
         <div
           style={{
+            position: "absolute",
+
+            top: 0,
+            left: 0,
+
             display: "flex",
 
-            height: "100%",
+            width: totalImages * REEL_WIDTH,
+            height: MIDDLE_HEIGHT,
 
-            width: `${totalImages * 100}%`,
-
-            transform:
-              `translateX(${translateX}px)`,
+            transform: `translateX(${translateX}px)`,
 
             willChange: "transform",
           }}
         >
 
           {middleImages.map((img, index) => (
-
             <div
               key={index}
               style={{
-                width: imageWidth,
-                height: "100%",
+                width: REEL_WIDTH,
+                height: MIDDLE_HEIGHT,
 
-                flexShrink: 0,
+                flex: `0 0 ${REEL_WIDTH}px`,
 
                 overflow: "hidden",
               }}
             >
-
               <Img
                 src={img.path}
                 style={{
-                  width: "100%",
-                  height: "100%",
+                  width: REEL_WIDTH,
+                  height: MIDDLE_HEIGHT,
 
                   objectFit: "cover",
+
                   objectPosition: "center",
 
                   display: "block",
                 }}
               />
-
             </div>
-
           ))}
 
         </div>
@@ -293,10 +490,10 @@ const Scene1 = ({
       </div>
 
 
-      {/* =================================
-          BOTTOM ROW
-          FIXED 3 IMAGES
-      ================================= */}
+      {/* =====================================
+          BOTTOM 3 IMAGES
+          EXACT: 1080 x 300
+      ===================================== */}
 
       <div
         style={{
@@ -305,105 +502,123 @@ const Scene1 = ({
           bottom: 0,
           left: 0,
 
-          width: "100%",
-          height: 310,
+          width: REEL_WIDTH,
+          height: BOTTOM_HEIGHT,
 
           display: "flex",
 
-          gap: 10,
+          gap: 6,
 
-          padding: 12,
-
-          boxSizing: "border-box",
-
-          background: "#111",
+          overflow: "hidden",
         }}
       >
-
-        {images.slice(10, 13).map((img, index) => (
-
+        {images.slice(7, 10).map((img, index) => (
           <div
             key={index}
             style={{
-              flex: 1,
+              width: 356,
+              height: BOTTOM_HEIGHT,
 
-              height: "100%",
+              flex: "0 0 356px",
 
               overflow: "hidden",
-
-              borderRadius: 10,
-
-              background: "#111",
             }}
           >
-
             <Img
               src={img.path}
               style={{
-                width: "100%",
-                height: "100%",
+                width: 356,
+                height: BOTTOM_HEIGHT,
 
                 objectFit: "cover",
+
                 objectPosition: "center",
 
                 display: "block",
               }}
             />
-
           </div>
-
         ))}
-
       </div>
 
     </AbsoluteFill>
   );
 };
-const Scene3 = ({ images = [] }: { images: ImageItem[] }) => {
+// =====================================
+// SCENE 3
+// 8s TO 10s
+// 3 IMAGES POPUP
+// BLACK & WHITE THEME
+// =====================================
+
+const Scene3 = ({
+  images = [],
+}: {
+  images: ImageItem[];
+}) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const sceneImages = images.slice(0, 4);
+  // Scene 3 ke liye 3 images
+  const sceneImages = images.slice(0, 3);
 
   return (
     <AbsoluteFill
       style={{
+        width: 1080,
+        height: 1920,
+
         backgroundColor: "#000",
+
         overflow: "hidden",
       }}
     >
       {sceneImages.map((image, index) => {
-        // Har image ek-ek karke
-        const delay = index * 25;
+
+        // Har image thodi der baad popup hogi
+        const delay = index * 15;
+
+        const localFrame = frame - delay;
+
+        // =====================================
+        // POPUP SPRING
+        // =====================================
 
         const progress = spring({
-          frame: frame - delay,
+          frame: localFrame,
           fps,
+
           config: {
-            damping: 7,
-            stiffness: 260,
-            mass: 0.45,
+            damping: 8,
+            stiffness: 220,
+            mass: 0.5,
           },
         });
 
-        // Jhatke wala scale
+        // =====================================
+        // SCALE POPUP
+        // =====================================
+
         const scale = interpolate(
           progress,
           [0, 0.45, 0.75, 1],
-          [1.35, 0.92, 1.08, 1],
+          [0.65, 1.08, 0.96, 1],
           {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           }
         );
 
-        // Thoda side se jhatka
+        // =====================================
+        // SIDE POPUP
+        // =====================================
+
         const translateX = interpolate(
           progress,
           [0, 0.5, 1],
           [
-            index % 2 === 0 ? -120 : 120,
-            index % 2 === 0 ? 20 : -20,
+            index % 2 === 0 ? -180 : 180,
+            index % 2 === 0 ? 15 : -15,
             0,
           ],
           {
@@ -412,12 +627,15 @@ const Scene3 = ({ images = [] }: { images: ImageItem[] }) => {
           }
         );
 
-        // Chhota rotation jhatka
+        // =====================================
+        // ROTATION
+        // =====================================
+
         const rotate = interpolate(
           progress,
           [0, 0.5, 1],
           [
-            index % 2 === 0 ? -8 : 8,
+            index % 2 === 0 ? -10 : 10,
             index % 2 === 0 ? 3 : -3,
             0,
           ],
@@ -426,6 +644,10 @@ const Scene3 = ({ images = [] }: { images: ImageItem[] }) => {
             extrapolateRight: "clamp",
           }
         );
+
+        // =====================================
+        // OPACITY
+        // =====================================
 
         const opacity = interpolate(
           progress,
@@ -450,6 +672,8 @@ const Scene3 = ({ images = [] }: { images: ImageItem[] }) => {
               `,
 
               zIndex: index,
+
+              backgroundColor: "#000",
             }}
           >
             <Img
@@ -460,6 +684,7 @@ const Scene3 = ({ images = [] }: { images: ImageItem[] }) => {
 
                 objectFit: "cover",
 
+                // BLACK & WHITE
                 filter: "grayscale(100%)",
 
                 display: "block",
@@ -471,35 +696,59 @@ const Scene3 = ({ images = [] }: { images: ImageItem[] }) => {
     </AbsoluteFill>
   );
 };
-const Scene4 = ({ images = [] }: { images: ImageItem[] }) => {
+// =====================================
+// SCENE 4
+// 10s TO 15s
+// 4 IMAGES
+// ZOOM IN → ZOOM OUT → ZOOM IN → ZOOM OUT
+// =====================================
+
+const Scene4 = ({
+  images = [],
+}: {
+  images: ImageItem[];
+}) => {
   const frame = useCurrentFrame();
 
+  // Scene 4 ke 4 images
   const sceneImages = images.slice(0, 4);
+
+  // Total = 150 frames
+  // 5 seconds @ 30 FPS
+  const imageDuration = 37.5;
 
   return (
     <AbsoluteFill
       style={{
+        width: 1080,
+        height: 1920,
+
         backgroundColor: "#000",
+
         overflow: "hidden",
       }}
     >
       {sceneImages.map((image, index) => {
+        // =====================================
+        // IMAGE START
+        // =====================================
 
-        // Har image ko 30 frames milenge
-        const imageStart = index * 30;
+        const imageStart = index * imageDuration;
 
         const localFrame = frame - imageStart;
 
-        // Image 1 = zoom in
-        // Image 2 = zoom out
-        // Image 3 = zoom in
-        // Image 4 = zoom out
+        // =====================================
+        // ZOOM DIRECTION
+        // Even = Zoom In
+        // Odd  = Zoom Out
+        // =====================================
+
         const isZoomIn = index % 2 === 0;
 
         const scale = isZoomIn
           ? interpolate(
               localFrame,
-              [0, 30],
+              [0, imageDuration],
               [1, 1.18],
               {
                 extrapolateLeft: "clamp",
@@ -508,7 +757,7 @@ const Scene4 = ({ images = [] }: { images: ImageItem[] }) => {
             )
           : interpolate(
               localFrame,
-              [0, 30],
+              [0, imageDuration],
               [1.18, 1],
               {
                 extrapolateLeft: "clamp",
@@ -516,19 +765,25 @@ const Scene4 = ({ images = [] }: { images: ImageItem[] }) => {
               }
             );
 
+        // =====================================
+        // FADE IN
+        // =====================================
+
+        const opacity = interpolate(
+          localFrame,
+          [0, 6, imageDuration],
+          [0, 1, 1],
+          {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+          }
+        );
+
         return (
           <AbsoluteFill
             key={index}
             style={{
-              opacity: interpolate(
-                localFrame,
-                [0, 8, 30],
-                [0, 1, 1],
-                {
-                  extrapolateLeft: "clamp",
-                  extrapolateRight: "clamp",
-                }
-              ),
+              opacity,
 
               transform: `scale(${scale})`,
 
@@ -561,6 +816,7 @@ export const Template27 = ({
           SCENE 1 — 0s to 6s
           180 FRAMES
       ===================================== */}
+
       <Sequence
         from={0}
         durationInFrames={180}
@@ -568,10 +824,12 @@ export const Template27 = ({
         <Scene1 images={images} />
       </Sequence>
 
+
       {/* =====================================
           SCENE 2 — 6s to 8s
           60 FRAMES
       ===================================== */}
+
       <Sequence
         from={180}
         durationInFrames={60}
@@ -579,24 +837,35 @@ export const Template27 = ({
         <Scene2 images={images} />
       </Sequence>
 
+
       {/* =====================================
-          SCENE 3 — 9s to 12s
-          90 FRAMES
+          SCENE 3 — 8s to 10s
+          60 FRAMES
       ===================================== */}
+
       <Sequence
-        from={270}
-        durationInFrames={90}
+        from={240}
+        durationInFrames={60}
       >
         <Scene3 images={images} />
       </Sequence>
 
+
       {/* =====================================
-          SCENE 4 — 12s to 15s
-          90 FRAMES
+          10s to 11s
+          1 SECOND GAP
+          30 FRAMES
       ===================================== */}
+
+
+      {/* =====================================
+          SCENE 4 — 11s to 15s
+          120 FRAMES
+      ===================================== */}
+
       <Sequence
-        from={360}
-        durationInFrames={90}
+        from={330}
+        durationInFrames={120}
       >
         <Scene4 images={images} />
       </Sequence>
