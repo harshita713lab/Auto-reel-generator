@@ -101,9 +101,13 @@ class RenderService {
       }).sort({ priority: 1 });
 
       let compositionId;
-      if (matchedTemplate) {
+      if (matchedTemplate && matchedTemplate.compositionId) {
         compositionId = matchedTemplate.compositionId;
-        console.log(`✅ SELECTED: ${matchedTemplate.name} (Priority: ${matchedTemplate.priority})`);
+        console.log(`✅ SELECTED FROM DB: ${matchedTemplate.name} (Priority: ${matchedTemplate.priority}) → Composition: ${compositionId}`);
+      } else if (reel.templateId) {
+        let numMatch = String(reel.templateId).match(/\d+/);
+        compositionId = numMatch ? `Template${numMatch[0]}` : "Template1";
+        console.log(`✅ FALLBACK TO TEMPLATE ID: ${reel.templateId} → Composition: ${compositionId}`);
       } else {
         compositionId = imageCount < 4 ? "ReelComposition" : "Template1";
         console.log(`⚠️ FALLBACK: ${compositionId}`);
@@ -118,12 +122,28 @@ class RenderService {
       let processedPath = result.outputPath;
 
       // ============================================================
-    
-      // अब processedPath सीधा Remotion का आउटपुट है (बिना ऑडियो)
-            console.log("🔊 audioPath received:", audioPath);
-      if (audioPath) {
+      // AUDIO RESOLUTION & ATTACHMENT
+      // ============================================================
+      const { getMusicForTemplate } = require('../../config/templateMusicMap');
+      const isCustomSong = reel.music || (audioPath && !audioPath.includes('ReelAudio-'));
+
+      let finalAudioPath = audioPath;
+      if (!isCustomSong && compositionId) {
+        const themeMusicName = getMusicForTemplate(compositionId);
+        let resolvedPath = path.join(__dirname, '../../../assets/music', themeMusicName);
+        if (!fsSync.existsSync(resolvedPath)) {
+          resolvedPath = path.join(__dirname, '../../../assets/songs', themeMusicName);
+        }
+        if (fsSync.existsSync(resolvedPath)) {
+          finalAudioPath = resolvedPath;
+          console.log(`🎵 Matched audio for composition ${compositionId} → ${themeMusicName}`);
+        }
+      }
+
+      console.log("🔊 Final audioPath to merge:", finalAudioPath);
+      if (finalAudioPath) {
         try {
-          const audioFile = fsSync.existsSync(audioPath) ? audioPath : null;
+          const audioFile = fsSync.existsSync(finalAudioPath) ? finalAudioPath : null;
           if (audioFile) {
             const withAudioPath = await ffmpegService.addAudio(processedPath, audioFile, {
               volume: 1,
@@ -135,7 +155,7 @@ class RenderService {
               console.log("🎵 Music added via FFmpeg:", audioFile);
             }
           } else {
-            console.error("⚠️ Audio file does not exist at path:", audioPath);
+            console.error("⚠️ Audio file does not exist at path:", finalAudioPath);
           }
         } catch (audioError) {
           console.error("⚠️ Failed to add music (continuing without audio):", audioError.message);

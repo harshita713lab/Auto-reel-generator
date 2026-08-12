@@ -7,7 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 
-import { AnimatedImage } from "../../components";
+import { AnimatedImage ,MusicPlayer } from "../../components";
 import { getBeatScale } from "../../utils/beatUtils";
 
 // ======================================================
@@ -163,7 +163,7 @@ export const PremiumGrid: React.FC<PremiumGridProps> = ({
       ================================================== */}
 
       {music?.path && (
-        <Audio
+        <MusicPlayer
           src={music.path}
           volume={music.volume ?? 1}
         />

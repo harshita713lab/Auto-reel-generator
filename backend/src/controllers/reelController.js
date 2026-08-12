@@ -125,16 +125,16 @@ exports.createReel = async (req, res) => {
     } else if (typeof musicId === 'string' && musicId !== 'template_default' && musicId !== 'default' && musicId.trim() !== '') {
       musicFileName = `${musicId}.mp3`;
     } else {
-      // Use template's fixed default song (matched by templateId or photo count)
-      musicFileName = getMusicForTemplate(templateId, formattedImages.length);
+      // Use template's fixed default song (always fixed by templateId)
+      musicFileName = getMusicForTemplate(templateId);
     }
 
-    let selectedAudioPath = path.join(__dirname, '../../assets/songs', musicFileName);
+    let selectedAudioPath = path.join(__dirname, '../../assets/music', musicFileName);
     if (!fsSync.existsSync(selectedAudioPath)) {
-      selectedAudioPath = path.join(__dirname, '../../assets/music', musicFileName);
+      selectedAudioPath = path.join(__dirname, '../../assets/songs', musicFileName);
     }
     if (!fsSync.existsSync(selectedAudioPath)) {
-      const defaultMusicName = getMusicForTemplate(templateId, formattedImages.length);
+      const defaultMusicName = getMusicForTemplate(templateId);
       selectedAudioPath = path.join(__dirname, '../../assets/music', defaultMusicName);
     }
 
@@ -149,7 +149,7 @@ exports.createReel = async (req, res) => {
         white_polaroid: 'Vintage Polaroid',
         premium_grid: 'Premium Grid',
         memory_blend: 'Memory Blend',
-        simple_1: 'Classic Slideshow',
+
       };
       const themeName = namesMap[tId] || (count === 20 ? 'Wedding Memory' : count === 9 ? 'Cinematic Highlights' : 'Fotographiya Reel');
       return `${themeName} #${randomCode}`;
@@ -180,7 +180,7 @@ exports.createReel = async (req, res) => {
       musicStartTime: musicStartSec,
       beatTimestamps: detectedBeats,
       usedMusic: musicFileName.replace('.mp3', '').replace(/-\(PaagalWorld\.Com\)/gi, '').replace(/[-_]/g, ' '),
-      usedTemplate: template ? template.name : (templateId || "Default"),
+usedTemplate: template ? template.name : (templateId ? `Template ${templateId}` : "Default"),
       duration: totalDuration,
       config: {
         ...config,
@@ -190,7 +190,7 @@ exports.createReel = async (req, res) => {
         height: 1920,
       },
       status: "draft",
-      templateId: templateId || "simple_1",
+      templateId: templateId || "1",
     };
 
     if (template && template._id) {
@@ -712,15 +712,16 @@ exports.changeMusic = async (req, res) => {
     } else if (typeof musicId === 'string' && musicId !== 'template_default' && musicId.trim() !== '') {
       musicFileName = `${musicId}.mp3`;
     } else {
-      musicFileName = getMusicForTemplate(reel.templateId, reel.images ? reel.images.length : 4);
+      musicFileName = getMusicForTemplate(reel.templateId);
     }
 
-    let audioPath = path.join(__dirname, '../../assets/songs', musicFileName);
+    let audioPath = path.join(__dirname, '../../assets/music', musicFileName);
     if (!fsSync.existsSync(audioPath)) {
-      audioPath = path.join(__dirname, '../../assets/music', musicFileName);
+      audioPath = path.join(__dirname, '../../assets/songs', musicFileName);
     }
     if (!fsSync.existsSync(audioPath)) {
-      audioPath = path.join(__dirname, '../../assets/music', 'ReelAudio-1.mp3');
+      const fallbackMusic = getMusicForTemplate(reel.templateId);
+      audioPath = path.join(__dirname, '../../assets/music', fallbackMusic);
     }
 
     const videoPath = reel.outputPath;
