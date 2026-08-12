@@ -7,6 +7,21 @@ const TemplateSchema = new mongoose.Schema({
     unique: true,  // ✅ This automatically creates an index
     trim: true,
   },
+    compositionId: {
+    type: String,
+    required: true,
+    trim: true,
+    default: function() {
+      // अगर पुराना डेटा है और compositionId नहीं है, तो name से ही ID बना लें
+      return this.name;
+    }
+  },
+  priority: {
+    type: Number,
+    default: 0,  // 0 = सबसे कम प्रायोरिटी, 1 = सबसे ज्यादा (आप चाहें तो 1,2,3... रखें)
+    index: true,
+  },
+
   displayName: {
     type: String,
     required: true,

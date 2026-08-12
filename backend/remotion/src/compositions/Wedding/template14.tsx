@@ -1,502 +1,393 @@
 import React from "react";
-
 import {
   AbsoluteFill,
   Img,
-  Sequence,
-  spring,
+  Audio,
   interpolate,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
 
+import { AnimatedImage ,MusicPlayer } from "../../components";
+import { getBeatScale } from "../../utils/beatUtils";
+
+// ======================================================
+// TEMPLATE 14
+// ======================================================
+
+export const IMAGE_COUNT = 11;
+export const DURATION_IN_FRAMES = 450; // 15 sec @ 30fps
+export const FPS = 30;
+export const WIDTH = 1080;
+export const HEIGHT = 1920;
+
+// ======================================================
+// TYPES
+// ======================================================
 
 interface ImageItem {
-  path:string;
-}
-interface RoyalWeddingStoryProps {
-  images?: ImageItem[];
-  music?: {
-    path: string;
-    volume?: number;
-  };
+  path: string;
+  animation?: string;
 }
 
-export const RoyalWeddingStory : React.FC<RoyalWeddingStoryProps> = ({
+interface Template14Props {
+  images?: ImageItem[];
+  music?: string;
+  beatTimestamps?: number[];
+}
+
+// ======================================================
+// TEMPLATE 14
+// ======================================================
+
+const Template14: React.FC<Template14Props> = ({
   images = [],
   music,
+  beatTimestamps = [],
 }) => {
-
-  // ==========================
-  // IMAGE DISTRIBUTION (SAFE FALLBACK FOR ANY IMAGE COUNT)
-  // ==========================
-
-  const safeImages = images.length > 0 ? images : [{ path: "" }];
-  const getImg = (idx: number) => safeImages[idx % safeImages.length];
-
-  const heroImg = getImg(0);
-  const gridImgs = [getImg(1), getImg(2), getImg(3), getImg(4)];
-  const splitImgs = [getImg(5), getImg(6), getImg(7), getImg(8), getImg(9)];
-  const masonryImgs = [getImg(10), getImg(11), getImg(12), getImg(13)];
-
-
-
-  // ==========================
-  // 15 SECOND TIMELINE
-  // ==========================
-
-  const heroDuration = 60;
-  const gridDuration = 60;
-  const splitDuration = 60;
-  
-  const masonryDuration = 120;
- 
-  const endingDuration = 45;
-
-  const totalDuration =
-    heroDuration +
-    gridDuration +
-    splitDuration +
-
-    masonryDuration +
-    endingDuration;
-// =====================================
-// HERO IMAGE
-// =====================================
-
-const HeroImage = ({
-  image,
-}: {
-  image?: { path: string };
-}) => {
-
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
 
-  const scale = interpolate(
+  const beatScale = getBeatScale(
     frame,
-    [0, 60],
-    [1.15, 1],
-    {
-      extrapolateRight: "clamp",
-    }
+    fps,
+    beatTimestamps
   );
 
-  const opacity = interpolate(
-    frame,
-    [0, 15],
-    [0, 1],
-    {
-      extrapolateRight: "clamp",
-    }
-  );
+  const totalDuration = DURATION_IN_FRAMES;
 
-  return (
-    <AbsoluteFill
-      style={{
-        overflow: "hidden",
-        background: "#000",
-      }}
-    >
-      <Img
-        src={image?.path ?? ""}
+  // ======================================================
+  // IMAGE MAPPING
+  // ======================================================
+
+  // Image 1 → Background
+  const bgImage = images[0];
+
+  // Image 2 → Left Top
+  const leftTop = images[1];
+
+  // Image 3 → Left Bottom
+  const leftBottom = images[2];
+
+  // Image 4–11 → Right Slider
+  const sliderImages = images.slice(3, 11);
+
+  // ======================================================
+  // BACKGROUND
+  // ======================================================
+
+  const Background = () => {
+    if (!bgImage) return null;
+
+    return (
+      <AnimatedImage
+        src={bgImage.path}
+        animation="kenBurns"
+        durationInFrames={totalDuration}
         style={{
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          transform: `scale(${scale})`,
-          opacity,
-        }}
-      />
 
-      <AbsoluteFill
-        style={{
-          background:
-            "linear-gradient(to top, rgba(0,0,0,.55), transparent 60%)",
+          filter:
+            "blur(6px) brightness(1.1) saturate(1.1)",
+
+          transform: "scale(1.03)",
+          opacity: 0.9,
         }}
       />
+    );
+  };
+
+  // ======================================================
+  // POLAROID CARD
+  // ======================================================
+
+  const PolaroidCard = ({
+    image,
+    rotate,
+    width,
+    height,
+  }: {
+    image?: ImageItem;
+    rotate: number;
+    width: number;
+    height: number;
+  }) => {
+    if (!image) return null;
+
+    const scale = interpolate(
+      frame,
+      [0, totalDuration],
+      [1, 1.05],
+      {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      }
+    );
+
+    return (
+      <div
+        style={{
+          width,
+          height,
+
+          background: "#fff",
+
+          padding: 12,
+
+          borderRadius: 18,
+
+          boxShadow:
+            "0 20px 50px rgba(0,0,0,.35)",
+
+          transform:
+            `rotate(${rotate}deg) scale(${scale})`,
+        }}
+      >
+        <Img
+          src={image.path}
+          style={{
+            width: "100%",
+            height: "100%",
+
+            objectFit: "cover",
+
+            borderRadius: 12,
+          }}
+        />
+      </div>
+    );
+  };
+
+  // ======================================================
+  // SLIDER CARD
+  // ======================================================
+
+  const SliderCard = ({
+    image,
+    index,
+  }: {
+    image?: ImageItem;
+    index: number;
+  }) => {
+    if (!image) return null;
+
+    return (
+      <div
+        style={{
+          width: 330,
+          height: 420,
+
+          background: "#fff",
+
+          padding: 10,
+
+          borderRadius: 16,
+
+          marginBottom: 24,
+
+          marginLeft: 15,
+
+          transform:
+            `rotate(${index % 2 === 0 ? -2 : 2}deg)`,
+
+          boxShadow:
+            "0 15px 35px rgba(0,0,0,.35)",
+        }}
+      >
+        <Img
+          src={image.path}
+          style={{
+            width: "100%",
+            height: "100%",
+
+            objectFit: "cover",
+
+            borderRadius: 10,
+          }}
+        />
+      </div>
+    );
+  };
+
+  // ======================================================
+  // RIGHT VERTICAL SLIDER
+  // ======================================================
+
+  const RightSlider = () => {
+    if (sliderImages.length === 0) {
+      return null;
+    }
+
+    const cards = [
+      ...sliderImages,
+      ...sliderImages,
+      ...sliderImages,
+    ];
+
+    const cardHeight = 444;
+
+    const trackHeight =
+      sliderImages.length * cardHeight;
+
+    const scrollDuration = 300;
+
+    const translate =
+      (frame / scrollDuration) * trackHeight;
+
+    return (
+      <div
+        style={{
+          position: "absolute",
+
+          right: 70,
+
+          top: 0,
+
+          bottom: 0,
+
+          width: 360,
+
+          overflow: "hidden",
+
+          zIndex: 10,
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+
+            width: "100%",
+
+            transform:
+              `translateY(${250 - translate}px)`,
+          }}
+        >
+          {cards.map((img, index) => (
+            <SliderCard
+              key={index}
+              image={img}
+              index={index}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // ======================================================
+  // LEFT FIXED CARDS
+  // ======================================================
+
+  const LeftCards = () => {
+    return (
+      <>
+        {/* LEFT TOP */}
+
+        <div
+          style={{
+            position: "absolute",
+
+            left: 20,
+
+            top: 60,
+
+            zIndex: 5,
+          }}
+        >
+          <PolaroidCard
+            image={leftTop}
+            rotate={-5}
+            width={460}
+            height={900}
+          />
+        </div>
+
+        {/* LEFT BOTTOM */}
+
+        <div
+          style={{
+            position: "absolute",
+
+            left: 120,
+
+            bottom: 120,
+
+            zIndex: 5,
+          }}
+        >
+          <PolaroidCard
+            image={leftBottom}
+            rotate={5}
+            width={460}
+            height={900}
+          />
+        </div>
+      </>
+    );
+  };
+
+  // ======================================================
+  // MAIN
+  // ======================================================
+
+  return (
+    <AbsoluteFill
+      style={{
+        backgroundColor: "#000",
+
+        overflow: "hidden",
+
+        transform:
+          `scale(${beatScale})`,
+      }}
+    >
+       {music && (
+              <MusicPlayer src={music} volume={0.8} loop={true} showVisualizer={false} />
+            )}
+      {/* ================================================
+          MUSIC
+      ================================================= */}
+
+     
+
+      {/* ================================================
+          BACKGROUND
+      ================================================= */}
+
+      <Background />
+
+      {/* ================================================
+          DARK OVERLAY
+      ================================================= */}
 
       <div
         style={{
           position: "absolute",
-          bottom: 140,
-          width: "100%",
-          textAlign: "center",
-          color: "#fff",
-        }}
-      >
-        <div
-          style={{
-            fontSize: 26,
-            letterSpacing: 10,
-            fontFamily: "serif",
-          }}
-        >
-          WEDDING FILM
-        </div>
 
-        <div
-          style={{
-            marginTop: 12,
-            fontSize: 58,
-            fontWeight: 700,
-            letterSpacing: 6,
-          }}
-        >
-          FOREVER
-        </div>
-      </div>
-    </AbsoluteFill>
-  );
-};
+          inset: 0,
 
+          background:
+            "rgba(0,0,0,0.25)",
 
-
-// =====================================
-// DYNAMIC GRID
-// =====================================
-
-const DynamicGrid = ({
-  images,
-}: {
-  images: { path: string }[];
-}) => {
-
-  const frame = useCurrentFrame();
-
-  return (
-    <AbsoluteFill
-      style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: 8,
-        padding: 8,
-        background: "#111",
-      }}
-    >
-      {images.map((img, index) => {
-
-        const delay = index * 6;
-
-        const scale = interpolate(
-          frame - delay,
-          [0, 18],
-          [0.6, 1],
-          {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          }
-        );
-
-        return (
-          <div
-            key={index}
-            style={{
-              overflow: "hidden",
-              borderRadius: 20,
-              transform: `scale(${scale})`,
-              boxShadow: "0 10px 25px rgba(0,0,0,.45)",
-            }}
-          >
-            <Img
-              src={img.path}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
-          </div>
-        );
-      })}
-    </AbsoluteFill>
-  );
-};
-
-
-
-// =====================================
-// SPLIT SCREEN
-// =====================================
-const SplitScreen = ({
-  images,
-}: {
-  images: { path: string }[];
-}) => {
-
-  const frame = useCurrentFrame();
-
-const positions = [
-  { left: 360, top: 40 },    // Image 1 (Center)
-  { left: 80, top: 420 },    // Image 2 (Left)
-  { left: 640, top: 800 },   // Image 3 (Right)
-  { left: 80, top: 1180 },   // Image 4 (Left)
-    { left: 640, top: 1540 }, 
-];
-
-return (
-  <AbsoluteFill
-    style={{
-      background: "#faf8f5",
-      position: "relative",
-    }}
-  >
-    {images.map((img, index) => {
-
-      const startX =
-        index === 0
-          ? 0
-          : index === 1
-          ? -500
-          : index === 2
-          ? 500
-          : -500;
-
-      const translateX = interpolate(
-        frame,
-        [index * 8, index * 8 + 20],
-        [startX, 0],
-        {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        }
-      );
-
-      const scale = interpolate(
-        frame,
-        [index * 8, index * 8 + 20],
-        [1.15, 1],
-        {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        }
-      );
-
-      return (
-        <div
-          key={index}
-          style={{
-            position: "absolute",
-            left: positions[index].left,
-            top: positions[index].top,
-            width: 420,
-            height: 300,
-            overflow: "hidden",
-            borderRadius: 22,
-            transform: `translateX(${translateX}px) scale(${scale})`,
-            boxShadow: "0 12px 30px rgba(0,0,0,.45)",
-          }}
-        >
-          <Img
-            src={img.path}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-                  transform: "scale(1.15)",
-            }}
-          />
-        </div>
-      );
-    })}
-  </AbsoluteFill>
-);
-};
-
-
-
-
-
-
-// =====================================
-// PREMIUM MASONRY
-// =====================================
-
-const MasonryGrid = ({
-  images,
-}: {
-  images: { path: string }[];
-}) => {
-
-  return (
-    <AbsoluteFill
-  style={{
-    padding: 12,
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr 1fr",
-    gridTemplateRows: "1fr 1fr",
-    gap: 10,
-    background: "#faf8f5",
-    position: "relative",
-  }}
->
-  {images.map((img, i) => (
-    <div
-      key={i}
-      style={{
-        gridColumn: i === 4 ? "1 / span 3" : undefined,
-        overflow: "hidden",
-        borderRadius: 18,
-      }}
-    >
-      <Img
-        src={img.path}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
+          zIndex: 2,
         }}
       />
-    </div>
-  ))}
 
+      {/* ================================================
+          LEFT CARDS
+      ================================================= */}
 
-</AbsoluteFill>
-  );
-};
+      <LeftCards />
 
+      {/* ================================================
+          RIGHT SLIDER
+      ================================================= */}
 
-// =====================================
-// DUAL CARD FLIP
-// =====================================
-
-
-
-
-// =====================================
-// ENDING SCENE
-// =====================================
-
-const EndingScene = () => {
-
-  const frame = useCurrentFrame();
-
-  const opacity = interpolate(
-    frame,
-    [0,20],
-    [0,1]
-  );
-
-  return (
-
-    <AbsoluteFill
-      style={{
-        background:"#000",
-        justifyContent:"center",
-        alignItems:"center"
-      }}
-    >
-
-      <div
-        style={{
-          textAlign:"center",
-          color:"#fff",
-          opacity
-        }}
-      >
-
-        <div
-          style={{
-            fontSize:34,
-            letterSpacing:8,
-            fontFamily:"serif"
-          }}
-        >
-          THANK YOU
-        </div>
-
-        <div
-          style={{
-            marginTop:15,
-            fontSize:60,
-            fontWeight:700
-          }}
-        >
-          Forever Begins
-        </div>
-
-      </div>
-
-    </AbsoluteFill>
-
-  );
-
-};
-
-
-
-
-
-
-
-
-
-  return (
-    <AbsoluteFill style={{ background: "#000" }}>
-
-      {/* HERO */}
-      <Sequence
-        from={0}
-        durationInFrames={heroDuration}
-      >
-        <HeroImage image={heroImg} />
-      </Sequence>
-
-      {/* GRID */}
-      <Sequence
-        from={heroDuration}
-        durationInFrames={gridDuration}
-      >
-        <DynamicGrid images={gridImgs} />
-      </Sequence>
-
-      {/* SPLIT */}
-      <Sequence
-        from={heroDuration + gridDuration}
-        durationInFrames={splitDuration}
-      >
-        <SplitScreen images={splitImgs} />
-      </Sequence>
-
-      {/* COLLAGE */}
-     
-
-      {/* MASONRY */}
-      <Sequence
-        from={
-          heroDuration +
-          gridDuration +
-          splitDuration 
-          
-        }
-        durationInFrames={masonryDuration}
-      >
-        <MasonryGrid images={masonryImgs} />
-      </Sequence>
-
-      {/* CARD FLIP */}
-   
-
-      {/* ENDING */}
-      <Sequence
-        from={
-          heroDuration +
-          gridDuration +
-          splitDuration +
-        
-          masonryDuration 
-        }
-        durationInFrames={endingDuration}
-      >
-        <EndingScene />
-      </Sequence>
-
-      {music?.path && (
-        <audio
-          src={music.path}
-          autoPlay
-        />
-      )}
-
+      <RightSlider />
     </AbsoluteFill>
   );
 };
+
+export default Template14;

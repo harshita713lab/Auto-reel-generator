@@ -1,95 +1,76 @@
-/**
- * Mapping of Template IDs, Composition IDs, and Photo Counts to their fixed default background audio files
- */
-const TEMPLATE_MUSIC_MAP = {
-  // Classic Slideshow / Default (< 4 photos)
-  simple_1: { musicId: 'ReelAudio-1.mp3', musicTitle: 'Upbeat Melody (Track 1)' },
-  ReelComposition: { musicId: 'ReelAudio-1.mp3', musicTitle: 'Upbeat Melody (Track 1)' },
+const getMusicForTemplate = (templateId, imageCount) => {
+  console.log("🔍 getMusicForTemplate called with:", {
+    templateId,
+    imageCount,
+  });
 
-  // Wedding Sequence (20 photos)
-  wedding_seq: { musicId: 'ReelAudio-3.mp3', musicTitle: 'Romantic Wedding Theme (Track 3)' },
-  WeddingSequenceComposition: { musicId: 'ReelAudio-3.mp3', musicTitle: 'Romantic Wedding Theme (Track 3)' },
+  // ==================================================
+  // 1. TEMPLATE ID SE MUSIC
+  // ==================================================
 
-  // Cinematic Wedding Reel (9 photos)
-  cinematic_wedding: { musicId: 'ReelAudio-4.mp3', musicTitle: 'Cinematic Strings (Track 4)' },
-  CinematicWeddingReel: { musicId: 'ReelAudio-4.mp3', musicTitle: 'Cinematic Strings (Track 4)' },
+  let num = parseInt(templateId);
 
-  // Wedding Split Slider (11 photos)
-  wedding_split: { musicId: 'ReelAudio-5.mp3', musicTitle: 'Acoustic Love (Track 5)' },
-  WeddingSplitSlider: { musicId: 'ReelAudio-5.mp3', musicTitle: 'Acoustic Love (Track 5)' },
-  // Wedding Split Slider (18 photos)
-  Template_26: { musicId: 'ReelAudio-20.mp3', musicTitle: 'Acoustic Love (Track 20)' },
-  Template26: { musicId: 'ReelAudio-20.mp3', musicTitle: 'Acoustic Love (Track 20)' },
-  template26: { musicId: 'ReelAudio-20.mp3', musicTitle: 'Acoustic Love (Track 20)' },
-  Template_25: { musicId: 'ReelAudio-19.mp3', musicTitle: 'Romantic Beats (Track 19)' },
-  Template25: { musicId: 'ReelAudio-19.mp3', musicTitle: 'Romantic Beats (Track 19)' },
-  
-  Template_27: { musicId: 'ReelAudio-17.mp3', musicTitle: 'Cinematic Vibe (Track 17)' },
-  Template27: { musicId: 'ReelAudio-17.mp3', musicTitle: 'Cinematic Vibe (Track 17)' },
-  template27: { musicId: 'ReelAudio-17.mp3', musicTitle: 'Cinematic Vibe (Track 17)' },
-  // White Card Carousel (10 photos)
-  white_carousel: { musicId: 'ReelAudio-6.mp3', musicTitle: 'Modern Pop Beats (Track 6)' },
-  WhiteCardCarousel: { musicId: 'ReelAudio-6.mp3', musicTitle: 'Modern Pop Beats (Track 6)' },
+  if (isNaN(num)) {
+    const match = String(templateId).match(/\d+/);
 
-  // White Card Masonry (8 photos)
-  white_masonry: { musicId: 'ReelAudio-8.mp3', musicTitle: 'Chill Vibes (Track 8)' },
-  WhiteCardMasonry: { musicId: 'ReelAudio-8.mp3', musicTitle: 'Chill Vibes (Track 8)' },
+    if (match) {
+      num = parseInt(match[0], 10);
+    }
+  }
 
-  // White Card Polaroid Stack (6 photos)
-  white_polaroid: { musicId: 'ReelAudio-9.mp3', musicTitle: 'Vintage Piano (Track 9)' },
-  WhiteCardPolaroidStack: { musicId: 'ReelAudio-9.mp3', musicTitle: 'Vintage Piano (Track 9)' },
+  if (num && num >= 1) {
+    const music = `ReelAudio-${num}.mp3`;
 
-  // Premium Grid (4 photos)
-  premium_grid: { musicId: 'ReelAudio-10.mp3', musicTitle: 'Luxury Ambient (Track 10)' },
-  PremiumGrid: { musicId: 'ReelAudio-10.mp3', musicTitle: 'Luxury Ambient (Track 10)' },
+    console.log(
+      "✅ Using templateId:",
+      templateId,
+      "→",
+      music
+    );
 
-  // Fast Beat Wedding Story (18 photos)
-  fast_beat_story: { musicId: 'ReelAudio-13.mp3', musicTitle: 'Fast Beat Montage (Track 13)' },
-  FastBeatWeddingStory: { musicId: 'ReelAudio-13.mp3', musicTitle: 'Fast Beat Montage (Track 13)' },
+    return music;
+  }
 
-  // Memory Blend Reel (Other photo counts)
-  memory_blend: { musicId: 'ReelAudio-12.mp3', musicTitle: 'Nostalgic Harmony (Track 12)' },
-  MemoryBlendReel: { musicId: 'ReelAudio-12.mp3', musicTitle: 'Nostalgic Harmony (Track 12)' },
+  // ==================================================
+  // 2. IMAGE COUNT FALLBACK
+  // ==================================================
+
+  const fallbackMap = {
+    14: "ReelAudio-1.mp3",
+    13: "ReelAudio-2.mp3",
+    10: "ReelAudio-3.mp3",
+    9: "ReelAudio-4.mp3",
+    5: "ReelAudio-5.mp3",
+    12: "ReelAudio-6.mp3",
+    8:  'ReelAudio-7.mp3',
+    17: "ReelAudio-8.mp3",
+    15: "ReelAudio-9.mp3",
+    16: "ReelAudio-10.mp3",
+    18:  'ReelAudio-11.mp3',
+    23: 'ReelAudio-12.mp3',
+    4: "ReelAudio-13.mp3",
+  };
+
+  if (fallbackMap[imageCount]) {
+    console.log(
+      "✅ Using fallback for imageCount:",
+      imageCount,
+      "→",
+      fallbackMap[imageCount]
+    );
+
+    return fallbackMap[imageCount];
+  }
+
+  // ==================================================
+  // 3. DEFAULT
+  // ==================================================
+
+  console.log("⚠️ Using default: ReelAudio-1.mp3");
+
+  return "ReelAudio-1.mp3";
 };
-// templte 15
-
-
-/**
- * Get fixed default music filename based on templateId OR image count
- * @param {string} templateId - Template or composition ID
- * @param {number} [imageCount] - Number of images in the reel
- * @returns {string} Audio filename (e.g. 'ReelAudio-4.mp3')
- */
-function getMusicForTemplate(templateId, imageCount) {
-  // 1. Direct match by specific template ID / Composition name if not generic simple_1
-  if (templateId && templateId !== 'simple_1' && TEMPLATE_MUSIC_MAP[templateId]) {
-    return TEMPLATE_MUSIC_MAP[templateId].musicId;
-  }
-
-  // 2. Resolve by image count (matching renderService composition logic)
-  if (typeof imageCount === 'number') {
-    if (imageCount === 18) return TEMPLATE_MUSIC_MAP.Template26.musicId;      // ReelAudio-20.mp3
-    if (imageCount === 14) return TEMPLATE_MUSIC_MAP.Template25.musicId;      // ReelAudio-19.mp3
-    if (imageCount === 20) return TEMPLATE_MUSIC_MAP.wedding_seq.musicId;      // ReelAudio-3.mp3
-    if (imageCount === 23) return TEMPLATE_MUSIC_MAP.wedding_seq.musicId;      // ReelAudio-3.mp3
-    if (imageCount === 9) return TEMPLATE_MUSIC_MAP.cinematic_wedding.musicId;  // ReelAudio-4.mp3
-   //
-    if (imageCount === 10) return TEMPLATE_MUSIC_MAP.white_carousel.musicId;   // ReelAudio-6.mp3
-    if (imageCount === 8) return TEMPLATE_MUSIC_MAP.white_masonry.musicId;     // ReelAudio-8.mp3
-    if (imageCount === 6) return TEMPLATE_MUSIC_MAP.white_polaroid.musicId;    // ReelAudio-9.mp3
-    if (imageCount === 4) return TEMPLATE_MUSIC_MAP.premium_grid.musicId;     // ReelAudio-10.mp3
-    if (imageCount < 4) return TEMPLATE_MUSIC_MAP.simple_1.musicId;            // ReelAudio-1.mp3
-    return TEMPLATE_MUSIC_MAP.memory_blend.musicId;                            // ReelAudio-12.mp3
-  }
-
-  if (templateId && TEMPLATE_MUSIC_MAP[templateId]) {
-    return TEMPLATE_MUSIC_MAP[templateId].musicId;
-  }
-
-  return 'ReelAudio-20.mp3';
-}
 
 module.exports = {
-  TEMPLATE_MUSIC_MAP,
   getMusicForTemplate,
 };

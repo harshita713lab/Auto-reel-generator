@@ -1,350 +1,159 @@
-
 import React from 'react';
 import { Composition, AbsoluteFill, Sequence } from 'remotion';
 import { default as AnimatedImage } from './components/AnimatedImage';
-import WeddingComposition from './compositions/Wedding/WeddingComposition'; // <-- यहाँ से कलीब्रेट ब्रेसेस हटा दिए गए हैं क्योंकि यह default export है
-import { MemoryBlendComposition } from './compositions/Wedding/MemoryBlendComposition';
-import { WhiteCardGrid3x3 } from './compositions/Wedding/template1';
-import WhiteCardCarousel from "./compositions/Wedding/WhiteCarouselComposition";
-import WhiteCardPolaroidStack from "./compositions/Wedding/WhitePolaroidComposition";
-import WhiteCardMasonry from "./compositions/Wedding/MasonryComposition";
-import { PremiumGrid } from "./compositions/Wedding/template3";
-import WeddingSequenceComposition from "./compositions/Wedding/WeddingSequenceComposition";
-import  CinematicWeddingReel  from "./compositions/Wedding/template9";
 
-import WeddingSplitSlider from "./compositions/Wedding/SplitSlider";
- import{ MemoryJourneyWeddingReel} from "./compositions/Wedding/template18";
-
-import { RoyalWeddingStory } from './compositions/Wedding/template14';
-
-import { Template26 } from './compositions/Wedding/template26';
-import { Template25 } from './compositions/Wedding/template25';
-import { Template27 } from './compositions/Wedding/template27';
-import { Template28 } from './compositions/Wedding/template28';
-import { Template29 } from './compositions/Wedding/template29';
-import { Template5 } from './compositions/Wedding/template5';
-
+// ============================================================
+//  DEFAULT COMPOSITION (FALLBACK – अगर कोई और Composition न मिले)
+// ============================================================
 const DefaultComposition: React.FC<any> = ({ images = [], template = {} }) => {
-  const slideDuration = template.slideDuration || 3;
-  const fps = 30;
-  const slideFrames = Math.round(slideDuration * fps);
+  const slideDuration = template.slideDuration || 3;
+  const fps = 30;
+  const slideFrames = Math.round(slideDuration * fps);
 
-  return (
-    <AbsoluteFill style={{ backgroundColor: template.backgroundColor || '#986363' }}>
-      {images.map((img: any, index: number) => {
-        const imageSrc = typeof img === 'string' ? img : img.path || img.url;
-        const animation = (typeof img === 'object' && img.animation) || 'kenBurns';
-
-        return (
-          <Sequence
-            key={index}
-            from={index * slideFrames}
-            durationInFrames={slideFrames}
-          >
-            <AnimatedImage src={img.path} />
-          </Sequence>
-        );
-      })}
-    </AbsoluteFill>
-  );
+  return (
+    <AbsoluteFill style={{ backgroundColor: template.backgroundColor || '#986363' }}>
+      {images.map((img: any, index: number) => {
+        return (
+          <Sequence
+            key={index}
+            from={index * slideFrames}
+            durationInFrames={slideFrames}
+          >
+            <AnimatedImage src={img.path || img.url} />
+          </Sequence>
+        );
+      })}
+    </AbsoluteFill>
+  );
 };
 
 const defaultProps = {
-  images: [],
-  template: {
-    name: 'Default Template',
-    width: 1080,
-    height: 1920,
-    slideDuration: 3,
-  },
+  images: [],
+  template: {
+    name: 'Default Template',
+    width: 1080,
+    height: 1920,
+    slideDuration: 3,
+  },
 };
 
-export const Root: React.FC = () => {
-  return (
-    <>
-      {/* 1. आपकी पुरानी वेडिंग कंपोजीशन */}
-      <Composition
-        id="ReelComposition"
-        component={WeddingComposition}
-        fps={30}
-        width={1080}
-        height={1920}
-        defaultProps={defaultProps}
-        calculateMetadata={async ({ props }) => {
-          const typedProps = props as any;
-          const { generateScenes } = await import("./utils/SceneGenrator");
-          const scenes = generateScenes(typedProps.images || [], typedProps.beatTimestamps || []);
-          const totalFrames = scenes.reduce(
-            (sum: number, scene: any) => sum + scene.duration,
-            0
-          );
-          return {
-            durationInFrames: Math.max(30, totalFrames),
-          };
-        }}
-      />
+// ============================================================
+//  AUTO-REGISTRATION – सारी .tsx फाइलें Wedding फोल्डर से लोड करें
+// ============================================================
 
-      {/* 2. आपकी नई मेमोरी-मर्ज / डबल-एक्सपोजर रील कंपोजीशन */}
-      <Composition
-        id="MemoryBlendReel"
-        component={MemoryBlendComposition as any}
-        fps={30}
-        width={1080}
-        height={1920}
-        durationInFrames={450}
-        defaultProps={{
-          bgVideoSrc: "assets/videos/wedding-bg.mp4",
-          images: [],
-          introText: "Our little love story.",
-          outroText: "Happy Valentine's Day",
-        }}
-      />
-      <Composition
-  id="WhiteCardGrid3x3"
-  component={WhiteCardGrid3x3}
-  fps={30}
-  width={1080}
-  height={1920}
-  durationInFrames={450}
-  defaultProps={{
-    images: [],
-    music: undefined,
-  }}
-/>
-<Composition
-  id="WhiteCardCarousel"
-  component={WhiteCardCarousel}
-  fps={30}
-  width={1080}
-  height={1920}
-  calculateMetadata={async ({ props }) => {
-    const typedProps = props as any;
+// @ts-ignore
+const weddingContext = require.context(
+  './compositions/Wedding',
+  false,
+  /\.(tsx|ts)$/
+);
 
-    const images = typedProps.images || [];
-    const slideDuration = typedProps.slideDuration || 3;
+const compositionRegistry: Record<
+  string,
+  {
+    component: React.ComponentType<any>;
+    durationInFrames?: number;
+    calculateMetadata?: any;
+    defaultProps?: any;
+    imageCount?: number;
+  }
+> = {};
 
-    return {
-      durationInFrames: Math.max(
-        450,
-        images.length * slideDuration * 30
-      ),
-    };
-  }}
+weddingContext.keys().forEach((filename: string) => {
+  try {
+    const id = filename
+      .replace('./', '')
+      .replace(/\.(tsx|ts)$/, '');
 
-    defaultProps={{
-    images: [],
-    music: undefined,
+    const module = weddingContext(filename);
 
-    slideDuration: 3,
+    console.log(`🔍 Loading: ${filename}`);
+    console.log('Exports:', Object.keys(module));
 
-    title: "Wedding Gallery",
-    subtitle: "",
+    let Component = module.default;
 
-    backgroundColor: "#F4F4F4",
+    if (!Component) {
+      Component = module[id];
+    }
 
-    showTitle: true,
-    showCounter: true,
-    showDots: true,
+    if (!Component) {
+      const matchingExport = Object.keys(module).find(
+        (key) => key.toLowerCase() === id.toLowerCase()
+      );
 
-    cardColor: "#FFFFFF",
-    cardRadius: 28,
-    cardShadow: true,
-  }}
+      if (matchingExport) {
+        Component = module[matchingExport];
+      }
+    }
 
-/>
-<Composition
-  id="WhiteCardPolaroidStack"
-  component={WhiteCardPolaroidStack}
-  fps={30}
-  width={1080}
-  height={1920}
-  calculateMetadata={async ({ props }) => {
-    const typedProps = props as any;
+    if (!Component) {
+      console.warn(
+        `⚠️ Skipping ${filename} — no React component export found`
+      );
+      return;
+    }
 
-    const images = typedProps.images || [];
+    const duration = module.DURATION_IN_FRAMES;
+    const calculateMetadata = module.calculateMetadata;
+    const defaultProps =
+      module.DEFAULT_PROPS || {
+        images: [],
+        music: undefined,
+      };
+    const imageCount = module.IMAGE_COUNT;
 
-    // 6 images per stack
-    const groups = Math.max(1, Math.ceil(images.length / 6));
+    compositionRegistry[id] = {
+      component: Component,
+      durationInFrames: duration,
+      calculateMetadata,
+      defaultProps,
+      imageCount,
+    };
 
-    return {
-      durationInFrames: Math.max(450, groups * 240), // min 15 sec
-    };
-  }}
-  defaultProps={{
-    images: [],
+    console.log(
+      `✅ Auto-registered: ${id} | IMAGE_COUNT: ${
+        imageCount ?? 'not specified'
+      }`
+    );
 
-    title: "Our Memories",
+  } catch (error) {
+    console.error(
+      `❌ Failed to load ${filename}:`,
+      error
+    );
+  }
+});
 
-    backgroundColor: "#F8F8F8",
+// ============================================================
+//  🚀 ROOT COMPONENT – Registers all compositions dynamically
+// ============================================================
 
-    cardColor: "#FFFFFF",
+// ============================================================
+//  🚀 ROOT COMPONENT
+// ============================================================
 
-    showCounter: true,
-  }}
-/>
-<Composition
- id="WhiteCardMasonry"
- component={WhiteCardMasonry}
- fps={30}
- width={1080}
- height={1920}
- durationInFrames={450}
- defaultProps={{
-   images:[],
-   music:undefined
- }}
-/>
-<Composition
-  id="PremiumGrid"
-  component={PremiumGrid}
-  width={1080}
-  height={1920}
-  fps={30}
-  durationInFrames={450}
-  defaultProps={{
-    images: [],
-    slideDuration: 4,
-    backgroundColor:
-      "linear-gradient(135deg,#0a0a1a,#1a1a3e)",
-    transition: "glide",
-    effect: "cinematic",
-    showCounter: true,
-    music: undefined,
-  }}
-/>
-<Composition
-  id="WeddingSequenceComposition"
-  component={WeddingSequenceComposition}
-  width={1080}
-  height={1920}
-  fps={30}
-  durationInFrames={450} // ya 60+45+60+45+90 = 300
-  defaultProps={{
-    images: [],
-    music: undefined,
-  }}
-/>
-<Composition
-  id="WeddingSplitSlider"
-  component={WeddingSplitSlider}
-  width={1080}
-  height={1920}
-  fps={30}
-  durationInFrames={450}
-  defaultProps={{
-    images: [],
-    music: undefined,
-  }}
-/>
-<Composition
-  id="CinematicWeddingReel"
-component={CinematicWeddingReel}
-  durationInFrames={360}
-  fps={30}
-  width={1080}
-  height={1920}
-  defaultProps={{
-    images: [],
-    music: undefined,
-  }}
-/>
+const Root: React.FC = () => {
+  return (
+    <>
+      {Object.entries(compositionRegistry).map(([id, config]) => {
+        const { component: Component, durationInFrames, calculateMetadata, defaultProps } = config;
 
-<Composition
-
-id="MemoryJourneyWeddingReel"
-
-component={MemoryJourneyWeddingReel}
-
-durationInFrames={450}
-
-fps={30}
-
-width={1080}
-
-height={1920}
-
-
-defaultProps={{
-
-images:[],
-
-namesText:"JULIAN & JULI"
-
-}}
-
-/>
-<Composition
-  id="RoyalWeddingStory"
-  component={RoyalWeddingStory}
-  durationInFrames={360}
-  fps={30}
-  width={1080}
-  height={1920}
-/>
-
-<Composition
-  id="Template26"
-  component={Template26}
-  durationInFrames={420}
-  fps={30}
-  width={1080}
-  height={1920}
-  defaultProps={{
-    images: [],
-  }}
-/>
-<Composition
-  id="Template25"
-  component={Template25}
-  durationInFrames={720}
-  fps={30}
-  width={1080}
-  height={1920}
-  defaultProps={{
-    images: [],
-  }}
-/>
-<Composition
-  id="Template27"
-  component={Template27}
-  durationInFrames={450}
-  fps={30}
-  width={1080}
-  height={1920}
-  defaultProps={{
-    images: [],
-  }}
-/>
-<Composition
-  id="Template28"
-  component={Template28}
-  durationInFrames={360}
-  fps={30}
-  width={1080}
-  height={1920}
-  defaultProps={{
-    images: [],
-  }}
-/>
-      <Composition
-        id="Template29"
-        component={Template29}
-        durationInFrames={210}
-        fps={30}
-        width={1080}
-        height={1920}
-        defaultProps={{
-          images: [],
-        }}
-      />
-<Composition
-  id="Template5"
-  component={Template5}
-  durationInFrames={270}
-  fps={30}
-  width={1080}
-  height={1920}
-/>
-    </>
-  );
+        return (
+          <Composition
+            key={id}
+            id={id}
+            component={Component}
+            fps={30}
+            width={1080}
+            height={1920}
+            durationInFrames={durationInFrames || 300}
+            calculateMetadata={calculateMetadata}
+            defaultProps={defaultProps}
+          />
+        );
+      })}
+    </>
+  );
 };
+
+export default Root;   // ✅ Default export

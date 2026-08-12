@@ -1,668 +1,585 @@
 import React from "react";
-
 import {
   AbsoluteFill,
+  Img,
   Sequence,
   useCurrentFrame,
   interpolate,
 } from "remotion";
+import { MusicPlayer } from "../../components";
 
-import {
-  AnimatedImage,
-} from "../../components";
-
+// ======================================================
+// INTERFACE
+// ======================================================
 
 interface ImageItem {
-  path:string;
+  path: string;
 }
 
-
-interface CinematicWeddingReelProps {
-
+interface Template9Props {
   images?: ImageItem[];
-
-  music?:{
-    path:string;
-    volume?:number;
-  };
-
+  music?: string;
 }
 
+// ======================================================
+// TEMPLATE SETTINGS
+// ======================================================
 
+export const IMAGE_COUNT = 15;
 
+export const DURATION_IN_FRAMES = 540; // 18 sec @ 30fps
 
-const CinematicWeddingReel:
-React.FC<CinematicWeddingReelProps>
-=({
+export const DEFAULT_PROPS = {
+  images: [],
+  music: undefined,
+};
 
-images=[],
-music
+// ======================================================
+// SCENE DURATIONS
+// ======================================================
 
-})=>{
+// Scene 1 = 0 - 3 sec
+const SCENE1_DURATION = 120;
 
+// Scene 2 = 3 - 17 sec
+const SCENE2_DURATION = 90;
 
+// Scene 3 = 17 - 18 sec
+const SCENE3_DURATION = 330;
 
-// =============================
-// IMAGE DISTRIBUTION
-// =============================
+// ======================================================
+// SCENE 1
+// 0 - 3 SEC
+// 4 IMAGES
+// images[0 - 3]
+// ======================================================
 
-
-  const safeImages = images.length > 0 ? images : [{ path: "" }];
-  const getImg = (idx: number) => safeImages[idx % safeImages.length];
-
-  const heroImage = getImg(0);
-  const bottomGridImages = [getImg(1), getImg(2), getImg(3)];
-  const singleImages = [getImg(4), getImg(5), getImg(6), getImg(7)];
-  const endingImage = getImg(8);
-
-
-
-
-// =============================
-// TIMING (30 FPS)
-// =============================
-
-
-const heroDuration = 60;
-// 2 sec
-
-
-const gridDuration = 180;
-// 3 sec
-
-
-const singleDuration = 150;
-// 5 sec
-
-
-const endingDuration = 60;
-// 2 sec
-
-
-
-const totalDuration =
-heroDuration +
-gridDuration +
-singleDuration +
-endingDuration;
-
-
-
-// =============================
-// FULL SCREEN HERO
-// =============================
-
-
-const FullScreenHero = ({
-image,
-title,
-animation="zoomIn"
-
-}:{
-
-image?:ImageItem;
-
-title?:string;
-
-animation?:string;
-
-})=>{
-
-
-if(!image)
-return null;
-
-
-
-return(
-
-<AbsoluteFill>
-
-
-<AnimatedImage
-
-src={image.path}
-
-animation={animation}
-
-durationInFrames={60}
-
-style={{
-
-width:"100%",
-height:"100%",
-objectFit:"cover"
-
-}}
-
-/>
-
-
-
-{
-title &&
-
-<div
-
-style={{
-
-position:"absolute",
-
-bottom:180,
-
-width:"100%",
-
-textAlign:"center",
-
-color:"#fff",
-
-fontSize:80,
-
-fontWeight:900,
-
-letterSpacing:12,
-
-textShadow:
-"0 5px 25px rgba(0,0,0,.8)"
-
-}}
-
->
-
-{title}
-
-</div>
-
-}
-
-
-
-</AbsoluteFill>
-
-)
-
-}
-
-
-
-
-// =============================
-// HERO + BOTTOM GRID
-
-// =============================
-// HERO + BOTTOM 3 GRID
-// =============================
-
-
-const HeroBottomGrid = ()=>{
-
-
-return(
-
-<AbsoluteFill>
-
-
-{/* =================
-    MAIN HERO IMAGE
-================= */}
-
-
-<div
-
-style={{
-
-position:"absolute",
-
-top:0,
-
-height:"75%",
-
-width:"100%"
-
-}}
-
->
-
-
-{
-heroImage &&
-
-<AnimatedImage
-
-src={heroImage.path}
-
-animation="zoomIn"
-
-durationInFrames={90}
-
-style={{
-
-width:"100%",
-
-height:"100%",
-
-objectFit:"cover"
-
-}}
-
-/>
-
-}
-
-
-</div>
-
-
-
-
-
-{/* =================
-    BOTTOM 3 IMAGES
-================= */}
-
-
-<div
-
-style={{
-
-position:"absolute",
-
-bottom:0,
-
-height:"25%",
-
-width:"100%",
-
-display:"flex",
-
-gap:8,
-
-padding:8,
-
-background:"#000"
-
-}}
-
->
-
-
-{
-
-bottomGridImages.map((img,index)=>{
-
-
-const frame = useCurrentFrame();
-
-
-
-const y = interpolate(
-
-frame,
-
-[
-index*10,
-index*10+20
-],
-
-[
-200,
-0
-],
-
-{
-
-extrapolateLeft:"clamp",
-
-extrapolateRight:"clamp"
-
-}
-
-);
-
-
-
-const opacity = interpolate(
-
-frame,
-
-[
-index*10,
-index*10+20
-],
-
-[
-0,
-1
-],
-
-{
-
-extrapolateLeft:"clamp",
-
-extrapolateRight:"clamp"
-
-}
-
-);
-
-
-
-
-return(
-
-<div
-
-key={index}
-
-style={{
-
-width:"33.33%",
-
-height:"100%",
-
-transform:
-`translateY(${y}px)`,
-
-opacity
-
-}}
-
->
-
-
-<img
-
-src={img.path}
-
-style={{
-
-width:"100%",
-
-height:"100%",
-
-objectFit:"cover",
-
-borderRadius:12
-
-}}
-
-/>
-
-
-
-</div>
-
-)
-
-
-})
-
-}
-
-
-</div>
-
-
-
-</AbsoluteFill>
-
-)
-
-}
-
-
-
-
-
-
-// =============================
-
-// =============================
-// SINGLE CINEMATIC PHOTO
-// =============================
-
-const SinglePhoto = ({
-  image,
-  index,
-}: {
-  image: ImageItem;
-  index: number;
-}) => {
+const Scene1: React.FC<{
+  images: ImageItem[];
+}> = ({ images }) => {
   const frame = useCurrentFrame();
 
-  // Each photo now has a full 35-frame window to animate cleanly
-  const scale = interpolate(
-    frame,
-    [0, 35],
-    [1.12, 1.03],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
+  const sceneImages = images
+    .slice(0, 4)
+    .filter((img) => img?.path);
 
-  const translateX = interpolate(
-    frame,
-    [0, 35],
-    [index % 2 === 0 ? -40 : 40, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
+  const layouts = [
+    // IMAGE 1 - MAIN
+    {
+      x: 30,
+      y: 250,
+      w: 650,
+      h: 1000,
+    },
 
-  const translateY = interpolate(
-    frame,
-    [0, 35],
-    [index % 2 === 0 ? 20 : -20, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
+    // IMAGE 2 - TOP RIGHT
+    {
+      x: 700,
+      y: 100,
+      w: 330,
+      h: 500,
+    },
 
-  const rotate = interpolate(
-    frame,
-    [0, 35],
-    [index % 2 === 0 ? -1 : 1, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
+    // IMAGE 3 - MIDDLE RIGHT
+    {
+      x: 700,
+      y: 620,
+      w: 330,
+      h: 500,
+    },
 
-  // Quick fade-in
+    // IMAGE 4 - BOTTOM RIGHT
+    {
+      x: 700,
+      y: 1140,
+      w: 330,
+      h: 500,
+    },
+  ];
+
+  // Text for each image
+  const texts = [
+    "-Sanjh tu",
+    "-Savera tu",
+    "-Raahen tu",
+    "-Basera tu",
+  ];
+
+  return (
+    <AbsoluteFill
+      style={{
+        width: 1080,
+        height: 1920,
+        backgroundColor: "#FAF7F2",
+        overflow: "hidden",
+      }}
+    >
+      {sceneImages.map((img, index) => {
+        const layout = layouts[index];
+
+        // ==========================================
+        // SLOW SEQUENTIAL ENTRANCE
+        // Scene = 3 sec = 90 frames @ 30fps
+        // ==========================================
+
+        const start = index * 30;
+
+        // Each image takes 25 frames to appear
+        const progress = interpolate(
+          frame,
+          [start, start + 35],
+          [0, 1],
+          {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+          }
+        );
+
+        // Smooth fade
+        const opacity = progress;
+
+        // Slow scale
+        const scale = interpolate(
+          progress,
+          [0, 1],
+          [0.90, 1]
+        );
+
+        // Slight upward movement
+        const translateY = interpolate(
+          progress,
+          [0, 1],
+          [35, 0]
+        );
+
+        return (
+          <div
+            key={index}
+            style={{
+              position: "absolute",
+
+              left: layout.x,
+              top: layout.y,
+
+              width: layout.w,
+              height: layout.h,
+
+              padding: 6,
+
+              boxSizing: "border-box",
+
+              backgroundColor: "#fff",
+
+              opacity,
+
+              transform: `
+                translateY(${translateY}px)
+                scale(${scale})
+              `,
+
+              transformOrigin: "center",
+
+              overflow: "hidden",
+
+              zIndex: 10 + index,
+            }}
+          >
+            {/* IMAGE */}
+
+            <Img
+              src={img.path}
+              style={{
+                width: "100%",
+                height: "100%",
+
+                objectFit: "cover",
+                objectPosition: "center",
+
+                display: "block",
+              }}
+            />
+
+            {/* DARK OVERLAY */}
+
+            <div
+              style={{
+                position: "absolute",
+
+                left: 0,
+                right: 0,
+                bottom: 0,
+
+                height: "45%",
+
+                background:
+                  "linear-gradient(transparent, rgba(0,0,0,0.45))",
+
+                pointerEvents: "none",
+              }}
+            />
+
+            {/* TEXT */}
+
+            <div
+              style={{
+                position: "absolute",
+
+                left: 10,
+                right: 10,
+
+                bottom:
+                  index === 0
+                    ? 120
+                    : 35,
+
+                textAlign: "center",
+
+                color: "#fff",
+
+                fontSize:
+                  index === 0
+                    ? 58
+                    : 38,
+
+                fontFamily: "cursive",
+
+                fontStyle: "italic",
+
+                letterSpacing: 1,
+
+                whiteSpace: "nowrap",
+
+                textShadow:
+                  "0 2px 8px rgba(0,0,0,0.6)",
+
+                zIndex: 20,
+
+                opacity: progress,
+              }}
+            >
+              {texts[index]}
+            </div>
+          </div>
+        );
+      })}
+    </AbsoluteFill>
+  );
+};
+// ======================================================
+// SCENE 2
+// 3 - 17 SEC
+// 1 IMAGE
+// images[4]
+// ======================================================
+
+const Scene2: React.FC<{
+  images: ImageItem[];
+}> = ({ images }) => {
+  const frame = useCurrentFrame();
+
+  const sceneImages = images
+    .slice(0, 1)
+    .filter((img) => img?.path);
+
+  return (
+    <AbsoluteFill
+      style={{
+        width: 1080,
+        height: 1920,
+        backgroundColor: "#000",
+        overflow: "hidden",
+      }}
+    >
+      {sceneImages.map((img) => {
+        const scale = interpolate(
+          frame,
+          [0, SCENE2_DURATION],
+          [1.08, 1],
+          {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+          }
+        );
+
+        return (
+          <AbsoluteFill
+            key={img.path}
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#000",
+              overflow: "hidden",
+            }}
+          >
+            {/* IMAGE */}
+            <Img
+              src={img.path}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "center",
+                transform: `scale(${scale})`,
+                display: "block",
+              }}
+            />
+
+            {/* DARK GRADIENT */}
+            <AbsoluteFill
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.5) 100%)",
+                pointerEvents: "none",
+              }}
+            />
+
+            {/* ROMANTIC TEXT */}
+            <AbsoluteFill
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "0 80px",
+              }}
+            >
+              <div
+                style={{
+                  color: "#fff",
+                  textAlign: "center",
+                  fontFamily: "Georgia, serif",
+                  textShadow: "0 3px 18px rgba(0,0,0,0.9)",
+                }}
+              >
+                {/* TOP HEARTS */}
+                <div
+                  style={{
+                    fontSize: 38,
+                    marginBottom: 22,
+                    letterSpacing: 12,
+                  }}
+                >
+                  ♡ ♥ ♡
+                </div>
+
+                {/* MAIN TEXT */}
+                <div
+                  style={{
+                    fontSize: 64,
+                    fontWeight: 500,
+                    letterSpacing: 2,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  Tere Sang Lagi
+                  <br />
+                  Jo Preet Re
+                </div>
+
+                {/* BOTTOM DECORATION */}
+                <div
+                  style={{
+                    fontSize: 30,
+                    marginTop: 24,
+                    opacity: 0.9,
+                    letterSpacing: 8,
+                  }}
+                >
+                  ── ♡ ──
+                </div>
+              </div>
+            </AbsoluteFill>
+          </AbsoluteFill>
+        );
+      })}
+    </AbsoluteFill>
+  );
+};
+
+// ======================================================
+// SCENE 3
+// 17 - 18 SEC
+// 10 IMAGES
+// images[5 - 14]
+// ======================================================
+
+const Scene3: React.FC<{
+  images: ImageItem[];
+}> = ({ images }) => {
+  const sceneImages = images
+    .slice(0, 10)
+    .filter((img) => img?.path);
+
+  // Scene 3 = 7 - 18 sec
+  // 11 sec = 330 frames
+  // 10 images = 33 frames each
+  const IMAGE_DURATION = 33;
+
+  return (
+    <AbsoluteFill
+      style={{
+        width: 1080,
+        height: 1920,
+        backgroundColor: "#000",
+        overflow: "hidden",
+      }}
+    >
+      {sceneImages.map((img, index) => {
+        return (
+          <Sequence
+            key={index}
+            from={index * IMAGE_DURATION}
+            durationInFrames={IMAGE_DURATION}
+          >
+            <Scene3Image
+              img={img}
+              duration={IMAGE_DURATION}
+            />
+          </Sequence>
+        );
+      })}
+
+      {/* ENDING TEXT */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 120,
+          textAlign: "center",
+          color: "#fff",
+          fontSize: 70,
+          fontFamily: "cursive",
+          letterSpacing: 5,
+          zIndex: 100,
+          textShadow: "0 2px 10px rgba(0,0,0,0.3)",
+        }}
+      >
+        ALWAYS TOGETHER ♡
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+
+// ======================================================
+// SCENE 3 IMAGE
+// ======================================================
+
+const Scene3Image: React.FC<{
+  img: ImageItem;
+  duration: number;
+}> = ({ img, duration }) => {
+  const frame = useCurrentFrame();
+
+  // Smooth fade
   const opacity = interpolate(
     frame,
-    [0, 10],
-    [0, 1],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+    [0, 8, duration - 8, duration],
+    [0, 1, 1, 0],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
   );
 
-  // Smooth blur clear-up
-  const blur = interpolate(
+  // Slow cinematic zoom
+  const scale = interpolate(
     frame,
-    [0, 15],
-    [10, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
-
-  const brightness = interpolate(
-    frame,
-    [0, 15],
-    [0.7, 1],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+    [0, duration],
+    [1.06, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
   );
 
   return (
-    <AbsoluteFill style={{ overflow: "hidden", background: "#000" }}>
-      <img
-        src={image.path}
+    <AbsoluteFill
+      style={{
+        opacity,
+        overflow: "hidden",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#000",
+      }}
+    >
+      <Img
+        src={img.path}
         style={{
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          transform: `scale(${scale}) translate(${translateX}px, ${translateY}px) rotate(${rotate}deg)`,
-          filter: `blur(${blur}px) brightness(${brightness})`,
-          opacity,
-        }}
-      />
-      {/* Cinematic dark overlay */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "linear-gradient(to top, rgba(0,0,0,.35), transparent 40%)",
+          objectPosition: "center",
+          transform: `scale(${scale})`,
+          display: "block",
         }}
       />
     </AbsoluteFill>
   );
 };
-// PART 2 ME COMPLETE HOGA
-// =============================
 
-
-return(
-
-<AbsoluteFill
-style={{
-background:"#000"
-}}
->
-
-
-{/* =============================
-    SCENE 1
-    FULL SCREEN HERO
-    0 - 2 sec
-============================= */}
-
-
-<Sequence
-
-from={0}
-
-durationInFrames={heroDuration}
-
->
-
-
-<FullScreenHero
-
-image={heroImage}
-
-title="FOREVER"
-
-animation="zoomIn"
-
-/>
-
-
-</Sequence>
-
-
-
-
-
-
-{/* =============================
-    SCENE 2
-    HERO + BOTTOM 3 GRID
-    2 - 5 sec
-============================= */}
-
-
-<Sequence
-
-from={heroDuration}
-
-durationInFrames={gridDuration}
-
->
-
-
-<HeroBottomGrid/>
-
-
-</Sequence>
-
-
-
-
-
-
-{/* =============================
-    SCENE 3
-    SINGLE CINEMATIC PHOTOS
-    5 - 10 sec
-============================= */}
-
-
-{/* =============================
-    SCENE 3
-    SINGLE CINEMATIC PHOTOS
-============================= */}
-<Sequence from={heroDuration + gridDuration} durationInFrames={singleDuration}>
-  {singleImages.map((img, index) => (
-    <Sequence
-      key={index}
-      from={index * 37.5} 
-      durationInFrames={37.5}
-    >
-      <SinglePhoto image={img} index={index} />
-    </Sequence>
-  ))}
-</Sequence>
-
-
-
-
-
-
-
-{/* =============================
-    SCENE 4
-    ENDING HERO
-    10 - 12 sec
-============================= */}
-
-
-
-<Sequence
-
-from={
-heroDuration +
-gridDuration +
-singleDuration
-}
-
-durationInFrames={endingDuration}
-
->
-
-
-<FullScreenHero
-
-image={endingImage}
-
-title="THE END"
-
-animation="zoomOut"
-
-/>
-
-
-
-</Sequence>
-
-
-
-
-
-
-{/* =============================
-        MUSIC
-============================= */}
-
-
-</AbsoluteFill>
-
-)
-
-
-
-
-
-
-}
-
-
-export default CinematicWeddingReel;
+// ======================================================
+// MAIN TEMPLATE
+// ======================================================
+
+export const Template9 = ({
+  images = [],
+  music = undefined,
+}: Template9Props) => {
+  return (
+    <>
+      {music && <MusicPlayer src={music} />}
+
+      <AbsoluteFill
+        style={{
+          width: 1080,
+          height: 1920,
+          backgroundColor: "#000",
+        }}
+      >
+        {/* ==================================================
+            SCENE 1
+            0 - 3 SEC
+            4 IMAGES
+            images[0 - 3]
+        ================================================== */}
+
+        <Sequence
+          from={0}
+          durationInFrames={SCENE1_DURATION}
+        >
+          <Scene1 images={images.slice(0, 4)} />
+        </Sequence>
+
+        {/* ==================================================
+            SCENE 2
+            3 - 17 SEC
+            1 IMAGE
+            images[4]
+        ================================================== */}
+
+        <Sequence
+          from={SCENE1_DURATION}
+          durationInFrames={SCENE2_DURATION}
+        >
+          <Scene2 images={images.slice(4, 5)} />
+        </Sequence>
+
+        {/* ==================================================
+            SCENE 3
+            17 - 18 SEC
+            10 IMAGES
+            images[5 - 14]
+        ================================================== */}
+
+        <Sequence
+          from={SCENE1_DURATION + SCENE2_DURATION}
+          durationInFrames={SCENE3_DURATION}
+        >
+          <Scene3 images={images.slice(5, 15)} />
+        </Sequence>
+      </AbsoluteFill>
+    </>
+  );
+};
+
+export default Template9;

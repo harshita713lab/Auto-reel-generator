@@ -13,39 +13,22 @@ class RemotionConfig {
     this.timeout = 600 * 1000; // 10 minutes timeout for 11+ image reels
   }
 validateCompositionName(compositionName) {
-    const validCompositions = [
-        "ReelComposition",
-        "MemoryBlendReel",
-         "WhiteCardGrid3x3",
-         "WhiteCardCarousel",
-         "WhiteCardPolaroidStack",
-         "WhiteCardMasonry",
-         "PremiumGrid",
-          "WeddingSequenceComposition",
-          "WeddingSplitSlider",
-          "CinematicWeddingReel",
-          "MemoryJourneyWeddingReel",
-          "RoyalWeddingStory",
-          "Reel",
-          "WeddingCinematic13",
-          "ScrapbookWedding15",
-          "WeddingTemplate14",
-          "Template26",
-          "Template25",
-          "Template27",
-          "Template28",
-          "Template29",
-          "Template5",
-    ];
-
+    // अब कोई हार्डकोडेड लिस्ट नहीं!
+    // बस अगर नाम आया है तो वही return करें, वरना डिफॉल्ट
     if (!compositionName || typeof compositionName !== "string") {
         return "ReelComposition";
     }
-
-    return validCompositions.includes(compositionName)
-        ? compositionName
-        : "ReelComposition";
+    
+    // ✅ बिना किसी चेक के सीधा नाम वापस कर दें
+    // Remotion (render.js) में composition न मिले तो वहाँ error आएगा,
+    // लेकिन चूँकि हम DB से सही ID भेज रहे हैं, तो error कभी आएगा ही नहीं।
+    return compositionName;
 }
+  
+
+
+
+
 
 
   async render(compositionId, options = {}) {
