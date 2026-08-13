@@ -14,6 +14,7 @@ class RenderService {
   constructor() {
     this.renderDir = DIRECTORIES.RENDERS;
     this.tempDir = DIRECTORIES.TEMP;
+    this.lastUsedIndexMap = new Map();
   }
 
   async renderReel(reel, options = {}) {
@@ -88,29 +89,68 @@ class RenderService {
       console.log(JSON.stringify(inputProps, null, 2));
 
       // ============================================================
-      // DATABASE-DRIVEN TEMPLATE SELECTION (Range + Priority)
+      // DATABASE-DRIVEN TEMPLATE SELECTION (Round-Robin Rotation for Same Image Count)
       // ============================================================
       const imageCount = reel.images.length;
       console.log("========== AUTO TEMPLATE SELECTION ==========");
       console.log("📸 IMAGE COUNT:", imageCount);
 
-      const matchedTemplate = await Template.findOne({
-        isActive: true,
-        'config.minImages': { $lte: imageCount },
-        'config.maxImages': { $gte: imageCount }
-      }).sort({ priority: 1 });
+      const COMPOSITION_MAP = {
+        4: ['Template13', 'Template15'],
+        5: ['Template5'],
+        7: ['Template19'],
+        8: ['Template7'],
+        10: ['Template3'],
+        11: ['Template14'],
+        12: ['Template6', 'Template17'],
+        13: ['Template2', 'Template16'],
+        14: ['Template1'],
+        15: ['Template9'],
+        16: ['Template10'],
+        17: ['Template8', 'Template18'],
+        18: ['Template11'],
+        23: ['Template12']
+      };
+
+      let matchedTemplates = [];
+      try {
+        matchedTemplates = await Template.find({
+          isActive: true,
+          'config.minImages': { $lte: imageCount },
+          'config.maxImages': { $gte: imageCount }
+        }).sort({ priority: 1 });
+      } catch (dbErr) {
+        logger.warn("DB template query warning:", dbErr.message);
+      }
+
+      let matchedTemplate = null;
+      if (matchedTemplates && matchedTemplates.length > 0) {
+        const lastIdx = this.lastUsedIndexMap.has(imageCount) ? this.lastUsedIndexMap.get(imageCount) : -1;
+        const nextIdx = (lastIdx + 1) % matchedTemplates.length;
+        this.lastUsedIndexMap.set(imageCount, nextIdx);
+        matchedTemplate = matchedTemplates[nextIdx];
+      }
 
       let compositionId;
       if (matchedTemplate && matchedTemplate.compositionId) {
         compositionId = matchedTemplate.compositionId;
-        console.log(`✅ SELECTED FROM DB: ${matchedTemplate.name} (Priority: ${matchedTemplate.priority}) → Composition: ${compositionId}`);
-      } else if (reel.templateId) {
-        let numMatch = String(reel.templateId).match(/\d+/);
-        compositionId = numMatch ? `Template${numMatch[0]}` : "Template1";
-        console.log(`✅ FALLBACK TO TEMPLATE ID: ${reel.templateId} → Composition: ${compositionId}`);
+        console.log(`✅ SELECTED FROM DB (Loop Rotated ${this.lastUsedIndexMap.get(imageCount) + 1}/${matchedTemplates.length}): ${matchedTemplate.name} (Priority: ${matchedTemplate.priority}) → Composition: ${compositionId}`);
       } else {
-        compositionId = imageCount < 4 ? "ReelComposition" : "Template1";
-        console.log(`⚠️ FALLBACK: ${compositionId}`);
+        const availableComps = COMPOSITION_MAP[imageCount];
+        if (availableComps && availableComps.length > 0) {
+          const lastIdx = this.lastUsedIndexMap.has(imageCount) ? this.lastUsedIndexMap.get(imageCount) : -1;
+          const nextIdx = (lastIdx + 1) % availableComps.length;
+          this.lastUsedIndexMap.set(imageCount, nextIdx);
+          compositionId = availableComps[nextIdx];
+          console.log(`✅ SELECTED FROM COMPOSITION MAP (Loop Rotated ${nextIdx + 1}/${availableComps.length}) → Composition: ${compositionId}`);
+        } else if (reel.templateId) {
+          let numMatch = String(reel.templateId).match(/\d+/);
+          compositionId = numMatch ? `Template${numMatch[0]}` : "Template1";
+          console.log(`✅ FALLBACK TO TEMPLATE ID: ${reel.templateId} → Composition: ${compositionId}`);
+        } else {
+          compositionId = imageCount < 4 ? "ReelComposition" : "Template1";
+          console.log(`⚠️ FALLBACK: ${compositionId}`);
+        }
       }
       console.log("==============================================");
 

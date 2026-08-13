@@ -102,19 +102,37 @@ weddingContext.keys().forEach((filename: string) => {
       };
     const imageCount = module.IMAGE_COUNT;
 
-    compositionRegistry[id] = {
-      component: Component,
-      durationInFrames: duration,
-      calculateMetadata,
-      defaultProps,
-      imageCount,
-    };
+    const aliases = new Set<string>();
+    aliases.add(id);
+    aliases.add(id.charAt(0).toUpperCase() + id.slice(1));
+    aliases.add(id.toLowerCase());
 
-    console.log(
-      `✅ Auto-registered: ${id} | IMAGE_COUNT: ${
-        imageCount ?? 'not specified'
-      }`
-    );
+    const match = id.match(/^(?:template|tempalte)(\d+)$/i);
+    if (match) {
+      const num = match[1];
+      aliases.add(`Template${num}`);
+      aliases.add(`template${num}`);
+      aliases.add(`Tempalte${num}`);
+      aliases.add(`tempalte${num}`);
+    }
+
+    const compConfig = {
+      component: Component,
+      durationInFrames: duration,
+      calculateMetadata,
+      defaultProps,
+      imageCount,
+    };
+
+    aliases.forEach((alias) => {
+      compositionRegistry[alias] = compConfig;
+    });
+
+    console.log(
+      `✅ Auto-registered: ${id} (aliases: ${Array.from(aliases).join(', ')}) | IMAGE_COUNT: ${
+        imageCount ?? 'not specified'
+      }`
+    );
 
   } catch (error) {
     console.error(
