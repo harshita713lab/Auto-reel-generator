@@ -86,30 +86,30 @@ The backend automatically detects uploaded image counts and maps them to matchin
 Auto-reel-generator/
 ├── backend/
 │   ├── assets/
-│   │   └── music/                  # Default background audio files (ReelAudio-*.mp3)
+│   │   └── music/            
 │   ├── remotion/
-│   │   ├── render.js               # Remotion bundle & render execution script
+│   │   ├── render.js  
 │   │   ├── package.json
 │   │   └── src/
-│   │       ├── Root.tsx            # Dynamic Composition Auto-Registration & Aliasing
+│   │       ├── Root.tsx      
 │   │       └── compositions/
-│   │           └── Wedding/        # Remotion video templates (.tsx)
+│   │           └── Wedding/    
 │   ├── src/
-│   │   ├── config/                 # Remotion, Database, and Constants configuration
-│   │   ├── controllers/            # API Route logic (reel, upload, render, music)
-│   │   ├── models/                 # Mongoose models (Reel, Template, RenderJob, Music)
-│   │   ├── routes/                 # REST API endpoints
-│   │   └── services/               # Video rendering, FFmpeg, Image optimization
-│   ├── .env                        # Backend environment configuration
-│   └── server.js                   # Express server entry point
+│   │   ├── config/          
+│   │   ├── controllers/   
+│   │   ├── models/             
+│   │   ├── routes/
+│   │   └── services/    
+│   ├── .env                      
+│   └── server.js          
 ├── Frontend/
 │   ├── index.html
 │   ├── package.json
 │   ├── vite.config.js
 │   └── src/
 │       ├── App.jsx
-│       ├── components/             # React UI components (Upload, MusicSelector, ReelsGrid)
-│       └── pages/                  # Pages (HomePage, AllReels, EditMusicPage, Settings)
+│       ├── components/             
+│       └── pages/               
 └── README.md
 ```
 
