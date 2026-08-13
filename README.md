@@ -32,6 +32,73 @@ An end-to-end, high-performance video generation platform powered by **Node.js**
 
 ---
 
+## 🔄 System Architecture & Workflow
+
+The platform operates on a decoupled multi-layer architecture: **Client (Vite + React) → Express API Backend → Remotion Headless Renderer → FFmpeg Media Compositor → Storage & Database**.
+
+### 🧜‍♂️ Flowchart
+
+```mermaid
+flowchart TD
+    subgraph Client ["💻 Client Layer (Vite + React UI)"]
+        A[User Uploads Images] --> B[Select / Auto Music Track]
+        B --> C[Submit Reel Generation Request]
+    end
+
+    subgraph Backend ["⚙️ Backend Layer (Express & Node.js)"]
+        C --> D[Multer Upload Handling]
+        D --> E[Sharp Image Optimization & Base64 Encoding]
+        E --> F[Auto Template Resolver & Alternate Rotation Engine]
+        F --> G[Beat Detection & Audio Mapping]
+        G --> H[Create Mongoose Reel Record - Status: Queued]
+    end
+
+    subgraph RemotionEngine ["🎬 Remotion Engine (Headless Chrome)"]
+        H --> I[Bundler & Dynamic Composition Registration]
+        I --> J[Puppeteer Headless Chromium Rendering]
+        J --> K[Frame-by-Frame Video Stitching]
+        K --> L[Generate Raw Muted .mp4 Video]
+    end
+
+    subgraph FFmpegMedia ["🎵 FFmpeg Compositor"]
+        L --> M[Audio Track + Beat Timestamp Overlay]
+        M --> N[FFmpeg H.264 / AAC Encoding]
+        N --> O[Export Final Reel to /output/renders/]
+    end
+
+    subgraph Delivery ["📱 Presentation & Delivery"]
+        O --> P[Update Reel Status to Rendered - 100%]
+        P --> Q[Real-time Preview & Direct MP4 Download]
+    end
+```
+
+### 📌 Step-by-Step Execution Lifecycle
+
+1. **Asset Ingestion & Optimization**:
+   - Uploaded photos are verified for extensions (`.jpg`, `.png`, `.webp`) and maximum size limit.
+   - Images are resized & converted to high-quality JPEG Base64 Data URIs via `sharp` to prevent cross-origin resource sharing (CORS) blocks inside Chromium.
+
+2. **Smart Dynamic Template Selection (Alternate Looping)**:
+   - Backend checks total uploaded `imageCount` (e.g. 4 photos).
+   - Queries MongoDB/Composition registry for all matching templates (`Template13` & `Template15`).
+   - Uses an **in-memory Round-Robin Modulo Counter** `(lastIndex + 1) % templateCount` to rotate templates every time the same image count is uploaded.
+
+3. **Headless Remotion Video Render**:
+   - Server launches a child Node process executing `render.js`.
+   - `Root.tsx` auto-registers compositions and resolves case-insensitive aliases (`Template13`, `template13`, `Tempalte13`).
+   - Remotion renders high-FPS video frames in a headless Puppeteer browser environment.
+
+4. **FFmpeg Audio Overlay & Beat Sync**:
+   - `beatDetector.js` computes audio BPM and beat timestamps.
+   - FFmpeg overlays the designated theme music (`ReelAudio-N.mp3`) or user-selected audio track onto the muted video stream.
+
+5. **Final Video Delivery & Status Updates**:
+   - The completed reel is stored in `output/renders/reel_<timestamp>.mp4`.
+   - Database record status updates from `rendering` (10%) to `rendered` (100%).
+   - Frontend UI polls status and renders the interactive video player with download options.
+
+---
+
 ## 📊 Template & Image Count Mapping
 
 The backend automatically detects uploaded image counts and maps them to matching compositions. If multiple templates exist for the same count, the system rotates through them in an **Alternate Round-Robin Loop**:
