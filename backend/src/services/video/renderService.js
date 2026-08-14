@@ -96,7 +96,7 @@ class RenderService {
       console.log("📸 IMAGE COUNT:", imageCount);
 
       const COMPOSITION_MAP = {
-        4: ['Template13', 'Template15'],
+        4: ['Template15', 'Template21','Template13'],
         5: ['Template5'],
         7: ['Template19'],
         8: ['Template7'],
@@ -104,7 +104,7 @@ class RenderService {
         11: ['Template14'],
         12: ['Template6', 'Template17'],
         13: ['Template2', 'Template16'],
-        14: ['Template1'],
+        14: ['Template23','Tempalte20','Template1'],
         15: ['Template9'],
         16: ['Template10'],
         17: ['Template8', 'Template18'],
