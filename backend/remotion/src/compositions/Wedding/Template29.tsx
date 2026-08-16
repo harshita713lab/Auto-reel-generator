@@ -81,7 +81,7 @@ const BokehParticles: React.FC<{ frame: number }> = ({ frame }) => {
         const currentY = p.y + pFrame * p.speedY;
         const currentX = p.x + pFrame * p.speedX;
         const opacity = interpolate(
-          (pFrame % 90),
+          pFrame % 90,
           [0, 45, 90],
           [0.2, 0.7, 0.2],
           clamp
@@ -111,7 +111,91 @@ const BokehParticles: React.FC<{ frame: number }> = ({ frame }) => {
 };
 
 // ======================================================
-// TEMPLATE 29 COMPONENT
+// SONG LYRICS OVERLAY (EXACT USER TIMING MATCH)
+// ======================================================
+
+const SongLyricsOverlay: React.FC<{ frame: number }> = ({ frame }) => {
+  // Exact requested timings:
+  // 0s to 4s (Frames 0 - 120): "Aashiyana mera..."
+  // 5s to 7s (Frames 150 - 210): "Saath tere hai na..."
+  // 7s to 10s (Frames 210 - 300): "Dhoondhte teri gali, mujhko ghar mila..."
+
+  let lyricText = "";
+
+  if (frame >= 0 && frame < 120) {
+    lyricText = "Aashiyana mera...";
+  } else if (frame >= 150 && frame < 210) {
+    lyricText = "Saath tere hai na...";
+  } else if (frame >= 210 && frame <= 300) {
+    lyricText = "Dhoondhte teri gali, mujhko ghar mila...";
+  }
+
+  if (!lyricText) return null;
+
+  // Calculate smooth fade-in and fade-out per line
+  let opacity = 1;
+  let scale = 1;
+
+  if (frame < 120) {
+    opacity = interpolate(frame, [0, 15, 105, 120], [0, 1, 1, 0], clamp);
+    scale = interpolate(frame, [0, 20], [0.85, 1], {
+      ...clamp,
+      easing: Easing.out(Easing.back(1.2)),
+    });
+  } else if (frame >= 150 && frame < 210) {
+    const f = frame - 150;
+    opacity = interpolate(f, [0, 12, 48, 60], [0, 1, 1, 0], clamp);
+    scale = interpolate(f, [0, 15], [0.85, 1], {
+      ...clamp,
+      easing: Easing.out(Easing.back(1.2)),
+    });
+  } else if (frame >= 210) {
+    const f = frame - 210;
+    opacity = interpolate(f, [0, 12, 75, 90], [0, 1, 1, 0], clamp);
+    scale = interpolate(f, [0, 15], [0.85, 1], {
+      ...clamp,
+      easing: Easing.out(Easing.back(1.2)),
+    });
+  }
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: "50%",
+        bottom: frame >= 240 ? "5%" : "10%",
+        transform: `translateX(-50%) scale(${scale})`,
+        opacity,
+        zIndex: 50,
+        textAlign: "center",
+        width: "92%",
+        pointerEvents: "none",
+      }}
+    >
+      <span
+        style={{
+          fontFamily: "'Segoe UI', Roboto, sans-serif",
+          fontSize: frame >= 210 ? 38 : 44,
+          fontWeight: 800,
+          color: "#ffffff",
+          letterSpacing: "0.5px",
+          textShadow: `
+            -2px -2px 0 #000,
+             2px -2px 0 #000,
+            -2px  2px 0 #000,
+             2px  2px 0 #000,
+             0px  6px 18px rgba(0,0,0,0.85)
+          `,
+        }}
+      >
+        {lyricText}
+      </span>
+    </div>
+  );
+};
+
+// ======================================================
+// TEMPLATE 29 MAIN COMPONENT
 // ======================================================
 
 export const Template29: React.FC<Template29Props> = ({
@@ -120,16 +204,7 @@ export const Template29: React.FC<Template29Props> = ({
 }) => {
   const frame = useCurrentFrame();
 
-  // Validate image array length
   const safeImages = images.length >= 9 ? images : DEFAULT_PROPS.images!;
-
-  // ----------------------------------------------------
-  // SCENE TIMINGS (Total 300 Frames / 10 Sec)
-  // ----------------------------------------------------
-  // Scene 1: 0 - 60 frames (0.0s - 2.0s) -> 4-Photo Collage + "i love you"
-  // Scene 2: 60 - 150 frames (2.0s - 5.0s) -> RGB Diamond Mask Reveal
-  // Scene 3: 150 - 240 frames (5.0s - 8.0s) -> Garden Bokeh + Radial Blur Zoom
-  // Scene 4: 240 - 300 frames (8.0s - 10.0s) -> 3D Polaroid Card Stack
 
   const isScene1 = frame >= 0 && frame < 60;
   const isScene2 = frame >= 60 && frame < 150;
@@ -151,7 +226,15 @@ export const Template29: React.FC<Template29Props> = ({
       }}
     >
       {/* Background Music Player */}
-      {musicSrc && <MusicPlayer src={musicSrc} volume={typeof music === "object" ? music?.volume : 1} />}
+      {musicSrc && (
+        <MusicPlayer
+          src={musicSrc}
+          volume={typeof music === "object" ? music?.volume : 1}
+        />
+      )}
+
+      {/* Lyrics Overlay ("Tu Jo Mila") */}
+      <SongLyricsOverlay frame={frame} />
 
       {/* ===================================================================
           SCENE 1: 4-PHOTO COLLAGE GRID & "i love you" ANIMATED TEXT (0-2s)
@@ -161,12 +244,12 @@ export const Template29: React.FC<Template29Props> = ({
           {(() => {
             const s1Frame = frame;
 
-            // Blur & Darkening Transition at end of Scene 1 (Frames 45-60)
-            const s1Darken = interpolate(s1Frame, [45, 60], [1, 0.3], clamp);
-            const s1Blur = interpolate(s1Frame, [45, 60], [0, 10], clamp);
+            // Darkening/Blur transition at end of Scene 1
+            const s1Darken = interpolate(s1Frame, [45, 60], [1, 0.35], clamp);
+            const s1Blur = interpolate(s1Frame, [45, 60], [0, 8], clamp);
             const s1Scale = interpolate(s1Frame, [0, 60], [1, 1.05], clamp);
 
-            // Text Animations ("i love you")
+            // Text Animations ("i love you" - Original style match)
             const textPopProgress = interpolate(
               s1Frame,
               [12, 28],
@@ -179,7 +262,7 @@ export const Template29: React.FC<Template29Props> = ({
 
             const textScale = interpolate(textPopProgress, [0, 1], [0.5, 1], clamp);
             const textOpacity = interpolate(s1Frame, [12, 22, 50, 60], [0, 1, 1, 0], clamp);
-            const textFloatY = interpolate(s1Frame, [15, 60], [0, -12], clamp);
+            const textFloatY = interpolate(s1Frame, [15, 60], [0, -10], clamp);
 
             return (
               <AbsoluteFill
@@ -189,7 +272,7 @@ export const Template29: React.FC<Template29Props> = ({
                   transition: "filter 0.1s ease",
                 }}
               >
-                {/* 2x2 Photo Grid */}
+                {/* 2x2 Photo Grid Collage */}
                 <div
                   style={{
                     display: "grid",
@@ -201,7 +284,6 @@ export const Template29: React.FC<Template29Props> = ({
                     backgroundColor: "#ffffff",
                   }}
                 >
-                  {/* Top Left - Image 1 */}
                   <div style={{ overflow: "hidden", position: "relative" }}>
                     <Img
                       src={getImgSrc(safeImages[0], 0)}
@@ -212,8 +294,6 @@ export const Template29: React.FC<Template29Props> = ({
                       }}
                     />
                   </div>
-
-                  {/* Top Right - Image 2 */}
                   <div style={{ overflow: "hidden", position: "relative" }}>
                     <Img
                       src={getImgSrc(safeImages[1], 1)}
@@ -224,8 +304,6 @@ export const Template29: React.FC<Template29Props> = ({
                       }}
                     />
                   </div>
-
-                  {/* Bottom Left - Image 3 */}
                   <div style={{ overflow: "hidden", position: "relative" }}>
                     <Img
                       src={getImgSrc(safeImages[2], 2)}
@@ -236,8 +314,6 @@ export const Template29: React.FC<Template29Props> = ({
                       }}
                     />
                   </div>
-
-                  {/* Bottom Right - Image 4 */}
                   <div style={{ overflow: "hidden", position: "relative" }}>
                     <Img
                       src={getImgSrc(safeImages[3], 3)}
@@ -250,7 +326,7 @@ export const Template29: React.FC<Template29Props> = ({
                   </div>
                 </div>
 
-                {/* Animated "i love you" Text Overlay */}
+                {/* Original "i love you" Animated Text */}
                 <div
                   style={{
                     position: "absolute",
@@ -266,17 +342,17 @@ export const Template29: React.FC<Template29Props> = ({
                   <span
                     style={{
                       fontFamily: "'Segoe UI', Roboto, 'Helvetica Neue', sans-serif",
-                      fontSize: 82,
+                      fontSize: 84,
                       fontWeight: 800,
                       color: "#ffffff",
                       letterSpacing: "1px",
                       textTransform: "lowercase",
                       textShadow: `
-                        -2px -2px 0 #000,
-                         2px -2px 0 #000,
-                        -2px  2px 0 #000,
-                         2px  2px 0 #000,
-                         0px  8px 20px rgba(0,0,0,0.7)
+                        -3px -3px 0 #000,
+                         3px -3px 0 #000,
+                        -3px  3px 0 #000,
+                         3px  3px 0 #000,
+                         0px  8px 24px rgba(0,0,0,0.75)
                       `,
                     }}
                   >
@@ -290,41 +366,40 @@ export const Template29: React.FC<Template29Props> = ({
       )}
 
       {/* ===================================================================
-          SCENE 2: RGB CHROMATIC DIAMOND MASK REVEAL (2-5s / Frames 60-150)
+          SCENE 2: EXACT DIAMOND SLICE & RGB PRISM LINES (2-5s / Frames 60-150)
+          Matches the reference image provided by the user!
           =================================================================== */}
       {(isScene2 || (frame >= 55 && frame < 155)) && (
         <AbsoluteFill style={{ zIndex: 2 }}>
           {(() => {
             const s2Frame = frame - 60;
 
-            // Diamond scale animation from 0% -> 100% -> 220%
-            const diamondScale = interpolate(
+            // Expansion progress
+            const expandProgress = interpolate(
               s2Frame,
-              [0, 30, 80],
-              [0, 0.7, 2.2],
+              [0, 30, 85],
+              [0.35, 0.75, 2.2],
               {
                 ...clamp,
                 easing: Easing.out(Easing.cubic),
               }
             );
 
-            // Opacity of scene 2
-            const scene2Opacity = interpolate(s2Frame, [0, 10], [0, 1], clamp);
-
-            // Dip to black transition at end of Scene 2 (Frames 80-90 in s2Frame, i.e. 140-150 total)
+            // Opacity & Dip-to-black
+            const scene2Opacity = interpolate(s2Frame, [0, 8], [0, 1], clamp);
             const dipToBlackOpacity = interpolate(
               s2Frame,
-              [75, 88],
+              [78, 90],
               [1, 0],
               clamp
             );
 
-            // RGB Shift Border Offset Animation
-            const rgbOffset = interpolate(s2Frame, [0, 30, 80], [18, 12, 4], clamp);
+            // Size of center diamond
+            const diamondSize = expandProgress * 50;
 
             return (
               <AbsoluteFill style={{ opacity: scene2Opacity * dipToBlackOpacity }}>
-                {/* Full Image Container */}
+                {/* Background Layer: Slightly Desaturated / B&W High-Contrast Image */}
                 <AbsoluteFill>
                   <Img
                     src={getImgSrc(safeImages[4], 4)}
@@ -332,17 +407,18 @@ export const Template29: React.FC<Template29Props> = ({
                       width: "100%",
                       height: "100%",
                       objectFit: "cover",
-                      transform: `scale(${interpolate(s2Frame, [0, 90], [1.15, 1.0], clamp)})`,
+                      filter: "brightness(0.85) contrast(1.1) grayscale(0.6)",
+                      transform: `scale(${interpolate(s2Frame, [0, 90], [1.08, 1.0], clamp)})`,
                     }}
                   />
                 </AbsoluteFill>
 
-                {/* Animated Diamond Mask Layer */}
+                {/* Center Diamond Mask: Vibrant Full-Color Image */}
                 <div
                   style={{
                     position: "absolute",
                     inset: 0,
-                    clipPath: `polygon(50% ${50 - diamondScale * 50}%, ${50 + diamondScale * 50}% 50%, 50% ${50 + diamondScale * 50}%, ${50 - diamondScale * 50}% 50%)`,
+                    clipPath: `polygon(50% ${50 - diamondSize}%, ${50 + diamondSize}% 50%, 50% ${50 + diamondSize}%, ${50 - diamondSize}% 50%)`,
                     overflow: "hidden",
                   }}
                 >
@@ -352,29 +428,144 @@ export const Template29: React.FC<Template29Props> = ({
                       width: "100%",
                       height: "100%",
                       objectFit: "cover",
+                      filter: "brightness(1.05) saturate(1.2)",
                     }}
                   />
                 </div>
 
-                {/* RGB Chromatic Aberration Prism Lines around Diamond Border */}
-                {diamondScale > 0.05 && diamondScale < 1.8 && (
-                  <div
+                {/* GEOMETRIC DIAMOND & CORNER SLICE LINES (Matches reference image!) */}
+                {expandProgress < 1.8 && (
+                  <svg
                     style={{
                       position: "absolute",
-                      left: "50%",
-                      top: "50%",
-                      width: `${diamondScale * 100}%`,
-                      height: `${diamondScale * 100}%`,
-                      transform: "translate(-50%, -50%) rotate(45deg)",
-                      border: "6px solid #ffffff",
-                      boxShadow: `
-                        ${rgbOffset}px -${rgbOffset}px 0 #ff0055,
-                        -${rgbOffset}px ${rgbOffset}px 0 #00e5ff,
-                        0 0 25px rgba(255,255,255,0.9)
-                      `,
+                      inset: 0,
+                      width: "100%",
+                      height: "100%",
                       pointerEvents: "none",
                     }}
-                  />
+                    viewBox="0 0 1000 1777"
+                    preserveAspectRatio="none"
+                  >
+                    <defs>
+                      {/* RGB Chromatic Split Filters */}
+                      <filter id="rgbPrism">
+                        <feDropShadow dx="3" dy="-3" stdDeviation="0" floodColor="#ff0055" />
+                        <feDropShadow dx="-3" dy="3" stdDeviation="0" floodColor="#00e5ff" />
+                        <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="#ffea00" />
+                      </filter>
+                    </defs>
+
+                    {/* SVG Coordinates for Center Diamond */}
+                    {(() => {
+                      const cX = 500;
+                      const cY = 888.5;
+                      const dW = (diamondSize / 100) * 1000;
+                      const dH = (diamondSize / 100) * 1777;
+
+                      const topP = `${cX},${cY - dH}`;
+                      const rightP = `${cX + dW},${cY}`;
+                      const botP = `${cX},${cY + dH}`;
+                      const leftP = `${cX - dW},${cY}`;
+
+                      return (
+                        <g>
+                          {/* Outer Chromatic RGB Glow Lines */}
+                          <polygon
+                            points={`${topP} ${rightP} ${botP} ${leftP}`}
+                            fill="none"
+                            stroke="#ffffff"
+                            strokeWidth="16"
+                            filter="url(#rgbPrism)"
+                          />
+
+                          {/* Inner Solid Black Bar Line */}
+                          <polygon
+                            points={`${topP} ${rightP} ${botP} ${leftP}`}
+                            fill="none"
+                            stroke="#000000"
+                            strokeWidth="10"
+                          />
+
+                          {/* 4 Diagonal Extension Lines to Screen Corners */}
+                          {/* Top-Left Diagonal */}
+                          <line
+                            x1={cX - dW}
+                            y1={cY}
+                            x2="0"
+                            y2="0"
+                            stroke="#ffffff"
+                            strokeWidth="14"
+                            filter="url(#rgbPrism)"
+                          />
+                          <line
+                            x1={cX - dW}
+                            y1={cY}
+                            x2="0"
+                            y2="0"
+                            stroke="#000000"
+                            strokeWidth="8"
+                          />
+
+                          {/* Top-Right Diagonal */}
+                          <line
+                            x1={cX + dW}
+                            y1={cY}
+                            x2="1000"
+                            y2="0"
+                            stroke="#ffffff"
+                            strokeWidth="14"
+                            filter="url(#rgbPrism)"
+                          />
+                          <line
+                            x1={cX + dW}
+                            y1={cY}
+                            x2="1000"
+                            y2="0"
+                            stroke="#000000"
+                            strokeWidth="8"
+                          />
+
+                          {/* Bottom-Left Diagonal */}
+                          <line
+                            x1={cX - dW}
+                            y1={cY}
+                            x2="0"
+                            y2="1777"
+                            stroke="#ffffff"
+                            strokeWidth="14"
+                            filter="url(#rgbPrism)"
+                          />
+                          <line
+                            x1={cX - dW}
+                            y1={cY}
+                            x2="0"
+                            y2="1777"
+                            stroke="#000000"
+                            strokeWidth="8"
+                          />
+
+                          {/* Bottom-Right Diagonal */}
+                          <line
+                            x1={cX + dW}
+                            y1={cY}
+                            x2="1000"
+                            y2="1777"
+                            stroke="#ffffff"
+                            strokeWidth="14"
+                            filter="url(#rgbPrism)"
+                          />
+                          <line
+                            x1={cX + dW}
+                            y1={cY}
+                            x2="1000"
+                            y2="1777"
+                            stroke="#000000"
+                            strokeWidth="8"
+                          />
+                        </g>
+                      );
+                    })()}
+                  </svg>
                 )}
               </AbsoluteFill>
             );
@@ -390,13 +581,9 @@ export const Template29: React.FC<Template29Props> = ({
           {(() => {
             const s3Frame = frame - 150;
 
-            // Ken Burns slow zoom
             const kenBurnsZoom = interpolate(s3Frame, [0, 90], [1.0, 1.15], clamp);
-
-            // Scene Entry Opacity
             const s3Opacity = interpolate(s3Frame, [0, 10], [0, 1], clamp);
 
-            // Radial Motion Blur & Push-In Zoom (Frames 75-90 in s3Frame, i.e., 225-240 total)
             const radialBlur = interpolate(s3Frame, [75, 90], [0, 35], clamp);
             const exitZoom = interpolate(s3Frame, [75, 90], [1.0, 1.6], clamp);
             const exitOpacity = interpolate(s3Frame, [80, 90], [1, 0], clamp);
@@ -408,7 +595,6 @@ export const Template29: React.FC<Template29Props> = ({
                   backgroundColor: "#000",
                 }}
               >
-                {/* Photo Image */}
                 <Img
                   src={getImgSrc(safeImages[5], 5)}
                   style={{
@@ -420,7 +606,6 @@ export const Template29: React.FC<Template29Props> = ({
                   }}
                 />
 
-                {/* Light Leak Flare Overlay */}
                 <div
                   style={{
                     position: "absolute",
@@ -436,7 +621,6 @@ export const Template29: React.FC<Template29Props> = ({
                   }}
                 />
 
-                {/* Floating Bokeh Gold Particles */}
                 <BokehParticles frame={s3Frame} />
               </AbsoluteFill>
             );
@@ -445,7 +629,7 @@ export const Template29: React.FC<Template29Props> = ({
       )}
 
       {/* ===================================================================
-          SCENE 4: 3D POLAROID PHOTO CARDS STACK CAROUSEL (8-10s / Frames 240-300)
+          SCENE 4: ULTRA-SMOOTH 3D POLAROID PHOTO CARDS STACK (8-10s / Frames 240-300)
           =================================================================== */}
       {isScene4 && (
         <AbsoluteFill style={{ zIndex: 4 }}>
@@ -455,43 +639,48 @@ export const Template29: React.FC<Template29Props> = ({
             // Background Fade In
             const s4BgOpacity = interpolate(s4Frame, [0, 12], [0, 1], clamp);
 
+            // Floating Gentle Wobble for Main Card
+            const floatWobbleY = Math.sin(s4Frame * 0.12) * 5;
+            const floatWobbleRot = Math.cos(s4Frame * 0.08) * 1.5;
+
             // Card 1 (Bottom Card - Image 9 / Index 8)
             const card1Progress = interpolate(
               s4Frame,
-              [0, 18],
+              [0, 20],
               [0, 1],
-              { ...clamp, easing: Easing.out(Easing.back(1.2)) }
+              { ...clamp, easing: Easing.out(Easing.back(1.3)) }
             );
-            const card1Y = interpolate(card1Progress, [0, 1], [300, 0], clamp);
-            const card1Scale = interpolate(card1Progress, [0, 1], [0.7, 1], clamp);
+            const card1Y = interpolate(card1Progress, [0, 1], [400, 0], clamp);
+            const card1Scale = interpolate(card1Progress, [0, 1], [0.65, 1], clamp);
 
             // Card 2 (Middle Card - Image 8 / Index 7)
             const card2Progress = interpolate(
               s4Frame,
-              [6, 24],
+              [6, 26],
               [0, 1],
-              { ...clamp, easing: Easing.out(Easing.back(1.2)) }
+              { ...clamp, easing: Easing.out(Easing.back(1.3)) }
             );
-            const card2Y = interpolate(card2Progress, [0, 1], [350, 0], clamp);
-            const card2Scale = interpolate(card2Progress, [0, 1], [0.7, 1], clamp);
+            const card2Y = interpolate(card2Progress, [0, 1], [450, 0], clamp);
+            const card2Scale = interpolate(card2Progress, [0, 1], [0.65, 1], clamp);
 
-            // Card 3 (Main Front Card - Image 7 / Index 6)
+            // Card 3 (Main Center Front Card - Image 7 / Index 6)
             const card3Progress = interpolate(
               s4Frame,
-              [12, 32],
+              [12, 34],
               [0, 1],
-              { ...clamp, easing: Easing.out(Easing.back(1.4)) }
+              { ...clamp, easing: Easing.out(Easing.back(1.5)) }
             );
-            const card3Y = interpolate(card3Progress, [0, 1], [400, 0], clamp);
-            const card3Scale = interpolate(card3Progress, [0, 1], [0.65, 1], clamp);
+            const card3Y = interpolate(card3Progress, [0, 1], [500, 0], clamp);
+            const card3Scale = interpolate(card3Progress, [0, 1], [0.6, 1], clamp);
 
             return (
               <AbsoluteFill
                 style={{
                   background:
-                    "linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)",
+                    "linear-gradient(135deg, #fff6f8 0%, #f7e1e9 50%, #fff9fb 100%)",
                   opacity: s4BgOpacity,
                   overflow: "hidden",
+                  perspective: 1200,
                 }}
               >
                 {/* Soft Radial Ambient Glow */}
@@ -500,25 +689,28 @@ export const Template29: React.FC<Template29Props> = ({
                     position: "absolute",
                     inset: 0,
                     background:
-                      "radial-gradient(circle at 50% 40%, rgba(255,230,240,0.6) 0%, transparent 70%)",
+                      "radial-gradient(circle at 50% 40%, rgba(255,200,220,0.65) 0%, transparent 70%)",
                   }}
                 />
 
-                {/* CARD 1 (Bottom Stacked Card - Image 9 / Index 8) */}
+                {/* CARD 1 (Bottom Left Stacked Card - Image 9 / Index 8) */}
                 <div
                   style={{
                     position: "absolute",
-                    left: "46%",
-                    top: "48%",
+                    left: "44%",
+                    top: "46%",
                     width: 720,
                     height: 940,
-                    padding: "24px 24px 80px 24px",
+                    padding: "24px 24px 85px 24px",
                     backgroundColor: "#ffffff",
-                    boxShadow: "0 20px 45px rgba(0,0,0,0.18)",
+                    borderRadius: "6px",
+                    boxShadow: "0 22px 55px rgba(0,0,0,0.22)",
                     transform: `
                       translate(-50%, -50%)
                       translateY(${card1Y}px)
-                      rotate(-14deg)
+                      rotateX(8deg)
+                      rotateY(-10deg)
+                      rotateZ(-13deg)
                       scale(${card1Scale})
                     `,
                     opacity: card1Progress,
@@ -531,25 +723,29 @@ export const Template29: React.FC<Template29Props> = ({
                       width: "100%",
                       height: "100%",
                       objectFit: "cover",
+                      borderRadius: "3px",
                     }}
                   />
                 </div>
 
-                {/* CARD 2 (Middle Stacked Card - Image 8 / Index 7) */}
+                {/* CARD 2 (Middle Right Stacked Card - Image 8 / Index 7) */}
                 <div
                   style={{
                     position: "absolute",
-                    left: "54%",
-                    top: "46%",
+                    left: "56%",
+                    top: "44%",
                     width: 740,
                     height: 960,
-                    padding: "24px 24px 80px 24px",
+                    padding: "24px 24px 85px 24px",
                     backgroundColor: "#ffffff",
-                    boxShadow: "0 22px 50px rgba(0,0,0,0.22)",
+                    borderRadius: "6px",
+                    boxShadow: "0 25px 60px rgba(0,0,0,0.26)",
                     transform: `
                       translate(-50%, -50%)
                       translateY(${card2Y}px)
-                      rotate(11deg)
+                      rotateX(-6deg)
+                      rotateY(12deg)
+                      rotateZ(12deg)
                       scale(${card2Scale})
                     `,
                     opacity: card2Progress,
@@ -562,25 +758,30 @@ export const Template29: React.FC<Template29Props> = ({
                       width: "100%",
                       height: "100%",
                       objectFit: "cover",
+                      borderRadius: "3px",
                     }}
                   />
                 </div>
 
-                {/* CARD 3 (Main Center Card - Image 7 / Index 6) */}
+                {/* CARD 3 (Main Center Front Card - Image 7 / Index 6) */}
                 <div
                   style={{
                     position: "absolute",
                     left: "50%",
-                    top: "45%",
+                    top: "42%",
                     width: 780,
                     height: 1000,
-                    padding: "26px 26px 90px 26px",
+                    padding: "26px 26px 95px 26px",
                     backgroundColor: "#ffffff",
-                    boxShadow: "0 30px 70px rgba(0,0,0,0.30)",
+                    borderRadius: "8px",
+                    boxShadow:
+                      "0 35px 80px rgba(0,0,0,0.35), 0 0 20px rgba(255,215,0,0.3)",
                     transform: `
                       translate(-50%, -50%)
-                      translateY(${card3Y}px)
-                      rotate(-3deg)
+                      translateY(${card3Y + floatWobbleY}px)
+                      rotateX(4deg)
+                      rotateY(-4deg)
+                      rotateZ(${-2.5 + floatWobbleRot}deg)
                       scale(${card3Scale})
                     `,
                     opacity: card3Progress,
@@ -593,6 +794,7 @@ export const Template29: React.FC<Template29Props> = ({
                       width: "100%",
                       height: "100%",
                       objectFit: "cover",
+                      borderRadius: "4px",
                     }}
                   />
                 </div>
