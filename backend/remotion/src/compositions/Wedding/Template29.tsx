@@ -115,11 +115,6 @@ const BokehParticles: React.FC<{ frame: number }> = ({ frame }) => {
 // ======================================================
 
 const SongLyricsOverlay: React.FC<{ frame: number }> = ({ frame }) => {
-  // Exact requested timings:
-  // 0s to 4s (Frames 0 - 120): "Aashiyana mera..."
-  // 5s to 7s (Frames 150 - 210): "Saath tere hai na..."
-  // 7s to 10s (Frames 210 - 300): "Dhoondhte teri gali, mujhko ghar mila..."
-
   let lyricText = "";
 
   if (frame >= 0 && frame < 120) {
@@ -162,7 +157,7 @@ const SongLyricsOverlay: React.FC<{ frame: number }> = ({ frame }) => {
       style={{
         position: "absolute",
         left: "50%",
-        bottom: frame >= 240 ? "5%" : "10%",
+        bottom: frame >= 240 ? "6%" : "10%",
         transform: `translateX(-50%) scale(${scale})`,
         opacity,
         zIndex: 50,
@@ -373,8 +368,6 @@ export const Template29: React.FC<Template29Props> = ({
           {(() => {
             const s2Frame = frame - 60;
 
-            // 1. Black Filter -> Normal Color Transition (~2 sec black filter from frame 0 to 60 in s2Frame, then color)
-            // Black/Dark filter for 2 sec (0 - 60 frames in s2Frame, i.e. 2s - 4s overall)
             const colorProgress = interpolate(
               s2Frame,
               [50, 75],
@@ -386,7 +379,6 @@ export const Template29: React.FC<Template29Props> = ({
             const currentGrayscale = interpolate(colorProgress, [0, 1], [1.0, 0], clamp);
             const currentSaturate = interpolate(colorProgress, [0, 1], [0.3, 1.25], clamp);
 
-            // 2. Expansion progress after assembly
             const expandProgress = interpolate(
               s2Frame,
               [45, 88],
@@ -397,7 +389,6 @@ export const Template29: React.FC<Template29Props> = ({
               }
             );
 
-            // Opacity & Dip to Black
             const scene2Opacity = interpolate(s2Frame, [0, 8], [0, 1], clamp);
             const dipToBlackOpacity = interpolate(
               s2Frame,
@@ -406,28 +397,22 @@ export const Template29: React.FC<Template29Props> = ({
               clamp
             );
 
-            // Piece-by-Piece Assembly Animations (1, 1 part aayega)
-            // Piece 1 (Top Left)
             const p1 = interpolate(s2Frame, [0, 14], [0, 1], { ...clamp, easing: Easing.out(Easing.back(1.2)) });
             const p1X = interpolate(p1, [0, 1], [-200, 0], clamp);
             const p1Y = interpolate(p1, [0, 1], [-200, 0], clamp);
 
-            // Piece 2 (Top Right)
             const p2 = interpolate(s2Frame, [6, 20], [0, 1], { ...clamp, easing: Easing.out(Easing.back(1.2)) });
             const p2X = interpolate(p2, [0, 1], [200, 0], clamp);
             const p2Y = interpolate(p2, [0, 1], [-200, 0], clamp);
 
-            // Piece 3 (Bottom Left)
             const p3 = interpolate(s2Frame, [12, 26], [0, 1], { ...clamp, easing: Easing.out(Easing.back(1.2)) });
             const p3X = interpolate(p3, [0, 1], [-200, 0], clamp);
             const p3Y = interpolate(p3, [0, 1], [200, 0], clamp);
 
-            // Piece 4 (Bottom Right)
             const p4 = interpolate(s2Frame, [18, 32], [0, 1], { ...clamp, easing: Easing.out(Easing.back(1.2)) });
             const p4X = interpolate(p4, [0, 1], [200, 0], clamp);
             const p4Y = interpolate(p4, [0, 1], [200, 0], clamp);
 
-            // Piece 5 (Center Diamond - Snaps in last!)
             const p5 = interpolate(s2Frame, [24, 40], [0, 1], { ...clamp, easing: Easing.out(Easing.back(1.4)) });
             const p5Scale = interpolate(p5, [0, 1], [0.2, 1], clamp);
 
@@ -440,7 +425,6 @@ export const Template29: React.FC<Template29Props> = ({
                   filter: `brightness(${currentBrightness}) grayscale(${currentGrayscale}) saturate(${currentSaturate})`,
                 }}
               >
-                {/* Background Layer: Assembled Corner Slices */}
                 <AbsoluteFill>
                   <Img
                     src={getImgSrc(safeImages[4], 4)}
@@ -453,7 +437,6 @@ export const Template29: React.FC<Template29Props> = ({
                   />
                 </AbsoluteFill>
 
-                {/* Center Diamond Piece (Snaps into place in middle!) */}
                 <div
                   style={{
                     position: "absolute",
@@ -474,7 +457,6 @@ export const Template29: React.FC<Template29Props> = ({
                   />
                 </div>
 
-                {/* SVG GEOMETRIC SHATTERED LINES & CORNER PIECES FLY-IN */}
                 {expandProgress < 1.8 && (
                   <svg
                     style={{
@@ -508,7 +490,6 @@ export const Template29: React.FC<Template29Props> = ({
 
                       return (
                         <g>
-                          {/* Center Diamond Outline (Piece 5) */}
                           <polygon
                             points={`${topP} ${rightP} ${botP} ${leftP}`}
                             fill="none"
@@ -525,25 +506,21 @@ export const Template29: React.FC<Template29Props> = ({
                             style={{ opacity: p5 }}
                           />
 
-                          {/* Top-Left Piece Line (Piece 1) */}
                           <g style={{ transform: `translate(${p1X}px, ${p1Y}px)`, opacity: p1 }}>
                             <line x1={cX - dW} y1={cY} x2="0" y2="0" stroke="#ffffff" strokeWidth="14" filter="url(#rgbPrismShatter)" />
                             <line x1={cX - dW} y1={cY} x2="0" y2="0" stroke="#000000" strokeWidth="8" />
                           </g>
 
-                          {/* Top-Right Piece Line (Piece 2) */}
                           <g style={{ transform: `translate(${p2X}px, ${p2Y}px)`, opacity: p2 }}>
                             <line x1={cX + dW} y1={cY} x2="1000" y2="0" stroke="#ffffff" strokeWidth="14" filter="url(#rgbPrismShatter)" />
                             <line x1={cX + dW} y1={cY} x2="1000" y2="0" stroke="#000000" strokeWidth="8" />
                           </g>
 
-                          {/* Bottom-Left Piece Line (Piece 3) */}
                           <g style={{ transform: `translate(${p3X}px, ${p3Y}px)`, opacity: p3 }}>
                             <line x1={cX - dW} y1={cY} x2="0" y2="1777" stroke="#ffffff" strokeWidth="14" filter="url(#rgbPrismShatter)" />
                             <line x1={cX - dW} y1={cY} x2="0" y2="1777" stroke="#000000" strokeWidth="8" />
                           </g>
 
-                          {/* Bottom-Right Piece Line (Piece 4) */}
                           <g style={{ transform: `translate(${p4X}px, ${p4Y}px)`, opacity: p4 }}>
                             <line x1={cX + dW} y1={cY} x2="1000" y2="1777" stroke="#ffffff" strokeWidth="14" filter="url(#rgbPrismShatter)" />
                             <line x1={cX + dW} y1={cY} x2="1000" y2="1777" stroke="#000000" strokeWidth="8" />
@@ -615,174 +592,133 @@ export const Template29: React.FC<Template29Props> = ({
       )}
 
       {/* ===================================================================
-          SCENE 4: ULTRA-SMOOTH 3D POLAROID PHOTO CARDS STACK (8-10s / Frames 240-300)
+          SCENE 4: 3D CUBE ROTATION & SLOW-MOTION ZOOM (8-10s / Frames 240-300)
+          No Polaroid Cards! Full screen photos turning like a 3D Cube with Slow-Mo Zoom!
           =================================================================== */}
       {isScene4 && (
-        <AbsoluteFill style={{ zIndex: 4 }}>
+        <AbsoluteFill style={{ zIndex: 4, backgroundColor: "#000" }}>
           {(() => {
             const s4Frame = frame - 240;
 
-            // Background Fade In
-            const s4BgOpacity = interpolate(s4Frame, [0, 12], [0, 1], clamp);
+            // Phase 1 (0 to 30 frames / 8.0s - 9.0s): Photo 7 -> Photo 8 3D Cube Turn
+            // Phase 2 (30 to 60 frames / 9.0s - 10.0s): Photo 8 -> Photo 9 3D Cube Turn
 
-            // Floating Gentle Wobble for Main Card
-            const floatWobbleY = Math.sin(s4Frame * 0.12) * 5;
-            const floatWobbleRot = Math.cos(s4Frame * 0.08) * 1.5;
+            const isPhase1 = s4Frame < 30;
+            const phaseFrame = isPhase1 ? s4Frame : s4Frame - 30;
 
-            // Card 1 (Bottom Card - Image 9 / Index 8)
-            const card1Progress = interpolate(
-              s4Frame,
-              [0, 20],
-              [0, 1],
-              { ...clamp, easing: Easing.out(Easing.back(1.3)) }
+            // 3D Cube Rotation Progress around Y axis
+            const cubeRotation = interpolate(
+              phaseFrame,
+              [0, 26],
+              [0, -90],
+              {
+                ...clamp,
+                easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+              }
             );
-            const card1Y = interpolate(card1Progress, [0, 1], [400, 0], clamp);
-            const card1Scale = interpolate(card1Progress, [0, 1], [0.65, 1], clamp);
 
-            // Card 2 (Middle Card - Image 8 / Index 7)
-            const card2Progress = interpolate(
-              s4Frame,
-              [6, 26],
-              [0, 1],
-              { ...clamp, easing: Easing.out(Easing.back(1.3)) }
-            );
-            const card2Y = interpolate(card2Progress, [0, 1], [450, 0], clamp);
-            const card2Scale = interpolate(card2Progress, [0, 1], [0.65, 1], clamp);
+            // Slow Motion Zoom-In
+            const slowMoZoomFront = interpolate(s4Frame, [0, 60], [1.0, 1.25], clamp);
+            const slowMoZoomSide = interpolate(s4Frame, [0, 60], [1.05, 1.30], clamp);
 
-            // Card 3 (Main Center Front Card - Image 7 / Index 6)
-            const card3Progress = interpolate(
-              s4Frame,
-              [12, 34],
-              [0, 1],
-              { ...clamp, easing: Easing.out(Easing.back(1.5)) }
+            // Front & Next Photo Sources
+            const frontImg = isPhase1 ? safeImages[6] : safeImages[7];
+            const sideImg = isPhase1 ? safeImages[7] : safeImages[8];
+
+            const frontIdx = isPhase1 ? 6 : 7;
+            const sideIdx = isPhase1 ? 7 : 8;
+
+            // Ambient Shadow Lighting during 3D Cube Turn
+            const shadowOpacity = interpolate(
+              Math.abs(cubeRotation),
+              [0, 45, 90],
+              [0, 0.45, 0],
+              clamp
             );
-            const card3Y = interpolate(card3Progress, [0, 1], [500, 0], clamp);
-            const card3Scale = interpolate(card3Progress, [0, 1], [0.6, 1], clamp);
 
             return (
               <AbsoluteFill
                 style={{
-                  background:
-                    "linear-gradient(135deg, #fff6f8 0%, #f7e1e9 50%, #fff9fb 100%)",
-                  opacity: s4BgOpacity,
-                  overflow: "hidden",
                   perspective: 1200,
+                  overflow: "hidden",
+                  backgroundColor: "#000",
                 }}
               >
-                {/* Soft Radial Ambient Glow */}
+                {/* 3D CUBE CONTAINER */}
                 <div
                   style={{
-                    position: "absolute",
-                    inset: 0,
-                    background:
-                      "radial-gradient(circle at 50% 40%, rgba(255,200,220,0.65) 0%, transparent 70%)",
-                  }}
-                />
-
-                {/* CARD 1 (Bottom Left Stacked Card - Image 9 / Index 8) */}
-                <div
-                  style={{
-                    position: "absolute",
-                    left: "44%",
-                    top: "46%",
-                    width: 720,
-                    height: 940,
-                    padding: "24px 24px 85px 24px",
-                    backgroundColor: "#ffffff",
-                    borderRadius: "6px",
-                    boxShadow: "0 22px 55px rgba(0,0,0,0.22)",
-                    transform: `
-                      translate(-50%, -50%)
-                      translateY(${card1Y}px)
-                      rotateX(8deg)
-                      rotateY(-10deg)
-                      rotateZ(-13deg)
-                      scale(${card1Scale})
-                    `,
-                    opacity: card1Progress,
-                    zIndex: 10,
+                    width: "100%",
+                    height: "100%",
+                    position: "relative",
+                    transformStyle: "preserve-3d",
+                    transform: `translateZ(-540px) rotateY(${cubeRotation}deg)`,
                   }}
                 >
-                  <Img
-                    src={getImgSrc(safeImages[8], 8)}
+                  {/* FRONT CUBE FACE (Current Photo) */}
+                  <div
                     style={{
+                      position: "absolute",
+                      inset: 0,
                       width: "100%",
                       height: "100%",
-                      objectFit: "cover",
-                      borderRadius: "3px",
+                      backfaceVisibility: "hidden",
+                      transform: "rotateY(0deg) translateZ(540px)",
+                      overflow: "hidden",
                     }}
-                  />
-                </div>
+                  >
+                    <Img
+                      src={getImgSrc(frontImg, frontIdx)}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        transform: `scale(${slowMoZoomFront})`,
+                      }}
+                    />
+                    {/* Shadow overlay during turn */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        backgroundColor: "#000",
+                        opacity: shadowOpacity,
+                        pointerEvents: "none",
+                      }}
+                    />
+                  </div>
 
-                {/* CARD 2 (Middle Right Stacked Card - Image 8 / Index 7) */}
-                <div
-                  style={{
-                    position: "absolute",
-                    left: "56%",
-                    top: "44%",
-                    width: 740,
-                    height: 960,
-                    padding: "24px 24px 85px 24px",
-                    backgroundColor: "#ffffff",
-                    borderRadius: "6px",
-                    boxShadow: "0 25px 60px rgba(0,0,0,0.26)",
-                    transform: `
-                      translate(-50%, -50%)
-                      translateY(${card2Y}px)
-                      rotateX(-6deg)
-                      rotateY(12deg)
-                      rotateZ(12deg)
-                      scale(${card2Scale})
-                    `,
-                    opacity: card2Progress,
-                    zIndex: 20,
-                  }}
-                >
-                  <Img
-                    src={getImgSrc(safeImages[7], 7)}
+                  {/* RIGHT SIDE CUBE FACE (Incoming Photo) */}
+                  <div
                     style={{
+                      position: "absolute",
+                      inset: 0,
                       width: "100%",
                       height: "100%",
-                      objectFit: "cover",
-                      borderRadius: "3px",
+                      backfaceVisibility: "hidden",
+                      transform: "rotateY(90deg) translateZ(540px)",
+                      overflow: "hidden",
                     }}
-                  />
-                </div>
-
-                {/* CARD 3 (Main Center Front Card - Image 7 / Index 6) */}
-                <div
-                  style={{
-                    position: "absolute",
-                    left: "50%",
-                    top: "42%",
-                    width: 780,
-                    height: 1000,
-                    padding: "26px 26px 95px 26px",
-                    backgroundColor: "#ffffff",
-                    borderRadius: "8px",
-                    boxShadow:
-                      "0 35px 80px rgba(0,0,0,0.35), 0 0 20px rgba(255,215,0,0.3)",
-                    transform: `
-                      translate(-50%, -50%)
-                      translateY(${card3Y + floatWobbleY}px)
-                      rotateX(4deg)
-                      rotateY(-4deg)
-                      rotateZ(${-2.5 + floatWobbleRot}deg)
-                      scale(${card3Scale})
-                    `,
-                    opacity: card3Progress,
-                    zIndex: 30,
-                  }}
-                >
-                  <Img
-                    src={getImgSrc(safeImages[6], 6)}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      borderRadius: "4px",
-                    }}
-                  />
+                  >
+                    <Img
+                      src={getImgSrc(sideImg, sideIdx)}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        transform: `scale(${slowMoZoomSide})`,
+                      }}
+                    />
+                    {/* Shadow overlay during turn */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        backgroundColor: "#000",
+                        opacity: Math.max(0, 0.45 - shadowOpacity),
+                        pointerEvents: "none",
+                      }}
+                    />
+                  </div>
                 </div>
               </AbsoluteFill>
             );
