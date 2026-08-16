@@ -132,7 +132,6 @@ const SongLyricsOverlay: React.FC<{ frame: number }> = ({ frame }) => {
 
   if (!lyricText) return null;
 
-  // Calculate smooth fade-in and fade-out per line
   let opacity = 1;
   let scale = 1;
 
@@ -366,26 +365,39 @@ export const Template29: React.FC<Template29Props> = ({
       )}
 
       {/* ===================================================================
-          SCENE 2: EXACT DIAMOND SLICE & RGB PRISM LINES (2-5s / Frames 60-150)
-          Matches the reference image provided by the user!
+          SCENE 2: SHATTERED PIECE-BY-PIECE ASSEMBLE + 2S BLACK FILTER -> COLOR REVEAL
+          (2-5s / Frames 60-150)
           =================================================================== */}
       {(isScene2 || (frame >= 55 && frame < 155)) && (
         <AbsoluteFill style={{ zIndex: 2 }}>
           {(() => {
             const s2Frame = frame - 60;
 
-            // Expansion progress
+            // 1. Black Filter -> Normal Color Transition (~2 sec black filter from frame 0 to 60 in s2Frame, then color)
+            // Black/Dark filter for 2 sec (0 - 60 frames in s2Frame, i.e. 2s - 4s overall)
+            const colorProgress = interpolate(
+              s2Frame,
+              [50, 75],
+              [0, 1],
+              clamp
+            );
+
+            const currentBrightness = interpolate(colorProgress, [0, 1], [0.35, 1.05], clamp);
+            const currentGrayscale = interpolate(colorProgress, [0, 1], [1.0, 0], clamp);
+            const currentSaturate = interpolate(colorProgress, [0, 1], [0.3, 1.25], clamp);
+
+            // 2. Expansion progress after assembly
             const expandProgress = interpolate(
               s2Frame,
-              [0, 30, 85],
-              [0.35, 0.75, 2.2],
+              [45, 88],
+              [0.4, 2.3],
               {
                 ...clamp,
                 easing: Easing.out(Easing.cubic),
               }
             );
 
-            // Opacity & Dip-to-black
+            // Opacity & Dip to Black
             const scene2Opacity = interpolate(s2Frame, [0, 8], [0, 1], clamp);
             const dipToBlackOpacity = interpolate(
               s2Frame,
@@ -394,12 +406,41 @@ export const Template29: React.FC<Template29Props> = ({
               clamp
             );
 
-            // Size of center diamond
+            // Piece-by-Piece Assembly Animations (1, 1 part aayega)
+            // Piece 1 (Top Left)
+            const p1 = interpolate(s2Frame, [0, 14], [0, 1], { ...clamp, easing: Easing.out(Easing.back(1.2)) });
+            const p1X = interpolate(p1, [0, 1], [-200, 0], clamp);
+            const p1Y = interpolate(p1, [0, 1], [-200, 0], clamp);
+
+            // Piece 2 (Top Right)
+            const p2 = interpolate(s2Frame, [6, 20], [0, 1], { ...clamp, easing: Easing.out(Easing.back(1.2)) });
+            const p2X = interpolate(p2, [0, 1], [200, 0], clamp);
+            const p2Y = interpolate(p2, [0, 1], [-200, 0], clamp);
+
+            // Piece 3 (Bottom Left)
+            const p3 = interpolate(s2Frame, [12, 26], [0, 1], { ...clamp, easing: Easing.out(Easing.back(1.2)) });
+            const p3X = interpolate(p3, [0, 1], [-200, 0], clamp);
+            const p3Y = interpolate(p3, [0, 1], [200, 0], clamp);
+
+            // Piece 4 (Bottom Right)
+            const p4 = interpolate(s2Frame, [18, 32], [0, 1], { ...clamp, easing: Easing.out(Easing.back(1.2)) });
+            const p4X = interpolate(p4, [0, 1], [200, 0], clamp);
+            const p4Y = interpolate(p4, [0, 1], [200, 0], clamp);
+
+            // Piece 5 (Center Diamond - Snaps in last!)
+            const p5 = interpolate(s2Frame, [24, 40], [0, 1], { ...clamp, easing: Easing.out(Easing.back(1.4)) });
+            const p5Scale = interpolate(p5, [0, 1], [0.2, 1], clamp);
+
             const diamondSize = expandProgress * 50;
 
             return (
-              <AbsoluteFill style={{ opacity: scene2Opacity * dipToBlackOpacity }}>
-                {/* Background Layer: Slightly Desaturated / B&W High-Contrast Image */}
+              <AbsoluteFill
+                style={{
+                  opacity: scene2Opacity * dipToBlackOpacity,
+                  filter: `brightness(${currentBrightness}) grayscale(${currentGrayscale}) saturate(${currentSaturate})`,
+                }}
+              >
+                {/* Background Layer: Assembled Corner Slices */}
                 <AbsoluteFill>
                   <Img
                     src={getImgSrc(safeImages[4], 4)}
@@ -407,19 +448,20 @@ export const Template29: React.FC<Template29Props> = ({
                       width: "100%",
                       height: "100%",
                       objectFit: "cover",
-                      filter: "brightness(0.85) contrast(1.1) grayscale(0.6)",
-                      transform: `scale(${interpolate(s2Frame, [0, 90], [1.08, 1.0], clamp)})`,
+                      transform: `scale(${interpolate(s2Frame, [0, 90], [1.12, 1.0], clamp)})`,
                     }}
                   />
                 </AbsoluteFill>
 
-                {/* Center Diamond Mask: Vibrant Full-Color Image */}
+                {/* Center Diamond Piece (Snaps into place in middle!) */}
                 <div
                   style={{
                     position: "absolute",
                     inset: 0,
                     clipPath: `polygon(50% ${50 - diamondSize}%, ${50 + diamondSize}% 50%, 50% ${50 + diamondSize}%, ${50 - diamondSize}% 50%)`,
                     overflow: "hidden",
+                    transform: `scale(${p5Scale})`,
+                    opacity: p5,
                   }}
                 >
                   <Img
@@ -428,12 +470,11 @@ export const Template29: React.FC<Template29Props> = ({
                       width: "100%",
                       height: "100%",
                       objectFit: "cover",
-                      filter: "brightness(1.05) saturate(1.2)",
                     }}
                   />
                 </div>
 
-                {/* GEOMETRIC DIAMOND & CORNER SLICE LINES (Matches reference image!) */}
+                {/* SVG GEOMETRIC SHATTERED LINES & CORNER PIECES FLY-IN */}
                 {expandProgress < 1.8 && (
                   <svg
                     style={{
@@ -447,15 +488,13 @@ export const Template29: React.FC<Template29Props> = ({
                     preserveAspectRatio="none"
                   >
                     <defs>
-                      {/* RGB Chromatic Split Filters */}
-                      <filter id="rgbPrism">
+                      <filter id="rgbPrismShatter">
                         <feDropShadow dx="3" dy="-3" stdDeviation="0" floodColor="#ff0055" />
                         <feDropShadow dx="-3" dy="3" stdDeviation="0" floodColor="#00e5ff" />
                         <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="#ffea00" />
                       </filter>
                     </defs>
 
-                    {/* SVG Coordinates for Center Diamond */}
                     {(() => {
                       const cX = 500;
                       const cY = 888.5;
@@ -469,99 +508,46 @@ export const Template29: React.FC<Template29Props> = ({
 
                       return (
                         <g>
-                          {/* Outer Chromatic RGB Glow Lines */}
+                          {/* Center Diamond Outline (Piece 5) */}
                           <polygon
                             points={`${topP} ${rightP} ${botP} ${leftP}`}
                             fill="none"
                             stroke="#ffffff"
                             strokeWidth="16"
-                            filter="url(#rgbPrism)"
+                            filter="url(#rgbPrismShatter)"
+                            style={{ opacity: p5 }}
                           />
-
-                          {/* Inner Solid Black Bar Line */}
                           <polygon
                             points={`${topP} ${rightP} ${botP} ${leftP}`}
                             fill="none"
                             stroke="#000000"
                             strokeWidth="10"
+                            style={{ opacity: p5 }}
                           />
 
-                          {/* 4 Diagonal Extension Lines to Screen Corners */}
-                          {/* Top-Left Diagonal */}
-                          <line
-                            x1={cX - dW}
-                            y1={cY}
-                            x2="0"
-                            y2="0"
-                            stroke="#ffffff"
-                            strokeWidth="14"
-                            filter="url(#rgbPrism)"
-                          />
-                          <line
-                            x1={cX - dW}
-                            y1={cY}
-                            x2="0"
-                            y2="0"
-                            stroke="#000000"
-                            strokeWidth="8"
-                          />
+                          {/* Top-Left Piece Line (Piece 1) */}
+                          <g style={{ transform: `translate(${p1X}px, ${p1Y}px)`, opacity: p1 }}>
+                            <line x1={cX - dW} y1={cY} x2="0" y2="0" stroke="#ffffff" strokeWidth="14" filter="url(#rgbPrismShatter)" />
+                            <line x1={cX - dW} y1={cY} x2="0" y2="0" stroke="#000000" strokeWidth="8" />
+                          </g>
 
-                          {/* Top-Right Diagonal */}
-                          <line
-                            x1={cX + dW}
-                            y1={cY}
-                            x2="1000"
-                            y2="0"
-                            stroke="#ffffff"
-                            strokeWidth="14"
-                            filter="url(#rgbPrism)"
-                          />
-                          <line
-                            x1={cX + dW}
-                            y1={cY}
-                            x2="1000"
-                            y2="0"
-                            stroke="#000000"
-                            strokeWidth="8"
-                          />
+                          {/* Top-Right Piece Line (Piece 2) */}
+                          <g style={{ transform: `translate(${p2X}px, ${p2Y}px)`, opacity: p2 }}>
+                            <line x1={cX + dW} y1={cY} x2="1000" y2="0" stroke="#ffffff" strokeWidth="14" filter="url(#rgbPrismShatter)" />
+                            <line x1={cX + dW} y1={cY} x2="1000" y2="0" stroke="#000000" strokeWidth="8" />
+                          </g>
 
-                          {/* Bottom-Left Diagonal */}
-                          <line
-                            x1={cX - dW}
-                            y1={cY}
-                            x2="0"
-                            y2="1777"
-                            stroke="#ffffff"
-                            strokeWidth="14"
-                            filter="url(#rgbPrism)"
-                          />
-                          <line
-                            x1={cX - dW}
-                            y1={cY}
-                            x2="0"
-                            y2="1777"
-                            stroke="#000000"
-                            strokeWidth="8"
-                          />
+                          {/* Bottom-Left Piece Line (Piece 3) */}
+                          <g style={{ transform: `translate(${p3X}px, ${p3Y}px)`, opacity: p3 }}>
+                            <line x1={cX - dW} y1={cY} x2="0" y2="1777" stroke="#ffffff" strokeWidth="14" filter="url(#rgbPrismShatter)" />
+                            <line x1={cX - dW} y1={cY} x2="0" y2="1777" stroke="#000000" strokeWidth="8" />
+                          </g>
 
-                          {/* Bottom-Right Diagonal */}
-                          <line
-                            x1={cX + dW}
-                            y1={cY}
-                            x2="1000"
-                            y2="1777"
-                            stroke="#ffffff"
-                            strokeWidth="14"
-                            filter="url(#rgbPrism)"
-                          />
-                          <line
-                            x1={cX + dW}
-                            y1={cY}
-                            x2="1000"
-                            y2="1777"
-                            stroke="#000000"
-                            strokeWidth="8"
-                          />
+                          {/* Bottom-Right Piece Line (Piece 4) */}
+                          <g style={{ transform: `translate(${p4X}px, ${p4Y}px)`, opacity: p4 }}>
+                            <line x1={cX + dW} y1={cY} x2="1000" y2="1777" stroke="#ffffff" strokeWidth="14" filter="url(#rgbPrismShatter)" />
+                            <line x1={cX + dW} y1={cY} x2="1000" y2="1777" stroke="#000000" strokeWidth="8" />
+                          </g>
                         </g>
                       );
                     })()}
