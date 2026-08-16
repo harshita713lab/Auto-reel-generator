@@ -38,7 +38,7 @@ const getMusicForTemplate = (templateId, imageCount) => {
   const fallbackMap = {
     14: "ReelAudio-2.mp3",
     10: "ReelAudio-3.mp3",
-  
+    9: "ReelAudio-29.mp3",
   };
 
   if (fallbackMap[imageCount]) {

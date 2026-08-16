@@ -39,7 +39,7 @@ function UploadSection() {
     else if (count === 18) setSelectedTemplateId("Template26");
     else if (count === 13) setSelectedTemplateId("Template27");
     else if (count === 15) setSelectedTemplateId("Template25");
-    else if (count === 9) setSelectedTemplateId("cinematic_wedding");
+    else if (count === 9) setSelectedTemplateId("Template29");
     else if (count === 11) setSelectedTemplateId("wedding_split");
     else if (count === 10) setSelectedTemplateId("white_carousel");
     else if (count === 8) setSelectedTemplateId("white_masonry");
