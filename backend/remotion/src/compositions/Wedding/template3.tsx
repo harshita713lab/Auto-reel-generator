@@ -21,7 +21,7 @@ interface Template3Props {
   music?:string;
 }
 
-export const IMAGE_COUNT = 10;
+export const IMAGE_COUNT = 11;
 
 export const DURATION_IN_FRAMES = 480;
 
@@ -638,7 +638,7 @@ const musicSrc = music ;
         durationInFrames={180}
       >
         <Scene2
-          images={images.slice(7, 10)}
+          images={images.slice(7, 11)}
         />
       </Sequence>
 
