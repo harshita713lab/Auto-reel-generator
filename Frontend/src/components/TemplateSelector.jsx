@@ -66,12 +66,19 @@ function TemplateSelector({ onSelect, selectedId, imageCount }) {
     if (!imageCount) return true;
     const min = template.minPhotos || 1;
     const max = template.maxPhotos || 30;
+    if (min === max) {
+      return imageCount === min;
+    }
     return imageCount >= min && imageCount <= max;
   };
 
   const getCompatibilityMessage = (template) => {
+    if (!imageCount) return null;
     const min = template.minPhotos || 1;
     const max = template.maxPhotos || 30;
+    if (min === max && imageCount !== min) {
+      return `⚠️ Needs exactly ${min} photos (uploaded ${imageCount})`;
+    }
     if (imageCount < min) return `⚠️ Needs at least ${min} photos`;
     if (imageCount > max) return `⚠️ Max ${max} photos allowed`;
     return null;
@@ -145,7 +152,11 @@ function TemplateSelector({ onSelect, selectedId, imageCount }) {
                     </div>
                     <div className="detail-row">
                       <span className="detail-label">📸 Photos</span>
-                      <span className="detail-value">{template.minPhotos || 1}-{template.maxPhotos || 30}</span>
+                      <span className="detail-value">
+                        {template.minPhotos === template.maxPhotos
+                          ? `Exactly ${template.minPhotos}`
+                          : `${template.minPhotos}-${template.maxPhotos}`}
+                      </span>
                     </div>
                     {(template.fixedMusicTitle || template.fixedMusic || template.music) && (
                       <div className="detail-row highlight-music">

@@ -33,20 +33,34 @@ function UploadSection() {
 
     setImages(newImages);
 
-    // Auto-select template based on photo count
+    // Auto-select template based on exact photo count compatibility
     const count = newImages.length;
-    if (count === 20) setSelectedTemplateId("wedding_seq");
-    else if (count === 18) setSelectedTemplateId("Template26");
-    else if (count === 13) setSelectedTemplateId("Template27");
-    else if (count === 15) setSelectedTemplateId("Template25");
-    else if (count === 9) setSelectedTemplateId("Template29");
-    else if (count === 11) setSelectedTemplateId("wedding_split");
-    else if (count === 10) setSelectedTemplateId("white_carousel");
-    else if (count === 8) setSelectedTemplateId("white_masonry");
-    else if (count === 6) setSelectedTemplateId("white_polaroid");
-    else if (count === 4) setSelectedTemplateId("premium_grid");
-    else if (count > 4) setSelectedTemplateId("memory_blend");
-    else setSelectedTemplateId("simple_1");
+    const getBestTemplateId = (cnt) => {
+      const countMap = {
+        3: "Template21",
+        4: "premium_grid",
+        5: "Template5",
+        7: "Template19",
+        8: "white_masonry",
+        9: "Template29",
+        10: "Template28",
+        11: "wedding_split",
+        12: "Template6",
+        13: "Template16",
+        14: "wedding_seq",
+        15: "cinematic_wedding",
+        16: "white_carousel",
+        17: "Template18",
+        18: "white_polaroid",
+        19: "Template34",
+        22: "Template28",
+        23: "Template12",
+        24: "Template25",
+        25: "Template32",
+      };
+      return countMap[cnt] || "simple_1";
+    };
+    setSelectedTemplateId(getBestTemplateId(count));
 
     const urls = files.map((file) => ({
       id: Date.now() + Math.random(),

@@ -89,8 +89,12 @@ try {
 
     console.log('🧹 Removing old Remotion bundle...');
 
-    if (fs.existsSync(bundleCacheDir)) {
-        fs.rmSync(bundleCacheDir, { recursive: true, force: true });
+    try {
+        if (fs.existsSync(bundleCacheDir)) {
+            fs.rmSync(bundleCacheDir, { recursive: true, force: true });
+        }
+    } catch (rmErr) {
+        console.warn('⚠️ Could not remove old bundle dir (continuing):', rmErr.message);
     }
 
     console.log('📦 Creating fresh Remotion bundle...');

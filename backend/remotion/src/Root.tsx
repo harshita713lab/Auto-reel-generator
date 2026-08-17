@@ -142,6 +142,18 @@ weddingContext.keys().forEach((filename: string) => {
   }
 });
 
+// Explicit default fallback compositions
+compositionRegistry['ReelComposition'] = {
+  component: DefaultComposition,
+  durationInFrames: 300,
+  defaultProps: defaultProps,
+};
+compositionRegistry['DefaultComposition'] = {
+  component: DefaultComposition,
+  durationInFrames: 300,
+  defaultProps: defaultProps,
+};
+
 // ============================================================
 //  🚀 ROOT COMPONENT – Registers all compositions dynamically
 // ============================================================

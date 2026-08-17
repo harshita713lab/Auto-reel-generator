@@ -67,6 +67,23 @@ exports.createReel = async (req, res) => {
       });
     }
 
+    // Strict image count enforcement for template design with auto-fallback
+    const { getRequiredImageCount } = require('../config/templateImageCounts');
+    const requiredImageCount = getRequiredImageCount(templateId);
+    let effectiveTemplateId = templateId || 'simple_1';
+    
+    if (requiredImageCount !== null && images.length !== requiredImageCount) {
+      const fallbackByCount = {
+        3: 'Template21', 4: 'premium_grid', 5: 'Template5', 7: 'Template19',
+        8: 'white_masonry', 9: 'Template29', 10: 'Template28', 11: 'wedding_split',
+        12: 'Template6', 13: 'Template16', 14: 'wedding_seq', 15: 'cinematic_wedding',
+        16: 'white_carousel', 17: 'Template18', 18: 'white_polaroid', 19: 'Template34',
+        22: 'Template28', 23: 'Template12', 24: 'Template25', 25: 'Template32'
+      };
+      effectiveTemplateId = fallbackByCount[images.length] || 'simple_1';
+      logger.warn(`Template ${templateId} requires ${requiredImageCount} images, but received ${images.length}. Auto-matched to ${effectiveTemplateId}.`);
+    }
+
     let template = null;
     if (templateId) {
       template = await Template.findOne({
@@ -125,8 +142,8 @@ exports.createReel = async (req, res) => {
     } else if (typeof musicId === 'string' && musicId !== 'template_default' && musicId !== 'default' && musicId.trim() !== '') {
       musicFileName = `${musicId}.mp3`;
     } else {
-      // Use template's fixed default song (always fixed by templateId)
-      musicFileName = getMusicForTemplate(templateId);
+      // Use template's fixed default song (always fixed by effectiveTemplateId)
+      musicFileName = getMusicForTemplate(effectiveTemplateId);
     }
 
     let selectedAudioPath = path.join(__dirname, '../../assets/music', musicFileName);
@@ -134,7 +151,7 @@ exports.createReel = async (req, res) => {
       selectedAudioPath = path.join(__dirname, '../../assets/songs', musicFileName);
     }
     if (!fsSync.existsSync(selectedAudioPath)) {
-      const defaultMusicName = getMusicForTemplate(templateId);
+      const defaultMusicName = getMusicForTemplate(effectiveTemplateId);
       selectedAudioPath = path.join(__dirname, '../../assets/music', defaultMusicName);
     }
 
@@ -157,7 +174,7 @@ exports.createReel = async (req, res) => {
 
     const finalTitle = (title && title.trim() !== '' && title !== "Untitled Reel") 
       ? title.trim() 
-      : generateUniqueDefaultTitle(templateId, formattedImages.length);
+      : generateUniqueDefaultTitle(effectiveTemplateId, formattedImages.length);
 
     const musicStartSec = parseFloat(req.body.musicStartTime) || 0;
     let detectedBeats = [];
@@ -180,7 +197,7 @@ exports.createReel = async (req, res) => {
       musicStartTime: musicStartSec,
       beatTimestamps: detectedBeats,
       usedMusic: musicFileName.replace('.mp3', '').replace(/-\(PaagalWorld\.Com\)/gi, '').replace(/[-_]/g, ' '),
-usedTemplate: template ? template.name : (templateId ? `Template ${templateId}` : "Default"),
+usedTemplate: template ? template.name : (effectiveTemplateId ? `Template ${effectiveTemplateId}` : "Default"),
       duration: totalDuration,
       config: {
         ...config,
@@ -190,7 +207,7 @@ usedTemplate: template ? template.name : (templateId ? `Template ${templateId}` 
         height: 1920,
       },
       status: "draft",
-      templateId: templateId || "1",
+      templateId: effectiveTemplateId || "1",
     };
 
     if (template && template._id) {
