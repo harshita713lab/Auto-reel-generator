@@ -39,6 +39,7 @@ const TEMPLATE_IMAGE_COUNTS = {
   '32': 25,
   '33': 4,
   '34': 19,
+  '35': 25,
 
   // Named aliases
   'simple_1': 14,
@@ -53,7 +54,7 @@ const TEMPLATE_IMAGE_COUNTS = {
 };
 
 // Auto-populate TemplateX and templateX variations
-for (let i = 1; i <= 34; i++) {
+for (let i = 1; i <= 35; i++) {
   const count = TEMPLATE_IMAGE_COUNTS[String(i)];
   if (count !== undefined) {
     TEMPLATE_IMAGE_COUNTS[`Template${i}`] = count;

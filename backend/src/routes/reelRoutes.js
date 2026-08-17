@@ -248,6 +248,19 @@ router.get('/templates', (req, res) => {
       minPhotos: 19,
       maxPhotos: 19,
       description: 'High energy neon cuts, 3D cube & grand finale designed for exactly 19 photos'
+    },
+    {
+      id: 'Template35',
+      name: '💖 Template 35 (Apna Bana Le Piya - Photo Stack & Glowing Split)',
+      slideDuration: 3.5,
+      transition: 'crossfade',
+      effect: 'cinematic',
+      colorGrade: 'rose',
+      vignette: true,
+      quality: 'high',
+      minPhotos: 25,
+      maxPhotos: 25,
+      description: 'Cursive lyrics, physical photo stacking & glowing split slide reveal designed for exactly 25 photos'
     }
   ];
 

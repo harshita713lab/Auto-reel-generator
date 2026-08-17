@@ -56,7 +56,7 @@ function UploadSection() {
         22: "Template28",
         23: "Template12",
         24: "Template25",
-        25: "Template32",
+        25: "Template35",
       };
       return countMap[cnt] || "simple_1";
     };

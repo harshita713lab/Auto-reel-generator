@@ -113,7 +113,7 @@ class RenderService {
         19: ['Template34'],
         23: ['Template12'],
         24: ['Template25'],
-        25: ['Template32']
+        25: ['Template35', 'Template32']
       };
 
       let compositionId;
