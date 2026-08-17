@@ -23,32 +23,13 @@ interface Template28Props {
 // CONFIG
 // ======================================================
 
-export const FPS = 25;
+export const FPS = 30;
 
-// 16 seconds × 25 FPS
-export const DURATION_IN_FRAMES = 400;
+// Total Duration = 12 seconds
+export const DURATION_IN_FRAMES = 360;
 
-// EXACTLY 10 IMAGES
-export const IMAGE_COUNT = 10;
-
-// ======================================================
-// SCENE TIMING
-// ======================================================
-
-// Scene 1 → 0-4 sec
-const SCENE1_DURATION = 100;
-
-// Scene 2 → 4-7 sec
-const SCENE2_DURATION = 75;
-
-// Scene 3 → 7-10 sec
-const SCENE3_DURATION = 75;
-
-// Scene 4 → 10-13 sec
-const SCENE4_DURATION = 75;
-
-// Scene 5 → 13-16 sec
-const SCENE5_DURATION = 75;
+// 9 Grid + 6 Slide + 3 Zoom + 5 Normal = 23
+export const IMAGE_COUNT = 22;
 
 // ======================================================
 // HELPER
@@ -60,7 +41,7 @@ const clamp = {
 };
 
 // ======================================================
-// MAIN COMPONENT
+// TEMPLATE 28
 // ======================================================
 
 export const Template28: React.FC<Template28Props> = ({
@@ -69,14 +50,14 @@ export const Template28: React.FC<Template28Props> = ({
   const frame = useCurrentFrame();
 
   // ====================================================
-  // VALIDATION
+  // IMAGE VALIDATION
   // ====================================================
 
   if (images.length < IMAGE_COUNT) {
     return (
       <AbsoluteFill
         style={{
-          backgroundColor: "#080808",
+          backgroundColor: "#000",
           color: "#fff",
           justifyContent: "center",
           alignItems: "center",
@@ -84,897 +65,90 @@ export const Template28: React.FC<Template28Props> = ({
           fontFamily: "Arial",
         }}
       >
-        Need 10 images
+        Need 23 images
       </AbsoluteFill>
     );
   }
 
   // ====================================================
-  // ====================================================
-  // SCENE 1
-  // FLOATING MEMORY CARDS
-  // IMAGES 1-4
-  // ====================================================
+  // 9 GRID POSITIONS
   // ====================================================
 
-  if (frame < SCENE1_DURATION) {
-    const sceneFrame = frame;
+  const positions = [
+    {
+      left: "0%",
+      top: "0%",
+      width: "33.33%",
+      height: "33.33%",
+    },
+    {
+      left: "33.33%",
+      top: "0%",
+      width: "33.33%",
+      height: "33.33%",
+    },
+    {
+      left: "66.66%",
+      top: "0%",
+      width: "33.33%",
+      height: "33.33%",
+    },
 
-    return (
-      <AbsoluteFill
-        style={{
-          backgroundColor: "#080808",
-          overflow: "hidden",
-        }}
-      >
-        {/* ==================================================
-            BACKGROUND GLOW
-        ================================================== */}
+    {
+      left: "0%",
+      top: "33.33%",
+      width: "33.33%",
+      height: "33.33%",
+    },
+    {
+      left: "33.33%",
+      top: "33.33%",
+      width: "33.33%",
+      height: "33.33%",
+    },
+    {
+      left: "66.66%",
+      top: "33.33%",
+      width: "33.33%",
+      height: "33.33%",
+    },
 
-        <AbsoluteFill
-          style={{
-            background:
-              "radial-gradient(circle at 50% 45%, rgba(255,255,255,0.08), transparent 55%)",
-          }}
-        />
-
-        {/* ==================================================
-            FLOATING CARDS
-        ================================================== */}
-
-        {images.slice(0, 4).map((image, index) => {
-          const startFrame = index * 14;
-
-          const progress = interpolate(
-            sceneFrame,
-            [startFrame, startFrame + 35],
-            [0, 1],
-            {
-              ...clamp,
-              easing: Easing.out(Easing.back(1.2)),
-            }
-          );
-
-          // ----------------------------------------------
-          // DIFFERENT ENTRY DIRECTIONS
-          // ----------------------------------------------
-
-          const fromX = [-260, 260, -220, 220][index];
-
-          const fromY = [-180, -150, 170, 150][index];
-
-          const translateX = interpolate(
-            progress,
-            [0, 1],
-            [fromX, 0],
-            clamp
-          );
-
-          const translateY = interpolate(
-            progress,
-            [0, 1],
-            [fromY, 0],
-            clamp
-          );
-
-          // ----------------------------------------------
-          // ROTATION
-          // ----------------------------------------------
-
-          const startRotation = [-12, 10, 8, -9][index];
-
-          const rotation = interpolate(
-            progress,
-            [0, 1],
-            [startRotation, 0],
-            {
-              ...clamp,
-              easing: Easing.out(Easing.back(1.1)),
-            }
-          );
-
-          // ----------------------------------------------
-          // SCALE
-          // ----------------------------------------------
-
-          const scale = interpolate(
-            progress,
-            [0, 1],
-            [0.72, 1],
-            {
-              ...clamp,
-              easing: Easing.out(Easing.back(1.15)),
-            }
-          );
-
-          // ----------------------------------------------
-          // OPACITY
-          // ----------------------------------------------
-
-          const opacity = interpolate(
-            progress,
-            [0, 0.2, 1],
-            [0, 1, 1],
-            clamp
-          );
-
-          // ----------------------------------------------
-          // FLOATING MOTION
-          // ----------------------------------------------
-
-          const floatingY =
-            progress > 0.95
-              ? Math.sin(
-                  (sceneFrame - startFrame) / 18 + index
-                ) * 4
-              : 0;
-
-          // ----------------------------------------------
-          // CARD POSITIONS
-          // ----------------------------------------------
-
-          const positions = [
-            {
-              left: "5%",
-              top: "8%",
-              width: "43%",
-              height: "39%",
-            },
-            {
-              right: "5%",
-              top: "8%",
-              width: "43%",
-              height: "39%",
-            },
-            {
-              left: "5%",
-              bottom: "8%",
-              width: "43%",
-              height: "39%",
-            },
-            {
-              right: "5%",
-              bottom: "8%",
-              width: "43%",
-              height: "39%",
-            },
-          ];
-
-          return (
-            <div
-              key={index}
-              style={{
-                position: "absolute",
-
-                ...positions[index],
-
-                opacity,
-
-                transform: `
-                  translate(
-                    ${translateX}px,
-                    ${translateY + floatingY}px
-                  )
-                  rotate(${rotation}deg)
-                  scale(${scale})
-                `,
-
-                transformOrigin: "center center",
-
-                zIndex: 10 + index,
-
-                padding: 8,
-
-                backgroundColor:
-                  "rgba(255,255,255,0.96)",
-
-                boxShadow:
-                  "0 18px 45px rgba(0,0,0,0.45)",
-
-                boxSizing: "border-box",
-              }}
-            >
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  overflow: "hidden",
-                  position: "relative",
-                }}
-              >
-                <Img
-                  src={image.path}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-
-                    transform: `
-                      scale(
-                        ${
-                          1.06 +
-                          Math.sin(
-                            (sceneFrame + index * 20) / 35
-                          ) *
-                            0.012
-                        }
-                      )
-                    `,
-                  }}
-                />
-
-                {/* IMAGE SHADE */}
-
-                <AbsoluteFill
-                  style={{
-                    background:
-                      "linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.18) 100%)",
-                  }}
-                />
-              </div>
-            </div>
-          );
-        })}
-
-        {/* ==================================================
-            CENTER ORNAMENT
-        ================================================== */}
-
-        <div
-          style={{
-            position: "absolute",
-
-            left: "50%",
-            top: "50%",
-
-            transform:
-              "translate(-50%, -50%)",
-
-            width: 55,
-            height: 55,
-
-            borderRadius: "50%",
-
-            border:
-              "1px solid rgba(255,255,255,0.7)",
-
-            display: "flex",
-
-            alignItems: "center",
-            justifyContent: "center",
-
-            background:
-              "rgba(0,0,0,0.45)",
-
-            zIndex: 50,
-
-            opacity: interpolate(
-              sceneFrame,
-              [45, 65, 100],
-              [0, 1, 0],
-              clamp
-            ),
-          }}
-        >
-          <span
-            style={{
-              fontSize: 25,
-            }}
-          >
-            ♡
-          </span>
-        </div>
-
-        {/* ==================================================
-            EDGE VIGNETTE
-        ================================================== */}
-
-        <AbsoluteFill
-          style={{
-            background:
-              "radial-gradient(circle at center, transparent 45%, rgba(0,0,0,0.55) 100%)",
-
-            pointerEvents: "none",
-          }}
-        />
-      </AbsoluteFill>
-    );
-  }
+    {
+      left: "0%",
+      top: "66.66%",
+      width: "33.33%",
+      height: "33.33%",
+    },
+    {
+      left: "33.33%",
+      top: "66.66%",
+      width: "33.33%",
+      height: "33.33%",
+    },
+    {
+      left: "66.66%",
+      top: "66.66%",
+      width: "33.33%",
+      height: "33.33%",
+    },
+  ];
 
   // ====================================================
+  // PHASE 1
+  // 0 - 2 SEC
+  // FIRST 9 IMAGES
+  // B&W GRID
+  // ONE-BY-ONE APPEAR
   // ====================================================
-  // SCENE 2
-  // CINEMATIC CENTER CURTAIN REVEAL
-  // IMAGES 5-6
-  // ====================================================
-  // ====================================================
 
-  if (
-    frame <
-    SCENE1_DURATION + SCENE2_DURATION
-  ) {
-    const sceneFrame =
-      frame - SCENE1_DURATION;
-
-    // 2 images
-    const imageIndex = Math.min(
-      Math.floor(sceneFrame / 37),
-      1
-    );
-
-    const localFrame =
-      sceneFrame - imageIndex * 37;
-
-    const image =
-      images[4 + imageIndex];
-
-    // ==================================================
-    // REVEAL PROGRESS
-    // ==================================================
-
-    const progress = interpolate(
-      localFrame,
-      [0, 30],
-      [0, 1],
+  if (frame < 60) {
+    const collageScale = interpolate(
+      frame,
+      [0, 15, 60],
+      [1.15, 1.0, 1.05],
       {
         ...clamp,
         easing: Easing.inOut(Easing.cubic),
-      }
-    );
-
-    // ==================================================
-    // LEFT CURTAIN
-    // STARTS AT CENTER → MOVES LEFT
-    // ==================================================
-
-    const curtainX = interpolate(
-      progress,
-      [0, 1],
-      [0, -100],
-      {
-        ...clamp,
-        easing: Easing.inOut(Easing.cubic),
-      }
-    );
-
-    // ==================================================
-    // RIGHT CURTAIN
-    // STARTS AT CENTER → MOVES RIGHT
-    // ==================================================
-
-    const rightCurtainX = interpolate(
-      progress,
-      [0, 1],
-      [0, 100],
-      {
-        ...clamp,
-        easing: Easing.inOut(Easing.cubic),
-      }
-    );
-
-    // ==================================================
-    // IMAGE SCALE
-    // ==================================================
-
-    const imageScale = interpolate(
-      progress,
-      [0, 0.45, 1],
-      [1.16, 1.08, 1],
-      {
-        ...clamp,
-        easing: Easing.out(Easing.cubic),
-      }
-    );
-
-    // ==================================================
-    // CAMERA X
-    // ==================================================
-
-    const imageX = interpolate(
-      progress,
-      [0, 1],
-      [-18, 0],
-      {
-        ...clamp,
-        easing: Easing.out(Easing.cubic),
-      }
-    );
-
-    // ==================================================
-    // CAMERA Y
-    // ==================================================
-
-    const imageY = interpolate(
-      progress,
-      [0, 1],
-      [8, 0],
-      {
-        ...clamp,
-        easing: Easing.out(Easing.cubic),
-      }
-    );
-
-    // ==================================================
-    // IMAGE OPACITY
-    // ==================================================
-
-    const imageOpacity = interpolate(
-      progress,
-      [0, 0.15, 1],
-      [0.55, 0.9, 1],
-      clamp
-    );
-
-    // ==================================================
-    // CURTAIN OPACITY
-    // ==================================================
-
-    const curtainOpacity = interpolate(
-      progress,
-      [0, 0.55, 1],
-      [1, 0.98, 0],
-      clamp
-    );
-
-    // ==================================================
-    // CENTER SEAM
-    // ==================================================
-
-    const seamOpacity = interpolate(
-      progress,
-      [0, 0.35, 0.75, 1],
-      [1, 0.9, 0.25, 0],
-      clamp
-    );
-
-    // ==================================================
-    // INITIAL LIGHT FLASH
-    // ==================================================
-
-    const flashOpacity = interpolate(
-      localFrame,
-      [0, 3, 8, 15],
-      [0.45, 0.18, 0.04, 0],
-      clamp
-    );
-
-    return (
-      <AbsoluteFill
-        style={{
-          backgroundColor: "#050505",
-          overflow: "hidden",
-        }}
-      >
-        {/* ==================================================
-            IMAGE BACKGROUND
-        ================================================== */}
-
-        <AbsoluteFill
-          style={{
-            overflow: "hidden",
-
-            opacity: imageOpacity,
-          }}
-        >
-          <Img
-            src={image.path}
-            style={{
-              width: "100%",
-              height: "100%",
-
-              objectFit: "cover",
-
-              transform: `
-                translate(
-                  ${imageX}px,
-                  ${imageY}px
-                )
-                scale(${imageScale})
-              `,
-
-              transformOrigin:
-                "center center",
-
-              filter:
-                "brightness(0.98) contrast(1.08) saturate(1.08)",
-            }}
-          />
-        </AbsoluteFill>
-
-        {/* ==================================================
-            CINEMATIC DARK OVERLAY
-        ================================================== */}
-
-        <AbsoluteFill
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.32))",
-
-            opacity: interpolate(
-              progress,
-              [0, 1],
-              [0.8, 1],
-              clamp
-            ),
-
-            zIndex: 5,
-
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* ==================================================
-            LEFT CURTAIN
-        ================================================== */}
-
-        <div
-          style={{
-            position: "absolute",
-
-            top: 0,
-            bottom: 0,
-            left: 0,
-
-            width: "50%",
-
-            transform: `
-              translateX(${curtainX}%)
-            `,
-
-            background:
-              "linear-gradient(90deg, #020202 0%, #080808 75%, #151515 100%)",
-
-            opacity: curtainOpacity,
-
-            zIndex: 20,
-
-            boxShadow:
-              "18px 0 45px rgba(0,0,0,0.65)",
-          }}
-        >
-          {/* LEFT CURTAIN LIGHT EDGE */}
-
-          <div
-            style={{
-              position: "absolute",
-
-              top: 0,
-              right: 0,
-
-              width: 3,
-              height: "100%",
-
-              background:
-                "linear-gradient(180deg, transparent, rgba(255,255,255,0.45), transparent)",
-
-              opacity: interpolate(
-                progress,
-                [0, 0.4, 1],
-                [0.7, 0.45, 0],
-                clamp
-              ),
-
-              boxShadow:
-                "0 0 25px rgba(255,255,255,0.3)",
-            }}
-          />
-
-          {/* CURTAIN FOLD */}
-
-          <div
-            style={{
-              position: "absolute",
-
-              inset: 0,
-
-              background:
-                "repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 3px, transparent 14px, transparent 28px)",
-
-              opacity: 0.7,
-            }}
-          />
-        </div>
-
-        {/* ==================================================
-            RIGHT CURTAIN
-        ================================================== */}
-
-        <div
-          style={{
-            position: "absolute",
-
-            top: 0,
-            bottom: 0,
-            right: 0,
-
-            width: "50%",
-
-            transform: `
-              translateX(${rightCurtainX}%)
-            `,
-
-            background:
-              "linear-gradient(90deg, #151515 0%, #080808 25%, #020202 100%)",
-
-            opacity: curtainOpacity,
-
-            zIndex: 20,
-
-            boxShadow:
-              "-18px 0 45px rgba(0,0,0,0.65)",
-          }}
-        >
-          {/* RIGHT CURTAIN LIGHT EDGE */}
-
-          <div
-            style={{
-              position: "absolute",
-
-              top: 0,
-              left: 0,
-
-              width: 3,
-              height: "100%",
-
-              background:
-                "linear-gradient(180deg, transparent, rgba(255,255,255,0.45), transparent)",
-
-              opacity: interpolate(
-                progress,
-                [0, 0.4, 1],
-                [0.7, 0.45, 0],
-                clamp
-              ),
-
-              boxShadow:
-                "0 0 25px rgba(255,255,255,0.3)",
-            }}
-          />
-
-          {/* CURTAIN FOLD */}
-
-          <div
-            style={{
-              position: "absolute",
-
-              inset: 0,
-
-              background:
-                "repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 3px, transparent 14px, transparent 28px)",
-
-              opacity: 0.7,
-            }}
-          />
-        </div>
-
-        {/* ==================================================
-            CENTER LIGHT SEAM
-        ================================================== */}
-
-        <div
-          style={{
-            position: "absolute",
-
-            left: "50%",
-            top: "-5%",
-
-            width: 3,
-            height: "110%",
-
-            transform:
-              "translateX(-50%)",
-
-            background:
-              "linear-gradient(180deg, transparent, rgba(255,255,255,0.9), transparent)",
-
-            opacity: seamOpacity,
-
-            boxShadow:
-              "0 0 35px rgba(255,255,255,0.8)",
-
-            zIndex: 30,
-
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* ==================================================
-            CENTER GLOW
-        ================================================== */}
-
-        <div
-          style={{
-            position: "absolute",
-
-            left: "50%",
-            top: "50%",
-
-            width: `${interpolate(
-              progress,
-              [0, 1],
-              [8, 180],
-              clamp
-            )}%`,
-
-            height: `${interpolate(
-              progress,
-              [0, 1],
-              [8, 180],
-              clamp
-            )}%`,
-
-            transform:
-              "translate(-50%, -50%)",
-
-            borderRadius: "50%",
-
-            background:
-              "radial-gradient(circle, rgba(255,255,255,0.16), transparent 70%)",
-
-            opacity: interpolate(
-              progress,
-              [0, 0.35, 0.8, 1],
-              [0.8, 0.5, 0.1, 0],
-              clamp
-            ),
-
-            zIndex: 25,
-
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* ==================================================
-            CAMERA FLASH
-        ================================================== */}
-
-        <AbsoluteFill
-          style={{
-            backgroundColor: "#fff",
-
-            opacity: flashOpacity,
-
-            zIndex: 40,
-
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* ==================================================
-            ELEGANT FRAME
-        ================================================== */}
-
-        <div
-          style={{
-            position: "absolute",
-
-            left: "7%",
-            right: "7%",
-
-            top: "8%",
-            bottom: "8%",
-
-            border:
-              "1px solid rgba(255,255,255,0.55)",
-
-            opacity: interpolate(
-              progress,
-              [0, 0.35, 0.8, 1],
-              [0, 0.8, 0.35, 0.2],
-              clamp
-            ),
-
-            zIndex: 45,
-
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* ==================================================
-            VIGNETTE
-        ================================================== */}
-
-        <AbsoluteFill
-          style={{
-            background:
-              "radial-gradient(circle at center, transparent 38%, rgba(0,0,0,0.5) 100%)",
-
-            zIndex: 50,
-
-            pointerEvents: "none",
-          }}
-        />
-      </AbsoluteFill>
-    );
-  }
-
-  // ====================================================
-  // ====================================================
-  // SCENE 3
-  // FULLSCREEN CINEMATIC FOCUS
-  // IMAGES 7-8
-  // ====================================================
-  // ====================================================
-
-  if (
-    frame <
-    SCENE1_DURATION +
-      SCENE2_DURATION +
-      SCENE3_DURATION
-  ) {
-    const sceneFrame =
-      frame -
-      SCENE1_DURATION -
-      SCENE2_DURATION;
-
-    const imageIndex = Math.min(
-      Math.floor(sceneFrame / 37),
-      1
-    );
-
-    const localFrame =
-      sceneFrame - imageIndex * 37;
-
-    const image =
-      images[6 + imageIndex];
-
-    // ==================================================
-    // CINEMATIC PROGRESS
-    // ==================================================
-
-    const progress = interpolate(
-      localFrame,
-      [0, 28],
-      [0, 1],
-      {
-        ...clamp,
-        easing: Easing.inOut(Easing.cubic),
-      }
-    );
-
-    // ==================================================
-    // FULLSCREEN ZOOM
-    // ==================================================
-
-    const scale = interpolate(
-      progress,
-      [0, 0.45, 1],
-      [1.32, 1.08, 1],
-      {
-        ...clamp,
-        easing: Easing.out(Easing.cubic),
-      }
-    );
-
-    // ==================================================
-    // DIAGONAL CAMERA
-    // ==================================================
-
-    const x = interpolate(
-      progress,
-      [0, 1],
-      [-35, 0],
-      clamp
-    );
-
-    const y = interpolate(
-      progress,
-      [0, 1],
-      [25, 0],
-      clamp
-    );
-
-    // ==================================================
-    // CIRCULAR REVEAL
-    // ==================================================
-
-    const circle = interpolate(
-      progress,
-      [0, 0.15, 0.5, 1],
-      [4, 22, 70, 155],
-      {
-        ...clamp,
-        easing: Easing.out(Easing.cubic),
       }
     );
 
@@ -985,121 +159,117 @@ export const Template28: React.FC<Template28Props> = ({
           overflow: "hidden",
         }}
       >
-        {/* ==================================================
-            IMAGE
-        ================================================== */}
+        {/* Background */}
+        <AbsoluteFill
+          style={{
+            background:
+              "radial-gradient(circle at 50% 45%, #292929 0%, #090909 48%, #000 100%)",
+          }}
+        />
 
+        {/* 9 IMAGE GRID */}
         <div
           style={{
             position: "absolute",
             inset: 0,
-
-            overflow: "hidden",
-
-            clipPath: `
-              circle(
-                ${circle}%
-                at 50% 50%
-              )
-            `,
+            transform: `scale(${collageScale})`,
+            transformOrigin: "center center",
           }}
         >
-          <Img
-            src={image.path}
-            style={{
-              width: "100%",
-              height: "100%",
+          {images.slice(0, 9).map((image, index) => {
+            const position = positions[index];
 
-              objectFit: "cover",
+            // --------------------------------------------
+            // Each image starts 6 frames after previous
+            // --------------------------------------------
 
-              transform: `
-                translate(
-                  ${x}px,
-                  ${y}px
-                )
-                scale(${scale})
-              `,
+            const imageStart = index * 6;
 
-              transformOrigin:
-                "center center",
+            const progress = interpolate(
+              frame,
+              [imageStart, imageStart + 8],
+              [0, 1],
+              {
+                ...clamp,
+                easing: Easing.out(Easing.cubic),
+              }
+            );
 
-              filter:
-                "brightness(0.98) contrast(1.08) saturate(1.08)",
-            }}
-          />
+            // Fade in
+            const opacity = interpolate(
+              frame,
+              [imageStart, imageStart + 6],
+              [0, 1],
+              clamp
+            );
+
+            // Small zoom while appearing
+            const scale = interpolate(
+              progress,
+              [0, 1],
+              [1.15, 1],
+              {
+                ...clamp,
+                easing: Easing.out(Easing.cubic),
+              }
+            );
+
+            // Alternate slight slide direction
+            const fromLeft = index % 2 === 0;
+
+            const translateX = interpolate(
+              progress,
+              [0, 1],
+              fromLeft
+                ? [-25, 0]
+                : [25, 0],
+              {
+                ...clamp,
+                easing: Easing.out(Easing.cubic),
+              }
+            );
+
+            return (
+              <div
+                key={index}
+                style={{
+                  position: "absolute",
+                  ...position,
+                  overflow: "hidden",
+                  zIndex: 10 + index,
+                  border: "2px solid rgba(0,0,0,0.8)",
+                  opacity,
+                  transform: `translateX(${translateX}%) scale(${scale})`,
+                  transformOrigin: "center center",
+                }}
+              >
+                <Img
+                  src={image.path}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    filter:
+                      "grayscale(100%) brightness(0.95) contrast(1.15)",
+                  }}
+                />
+              </div>
+            );
+          })}
         </div>
 
-        {/* ==================================================
-            FOCUS RING
-        ================================================== */}
-
-        {progress < 0.85 && (
-          <div
-            style={{
-              position: "absolute",
-
-              left: "50%",
-              top: "50%",
-
-              width: `${circle + 3}%`,
-              height: `${circle + 3}%`,
-
-              transform:
-                "translate(-50%, -50%)",
-
-              borderRadius: "50%",
-
-              border:
-                "1px solid rgba(255,255,255,0.8)",
-
-              opacity: interpolate(
-                progress,
-                [0, 0.3, 0.75, 1],
-                [1, 0.8, 0.3, 0],
-                clamp
-              ),
-
-              boxShadow:
-                "0 0 35px rgba(255,255,255,0.3)",
-
-              zIndex: 20,
-            }}
-          />
-        )}
-
-        {/* ==================================================
-            CAMERA FLASH
-        ================================================== */}
-
+        {/* FLASH AT 2 SEC */}
         <AbsoluteFill
           style={{
             backgroundColor: "#fff",
-
             opacity: interpolate(
-              localFrame,
-              [0, 3, 8],
-              [0.7, 0.15, 0],
+              frame,
+              [55, 58, 60],
+              [0, 0.5, 0],
               clamp
             ),
-
+            zIndex: 130,
             pointerEvents: "none",
-
-            zIndex: 40,
-          }}
-        />
-
-        {/* ==================================================
-            VIGNETTE
-        ================================================== */}
-
-        <AbsoluteFill
-          style={{
-            background:
-              "radial-gradient(circle at center, transparent 35%, rgba(0,0,0,0.5) 100%)",
-
-            pointerEvents: "none",
-
-            zIndex: 30,
           }}
         />
       </AbsoluteFill>
@@ -1107,272 +277,121 @@ export const Template28: React.FC<Template28Props> = ({
   }
 
   // ====================================================
+  // PHASE 2
+  // 2 - 4 SEC
+  // SAME 9 IMAGES
+  // B&W → COLOR
   // ====================================================
-  // SCENE 4
-  // 3D IMAGE TURN
-  // IMAGE 9
-  // ====================================================
-  // ====================================================
 
-  if (
-    frame <
-    SCENE1_DURATION +
-      SCENE2_DURATION +
-      SCENE3_DURATION +
-      SCENE4_DURATION
-  ) {
-    const sceneFrame =
-      frame -
-      SCENE1_DURATION -
-      SCENE2_DURATION -
-      SCENE3_DURATION;
-
-    // ==================================================
-    // PROGRESS
-    // ==================================================
-
-    const progress = interpolate(
-      sceneFrame,
-      [0, 32],
-      [0, 1],
-      {
-        ...clamp,
-        easing: Easing.out(Easing.cubic),
-      }
-    );
-
-    // ==================================================
-    // 3D ROTATION
-    // ==================================================
-
-    const rotateY = interpolate(
-      progress,
-      [0, 1],
-      [-65, 0],
-      {
-        ...clamp,
-        easing: Easing.out(Easing.cubic),
-      }
-    );
-
-    // ==================================================
-    // DEPTH
-    // ==================================================
-
-    const translateX = interpolate(
-      progress,
-      [0, 1],
-      [-100, 0],
-      {
-        ...clamp,
-        easing: Easing.out(Easing.cubic),
-      }
-    );
-
-    // ==================================================
-    // SCALE
-    // ==================================================
-
-    const scale = interpolate(
-      progress,
-      [0, 1],
-      [0.82, 1],
-      {
-        ...clamp,
-        easing: Easing.out(Easing.back(1.1)),
-      }
-    );
-
-    // ==================================================
-    // OPACITY
-    // ==================================================
-
-    const opacity = interpolate(
-      progress,
-      [0, 0.15, 1],
-      [0, 1, 1],
-      clamp
-    );
-
-    // ==================================================
-    // LIGHT SWEEP
-    // ==================================================
-
-    const sweepX = interpolate(
-      progress,
-      [0, 1],
-      [-25, 120],
-      clamp
-    );
+  if (frame < 120) {
+    const scene2Frame = frame - 60;
 
     return (
       <AbsoluteFill
         style={{
-          backgroundColor: "#0a0a0a",
-
+          backgroundColor: "#000",
           overflow: "hidden",
-
-          perspective: 1200,
         }}
       >
-        {/* ==================================================
-            BACKGROUND LIGHT
-        ================================================== */}
-
+        {/* Background */}
         <AbsoluteFill
           style={{
             background:
-              "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.09), transparent 60%)",
+              "radial-gradient(circle at 50% 45%, #292929 0%, #090909 48%, #000 100%)",
           }}
         />
 
-        {/* ==================================================
-            3D PHOTO
-        ================================================== */}
-
+        {/* GRID */}
         <div
           style={{
             position: "absolute",
-
-            left: "8%",
-            right: "8%",
-
-            top: "7%",
-            bottom: "7%",
-
-            opacity,
-
-            transform: `
-              translateX(${translateX}px)
-              rotateY(${rotateY}deg)
-              scale(${scale})
-            `,
-
-            transformStyle:
-              "preserve-3d",
-
-            transformOrigin:
-              "left center",
-
-            boxShadow:
-              "0 30px 80px rgba(0,0,0,0.65)",
-
-            overflow: "hidden",
-
-            border:
-              "1px solid rgba(255,255,255,0.4)",
+            inset: 0,
+            transform: "scale(1.05)",
+            transformOrigin: "center center",
           }}
         >
-          <Img
-            src={images[8].path}
-            style={{
-              width: "100%",
-              height: "100%",
+          {images.slice(0, 9).map((image, index) => {
+            const position = positions[index];
 
-              objectFit: "cover",
+            // Each box gets 6 frames
+            const boxStartFrame = index * 6;
 
-              transform:
-                "scale(1.03)",
+            const colorProgress = interpolate(
+              scene2Frame,
+              [boxStartFrame, boxStartFrame + 6],
+              [0, 1],
+              clamp
+            );
 
-              filter:
-                "brightness(0.98) contrast(1.06) saturate(1.06)",
-            }}
-          />
+            // Grayscale
+            const grayscaleVal = interpolate(
+              colorProgress,
+              [0, 1],
+              [100, 0],
+              clamp
+            );
 
-          {/* PHOTO SHADOW */}
+            // Brightness
+            const brightnessVal = interpolate(
+              colorProgress,
+              [0, 1],
+              [0.95, 1.05],
+              clamp
+            );
 
-          <AbsoluteFill
-            style={{
-              background:
-                "linear-gradient(90deg, rgba(0,0,0,0.35), transparent 35%, transparent 70%, rgba(0,0,0,0.25))",
-            }}
-          />
+            // Contrast
+            const contrastVal = interpolate(
+              colorProgress,
+              [0, 1],
+              [1.15, 1.05],
+              clamp
+            );
+
+            // Small pop
+            const cellScale = interpolate(
+              colorProgress,
+              [0, 0.5, 1],
+              [1, 1.04, 1],
+              {
+                ...clamp,
+                easing: Easing.out(Easing.cubic),
+              }
+            );
+
+            return (
+              <div
+                key={index}
+                style={{
+                  position: "absolute",
+                  ...position,
+                  overflow: "hidden",
+                  zIndex: 10 + index,
+                  border: "2px solid rgba(0,0,0,0.8)",
+                  transform: `scale(${cellScale})`,
+                  transformOrigin: "center center",
+                }}
+              >
+                <Img
+                  src={image.path}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    filter: `grayscale(${grayscaleVal}%) brightness(${brightnessVal}) contrast(${contrastVal})`,
+                  }}
+                />
+              </div>
+            );
+          })}
         </div>
 
-        {/* ==================================================
-            LIGHT SWEEP
-        ================================================== */}
-
-        <div
-          style={{
-            position: "absolute",
-
-            top: "-20%",
-            bottom: "-20%",
-
-            width: "18%",
-
-            left: `${sweepX}%`,
-
-            transform:
-              "rotate(18deg)",
-
-            background:
-              "linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)",
-
-            zIndex: 30,
-
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* ==================================================
-            CORNER MARK TOP LEFT
-        ================================================== */}
-
-        <div
-          style={{
-            position: "absolute",
-
-            left: "6%",
-            top: "6%",
-
-            width: 45,
-            height: 45,
-
-            borderLeft:
-              "2px solid rgba(255,255,255,0.7)",
-
-            borderTop:
-              "2px solid rgba(255,255,255,0.7)",
-
-            opacity: progress,
-          }}
-        />
-
-        {/* ==================================================
-            CORNER MARK BOTTOM RIGHT
-        ================================================== */}
-
-        <div
-          style={{
-            position: "absolute",
-
-            right: "6%",
-            bottom: "6%",
-
-            width: 45,
-            height: 45,
-
-            borderRight:
-              "2px solid rgba(255,255,255,0.7)",
-
-            borderBottom:
-              "2px solid rgba(255,255,255,0.7)",
-
-            opacity: progress,
-          }}
-        />
-
-        {/* ==================================================
-            VIGNETTE
-        ================================================== */}
-
+        {/* VIGNETTE */}
         <AbsoluteFill
           style={{
             background:
-              "radial-gradient(circle at center, transparent 42%, rgba(0,0,0,0.45) 100%)",
-
+              "radial-gradient(circle at center, transparent 35%, rgba(0,0,0,0.6) 100%)",
+            opacity: 0.85,
+            zIndex: 120,
             pointerEvents: "none",
           }}
         />
@@ -1381,353 +400,280 @@ export const Template28: React.FC<Template28Props> = ({
   }
 
   // ====================================================
+  // PHASE 3
+  // 4 - 10 SEC
+  // NEXT 6 IMAGES
+  // LEFT / RIGHT SLIDE
+  //
+  // images[9]  → Left
+  // images[10] → Right
+  // images[11] → Left
+  // images[12] → Right
+  // images[13] → Left
+  // images[14] → Right
   // ====================================================
-  // SCENE 5
-  // FINAL HERO CINEMATIC PUSH
-  // IMAGE 10
+
+  if (frame < 300) {
+    const scene3Frame = frame - 120;
+
+    // 6 images / 6 seconds
+    // 1 second each
+    const imageDuration = 30;
+
+    return (
+      <AbsoluteFill
+        style={{
+          backgroundColor: "#000",
+          overflow: "hidden",
+        }}
+      >
+        {images.slice(9, 15).map((image, index) => {
+          const startFrame = index * imageDuration;
+          const endFrame = startFrame + imageDuration;
+
+          const fromLeft = index % 2 === 0;
+
+          // --------------------------------------------
+          // SLIDE IN
+          // --------------------------------------------
+
+          const slideIn = interpolate(
+            scene3Frame,
+            [startFrame, startFrame + 10],
+            fromLeft
+              ? [-100, 0]
+              : [100, 0],
+            {
+              ...clamp,
+              easing: Easing.out(Easing.cubic),
+            }
+          );
+
+          // --------------------------------------------
+          // SLIDE OUT
+          // --------------------------------------------
+
+          const slideOut = interpolate(
+            scene3Frame,
+            [endFrame - 10, endFrame],
+            [0, fromLeft ? 100 : -100],
+            {
+              ...clamp,
+              easing: Easing.in(Easing.cubic),
+            }
+          );
+
+          const translateX =
+            scene3Frame < endFrame - 10
+              ? slideIn
+              : slideOut;
+
+          // --------------------------------------------
+          // OPACITY
+          // --------------------------------------------
+
+          const opacity = interpolate(
+            scene3Frame,
+            [
+              startFrame,
+              startFrame + 6,
+              endFrame - 6,
+              endFrame,
+            ],
+            [0, 1, 1, 0],
+            clamp
+          );
+
+          // --------------------------------------------
+          // SMALL SCALE
+          // --------------------------------------------
+
+          const scale = interpolate(
+            scene3Frame,
+            [startFrame, startFrame + 10],
+            [1.05, 1],
+            {
+              ...clamp,
+              easing: Easing.out(Easing.cubic),
+            }
+          );
+
+          return (
+            <Img
+              key={index}
+              src={image.path}
+              style={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                opacity,
+                transform: `translateX(${translateX}%) scale(${scale})`,
+              }}
+            />
+          );
+        })}
+
+        {/* Cinematic overlay */}
+        <AbsoluteFill
+          style={{
+            background:
+              "linear-gradient(90deg, rgba(0,0,0,0.15), transparent 50%, rgba(0,0,0,0.15))",
+            pointerEvents: "none",
+          }}
+        />
+      </AbsoluteFill>
+    );
+  }
+
   // ====================================================
+  // PHASE 4
+  // 10 - 11 SEC
+  // NEXT 3 IMAGES
+  // ZOOM IN
+  //
+  // images[15]
+  // images[16]
+  // images[17]
   // ====================================================
 
-  const heroFrame =
-    frame -
-    SCENE1_DURATION -
-    SCENE2_DURATION -
-    SCENE3_DURATION -
-    SCENE4_DURATION;
+  if (frame < 330) {
+    const scene4Frame = frame - 300;
 
-  // ==================================================
-  // HERO PROGRESS
-  // ==================================================
+    // 30 frames / 3 images
+    // 10 frames each
+    const imageDuration = 10;
 
-  const heroProgress = interpolate(
-    heroFrame,
-    [0, SCENE5_DURATION],
-    [0, 1],
-    {
-      ...clamp,
-      easing: Easing.inOut(Easing.cubic),
-    }
-  );
+    return (
+      <AbsoluteFill
+        style={{
+          backgroundColor: "#000",
+          overflow: "hidden",
+        }}
+      >
+        {images.slice(15, 18).map((image, index) => {
+          const startFrame = index * imageDuration;
+          const endFrame = startFrame + imageDuration;
 
-  // ==================================================
-  // HERO SCALE
-  // ==================================================
+          // --------------------------------------------
+          // PROGRESS
+          // --------------------------------------------
 
-  const heroScale = interpolate(
-    heroProgress,
-    [0, 1],
-    [1.0, 1.18],
-    {
-      ...clamp,
-      easing: Easing.inOut(Easing.cubic),
-    }
-  );
+          const progress = interpolate(
+            scene4Frame,
+            [startFrame, endFrame],
+            [0, 1],
+            {
+              ...clamp,
+              easing: Easing.out(Easing.cubic),
+            }
+          );
 
-  // ==================================================
-  // HERO Y
-  // ==================================================
+          // --------------------------------------------
+          // OPACITY
+          // --------------------------------------------
 
-  const heroY = interpolate(
-    heroProgress,
-    [0, 1],
-    [5, -10],
-    {
-      ...clamp,
-      easing: Easing.inOut(Easing.cubic),
-    }
-  );
+          const opacity = interpolate(
+            scene4Frame,
+            [
+              startFrame,
+              startFrame + 3,
+              endFrame - 2,
+              endFrame,
+            ],
+            [0, 1, 1, 0],
+            clamp
+          );
 
-  // ==================================================
-  // HERO X
-  // ==================================================
+          // --------------------------------------------
+          // ZOOM IN
+          // --------------------------------------------
 
-  const heroX = interpolate(
-    heroProgress,
-    [0, 1],
-    [0, -8],
-    {
-      ...clamp,
-      easing: Easing.inOut(Easing.cubic),
-    }
-  );
+          const scale = interpolate(
+            progress,
+            [0, 1],
+            [1, 1.15],
+            {
+              ...clamp,
+              easing: Easing.out(Easing.cubic),
+            }
+          );
 
-  // ==================================================
-  // LIGHT SWEEP
-  // ==================================================
+          return (
+            <Img
+              key={index}
+              src={image.path}
+              style={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                opacity,
+                transform: `scale(${scale})`,
+              }}
+            />
+          );
+        })}
+      </AbsoluteFill>
+    );
+  }
 
-  const sweepX = interpolate(
-    heroProgress,
-    [0, 0.65, 1],
-    [-30, 100, 130],
-    clamp
-  );
+  // ====================================================
+  // PHASE 5
+  // 11 - 12 SEC
+  // LAST 5 IMAGES
+  // NORMAL SHOW
+  //
+  // images[18]
+  // images[19]
+  // images[20]
+  // images[21]
+  // images[22]
+  // ====================================================
 
-  // ==================================================
-  // HERO ROTATION
-  // ==================================================
+  const scene5Frame = frame - 330;
 
-  const heroRotation = interpolate(
-    heroProgress,
-    [0, 0.5, 1],
-    [0, -0.3, 0],
-    clamp
-  );
+  // 30 frames / 5 images
+  // 6 frames each
+  const finalImageDuration = 6;
 
   return (
     <AbsoluteFill
       style={{
         backgroundColor: "#000",
-
         overflow: "hidden",
       }}
     >
-      {/* ==================================================
-          HERO IMAGE
-      ================================================== */}
-
-      <Img
-        src={images[9].path}
-        style={{
-          position: "absolute",
-
-          inset: 0,
-
-          width: "100%",
-          height: "100%",
-
-          objectFit: "cover",
-
-          transform: `
-            translate(
-              ${heroX}px,
-              ${heroY}px
-            )
-            scale(${heroScale})
-            rotate(${heroRotation}deg)
-          `,
-
-          transformOrigin:
-            "center center",
-
-          filter:
-            "brightness(0.98) contrast(1.06) saturate(1.06)",
-        }}
-      />
-
-      {/* ==================================================
-          CINEMATIC DARK GRADIENT
-      ================================================== */}
-
-      <AbsoluteFill
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(0,0,0,0.02) 20%, rgba(0,0,0,0.18) 55%, rgba(0,0,0,0.58) 100%)",
-
-          zIndex: 10,
-        }}
-      />
-
-      {/* ==================================================
-          MOVING LIGHT
-      ================================================== */}
-
-      <div
-        style={{
-          position: "absolute",
-
-          top: "-30%",
-          bottom: "-30%",
-
-          width: "35%",
-
-          left: `${sweepX}%`,
-
-          transform:
-            "rotate(18deg)",
-
-          background:
-            "linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)",
-
-          zIndex: 20,
-
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* ==================================================
-          CENTER HEART
-      ================================================== */}
-
-      <div
-        style={{
-          position: "absolute",
-
-          left: "50%",
-          top: "50%",
-
-          transform:
-            "translate(-50%, -50%)",
-
-          fontSize: 54,
-
-          opacity: interpolate(
-            heroProgress,
-            [0, 0.2, 0.7, 1],
-            [0, 1, 1, 0.75],
-            clamp
-          ),
-
-          zIndex: 30,
-
-          textShadow:
-            "0 0 25px rgba(255,255,255,0.35)",
-        }}
-      >
-        ♡
-      </div>
-
-      {/* ==================================================
-          ELEGANT FRAME
-      ================================================== */}
-
-      <div
-        style={{
-          position: "absolute",
-
-          left: "6%",
-          right: "6%",
-
-          top: "7%",
-          bottom: "7%",
-
-          border:
-            "1px solid rgba(255,255,255,0.6)",
-
-          opacity: interpolate(
-            heroProgress,
-            [0, 0.25, 1],
-            [0, 0.85, 0.65],
-            clamp
-          ),
-
-          zIndex: 30,
-
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* ==================================================
-          TOP LEFT CORNER
-      ================================================== */}
-
-      <div
-        style={{
-          position: "absolute",
-
-          left: "6%",
-          top: "7%",
-
-          width: 65,
-          height: 65,
-
-          borderLeft:
-            "2px solid rgba(255,255,255,0.8)",
-
-          borderTop:
-            "2px solid rgba(255,255,255,0.8)",
-
-          zIndex: 35,
-
-          opacity: heroProgress,
-        }}
-      />
-
-      {/* ==================================================
-          BOTTOM RIGHT CORNER
-      ================================================== */}
-
-      <div
-        style={{
-          position: "absolute",
-
-          right: "6%",
-          bottom: "7%",
-
-          width: 65,
-          height: 65,
-
-          borderRight:
-            "2px solid rgba(255,255,255,0.8)",
-
-          borderBottom:
-            "2px solid rgba(255,255,255,0.8)",
-
-          zIndex: 35,
-
-          opacity: heroProgress,
-        }}
-      />
-
-      {/* ==================================================
-          FINAL SOFT LIGHT
-      ================================================== */}
-
-      <div
-        style={{
-          position: "absolute",
-
-          left: "50%",
-          top: "50%",
-
-          width: `${interpolate(
-            heroProgress,
-            [0, 0.5, 1],
-            [5, 35, 55],
-            clamp
-          )}%`,
-
-          height: `${interpolate(
-            heroProgress,
-            [0, 0.5, 1],
-            [5, 35, 55],
-            clamp
-          )}%`,
-
-          transform:
-            "translate(-50%, -50%)",
-
-          borderRadius: "50%",
-
-          background:
-            "radial-gradient(circle, rgba(255,255,255,0.10), transparent 70%)",
-
-          opacity: interpolate(
-            heroProgress,
-            [0, 0.5, 1],
-            [0, 0.5, 0.15],
-            clamp
-          ),
-
-          zIndex: 28,
-
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* ==================================================
-          FINAL VIGNETTE
-      ================================================== */}
-
-      <AbsoluteFill
-        style={{
-          background:
-            "radial-gradient(circle at center, transparent 35%, rgba(0,0,0,0.5) 100%)",
-
-          zIndex: 40,
-
-          pointerEvents: "none",
-        }}
-      />
+      {images.slice(18, 22).map((image, index) => {
+        const startFrame = index * finalImageDuration;
+        const endFrame = startFrame + finalImageDuration;
+
+        const opacity = interpolate(
+          scene5Frame,
+          [
+            startFrame,
+            startFrame + 2,
+            endFrame - 2,
+            endFrame,
+          ],
+          [0, 1, 1, 0],
+          clamp
+        );
+
+        return (
+          <Img
+            key={index}
+            src={image.path}
+            style={{
+              position: "absolute",
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              opacity,
+            }}
+          />
+        );
+      })}
     </AbsoluteFill>
   );
 };

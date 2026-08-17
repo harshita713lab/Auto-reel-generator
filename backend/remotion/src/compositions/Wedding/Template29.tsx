@@ -34,7 +34,7 @@ interface Template29Props {
 export const FPS = 30;
 
 // 10 Seconds total duration (300 frames @ 30 FPS)
-export const DURATION_IN_FRAMES = 300;
+export const DURATION_IN_FRAMES = 420;
 
 // Exactly 9 Images required
 export const IMAGE_COUNT = 9;
@@ -157,7 +157,7 @@ const SongLyricsOverlay: React.FC<{ frame: number }> = ({ frame }) => {
       style={{
         position: "absolute",
         left: "50%",
-        bottom: frame >= 240 ? "6%" : "10%",
+        bottom: frame >= 240 ? "12%" : "10%",
         transform: `translateX(-50%) scale(${scale})`,
         opacity,
         zIndex: 50,
@@ -206,7 +206,7 @@ export const Template29: React.FC<Template29Props> = ({
   const isScene4 = frame >= 240;
 
   // Global Outro Fade Out (Frames 290-300)
-  const globalFadeOut = interpolate(frame, [290, 300], [1, 0], clamp);
+const globalFadeOut = interpolate(frame, [410, 420], [1, 0], clamp);
 
   // Music source extraction
   const musicSrc = typeof music === "string" ? music : music?.path;
@@ -603,13 +603,13 @@ export const Template29: React.FC<Template29Props> = ({
             // Phase 1 (0 to 30 frames / 8.0s - 9.0s): Photo 7 -> Photo 8 3D Cube Turn
             // Phase 2 (30 to 60 frames / 9.0s - 10.0s): Photo 8 -> Photo 9 3D Cube Turn
 
-            const isPhase1 = s4Frame < 30;
-            const phaseFrame = isPhase1 ? s4Frame : s4Frame - 30;
+            const isPhase1 = s4Frame < 90;
+            const phaseFrame = isPhase1 ? s4Frame : s4Frame - 90;
 
             // 3D Cube Rotation Progress around Y axis
             const cubeRotation = interpolate(
               phaseFrame,
-              [0, 26],
+              [0, 80],
               [0, -90],
               {
                 ...clamp,
@@ -618,8 +618,8 @@ export const Template29: React.FC<Template29Props> = ({
             );
 
             // Slow Motion Zoom-In
-            const slowMoZoomFront = interpolate(s4Frame, [0, 60], [1.0, 1.25], clamp);
-            const slowMoZoomSide = interpolate(s4Frame, [0, 60], [1.05, 1.30], clamp);
+         const slowMoZoomFront = interpolate(s4Frame, [0, 180], [1.0, 1.18], clamp);
+const slowMoZoomSide = interpolate(s4Frame, [0, 180], [1.05, 1.22], clamp);
 
             // Front & Next Photo Sources
             const frontImg = isPhase1 ? safeImages[6] : safeImages[7];
