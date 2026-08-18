@@ -426,35 +426,30 @@ const GridImage: React.FC<
 // Image 1 ke upar blank area mein text
 //
 // ======================================================
+// ======================================================
+// GRID TITLE
+// ======================================================
 
 const GridTitle: React.FC<{
   frame: number;
-}> = ({
-  frame,
-}) => {
+}> = ({ frame }) => {
 
-  // Same timing as grid
-  const opacity =
-    interpolate(
-      frame,
-      [0, 8],
-      [0, 1],
-      clamp
-    );
+  const opacity = interpolate(
+    frame,
+    [0, 8],
+    [0, 1],
+    clamp
+  );
 
-  const translateY =
-    interpolate(
-      frame,
-      [0, 10],
-      [8, 0],
-      {
-        ...clamp,
-        easing:
-          Easing.out(
-            Easing.cubic
-          ),
-      }
-    );
+  const translateY = interpolate(
+    frame,
+    [0, 10],
+    [6, 0],
+    {
+      ...clamp,
+      easing: Easing.out(Easing.cubic),
+    }
+  );
 
   return (
     <AbsoluteFill
@@ -470,60 +465,135 @@ const GridTitle: React.FC<{
 
         opacity,
 
-        transform:
-          `translateY(${translateY}px)`,
+        transform: `translateY(${translateY}px)`,
 
         zIndex: 20,
-
         pointerEvents: "none",
       }}
     >
-
       <div
         style={{
           fontFamily:
-            "Arial, Helvetica, sans-serif",
+            "Georgia, 'Times New Roman', serif",
 
-          fontSize:
-            "34px",
+          fontSize: "29px",
 
-          fontWeight:
-            800,
+          fontWeight: 600,
 
-          lineHeight:
-            1,
+          lineHeight: 1.1,
 
-          color:
-            "#111111",
+          color: "#171717",
 
-          textAlign:
-            "center",
+          textAlign: "center",
 
-          whiteSpace:
-            "nowrap",
+          whiteSpace: "nowrap",
 
-          letterSpacing:
-            "-1px",
+          letterSpacing: "0.2px",
 
+          // very subtle, clean shadow
           textShadow:
-            "0 1px 1px rgba(255,255,255,0.4)",
+            "0 1px 2px rgba(255,255,255,0.45)",
         }}
       >
         Hona tha Pyaar
         <span
           style={{
-            marginLeft:
-              "8px",
+            marginLeft: "7px",
+            fontSize: "24px",
           }}
         >
-          🥹💗
+          ❤️
         </span>
       </div>
-
     </AbsoluteFill>
   );
 };
 
+// ======================================================
+// FULLSCREEN TITLE
+// ======================================================
+// Fullscreen image ke top par
+// "YOU + ME = ❤️"
+// ======================================================
+
+const FullscreenTitle: React.FC<{
+  frame: number;
+}> = ({ frame }) => {
+  const opacity = interpolate(
+    frame,
+    [0, 8],
+    [0, 1],
+    clamp
+  );
+
+  const translateY = interpolate(
+    frame,
+    [0, 10],
+    [8, 0],
+    {
+      ...clamp,
+      easing: Easing.out(Easing.cubic),
+    }
+  );
+
+  return (
+    <AbsoluteFill
+      style={{
+        position: "absolute",
+
+        top: "2.5%",
+        left: "0%",
+        width: "100%",
+        height: "7%",
+
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+
+        opacity,
+
+        transform: `translateY(${translateY}px)`,
+
+        zIndex: 10,
+        pointerEvents: "none",
+      }}
+    >
+      <div
+        style={{
+          fontFamily:
+            "Georgia, 'Times New Roman', serif",
+
+          fontSize: "30px",
+
+          fontWeight: 500,
+
+          lineHeight: 1,
+
+          color: "black",
+
+          textAlign: "center",
+
+          whiteSpace: "nowrap",
+
+          letterSpacing: "1.5px",
+
+          textShadow:
+            "0 2px 6px rgba(0,0,0,0.45)",
+        }}
+      >
+        YOU + ME
+        <span
+          style={{
+            marginLeft: "9px",
+            fontSize: "27px",
+          }}
+        >
+          = ❤️
+        </span>
+      </div>
+    </AbsoluteFill>
+  );
+};
 // ======================================================
 // TEMPLATE 33
 // ======================================================
@@ -784,7 +854,9 @@ export const Template33: React.FC<
               fullscreenOpacity,
           }}
         >
-
+  <FullscreenTitle
+      frame={fullscreenLocalFrame}
+    />
           {/* =================================================
               FULLSCREEN IMAGE FRAME
               ================================================= */}

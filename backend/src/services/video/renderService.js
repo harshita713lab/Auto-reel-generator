@@ -96,83 +96,62 @@ class RenderService {
       console.log("📸 IMAGE COUNT:", imageCount);
 
       const COMPOSITION_MAP = {
-        4: ['Template15', 'Template21', 'Template13'],
+        3:['Template21'],
+        4: ['Template15','Template33','Template13'],
         5: ['Template5'],
         7: ['Template19'],
-        8: ['Template7', 'Template30', 'Template31'],
-        9: ['Template29', 'Template27', 'Template26'],
-        10: ['Template28'],
-        11: ['Template14', 'Template3'],
+        8: ['Template7'],
+        9: ['Template27','Tempalte26'],
+        11: ['Template14','Template3'],
         12: ['Template6', 'Template17'],
         13: ['Template2', 'Template16'],
-        14: ['Template24', 'Template23', 'Template20', 'Template1'],
+        14: ['Template24','Template23','Tempalte20','Template1'],
         15: ['Template9'],
         16: ['Template10'],
         17: ['Template8', 'Template18'],
         18: ['Template11'],
-        19: ['Template34'],
         23: ['Template12'],
-        24: ['Template25'],
-        25: ['Template35', 'Template32']
+          24: ['Template25']
       };
+
+      let matchedTemplates = [];
+      try {
+        matchedTemplates = await Template.find({
+          isActive: true,
+          'config.minImages': { $lte: imageCount },
+          'config.maxImages': { $gte: imageCount }
+        }).sort({ priority: 1 });
+      } catch (dbErr) {
+        logger.warn("DB template query warning:", dbErr.message);
+      }
+
+      let matchedTemplate = null;
+      if (matchedTemplates && matchedTemplates.length > 0) {
+        const lastIdx = this.lastUsedIndexMap.has(imageCount) ? this.lastUsedIndexMap.get(imageCount) : -1;
+        const nextIdx = (lastIdx + 1) % matchedTemplates.length;
+        this.lastUsedIndexMap.set(imageCount, nextIdx);
+        matchedTemplate = matchedTemplates[nextIdx];
+      }
 
       let compositionId;
-
-      // 1. Prioritize explicit template selected by Frontend
-      const ALIAS_TO_COMPOSITION = {
-        'simple_1': 'Template1',
-        'wedding_seq': 'Template20',
-        'cinematic_wedding': 'Template9',
-        'wedding_split': 'Template3',
-        'white_carousel': 'Template10',
-        'white_masonry': 'Template7',
-        'white_polaroid': 'Template11',
-        'premium_grid': 'Template15',
-        'memory_blend': 'Template24',
-      };
-
-      if (reel.templateId && ALIAS_TO_COMPOSITION[reel.templateId]) {
-        compositionId = ALIAS_TO_COMPOSITION[reel.templateId];
-        console.log(`✅ EXPLICIT FRONTEND SELECTION (ALIAS): ${reel.templateId} → Composition: ${compositionId}`);
-      } else if (reel.templateId && String(reel.templateId).match(/\d+/)) {
-        const match = String(reel.templateId).match(/\d+/);
-        compositionId = `Template${match[0]}`;
-        console.log(`✅ EXPLICIT FRONTEND SELECTION: ${reel.templateId} → Composition: ${compositionId}`);
+      if (matchedTemplate && matchedTemplate.compositionId) {
+        compositionId = matchedTemplate.compositionId;
+        console.log(`✅ SELECTED FROM DB (Loop Rotated ${this.lastUsedIndexMap.get(imageCount) + 1}/${matchedTemplates.length}): ${matchedTemplate.name} (Priority: ${matchedTemplate.priority}) → Composition: ${compositionId}`);
       } else {
-        let matchedTemplates = [];
-        try {
-          matchedTemplates = await Template.find({
-            isActive: true,
-            'config.minImages': { $lte: imageCount },
-            'config.maxImages': { $gte: imageCount }
-          }).sort({ priority: 1 });
-        } catch (dbErr) {
-          logger.warn("DB template query warning:", dbErr.message);
-        }
-
-        let matchedTemplate = null;
-        if (matchedTemplates && matchedTemplates.length > 0) {
+        const availableComps = COMPOSITION_MAP[imageCount];
+        if (availableComps && availableComps.length > 0) {
           const lastIdx = this.lastUsedIndexMap.has(imageCount) ? this.lastUsedIndexMap.get(imageCount) : -1;
-          const nextIdx = (lastIdx + 1) % matchedTemplates.length;
+          const nextIdx = (lastIdx + 1) % availableComps.length;
           this.lastUsedIndexMap.set(imageCount, nextIdx);
-          matchedTemplate = matchedTemplates[nextIdx];
-        }
-
-        if (matchedTemplate && matchedTemplate.compositionId) {
-          compositionId = matchedTemplate.compositionId;
-          console.log(`✅ SELECTED FROM DB (Loop Rotated ${this.lastUsedIndexMap.get(imageCount) + 1}/${matchedTemplates.length}): ${matchedTemplate.name} (Priority: ${matchedTemplate.priority}) → Composition: ${compositionId}`);
+          compositionId = availableComps[nextIdx];
+          console.log(`✅ SELECTED FROM COMPOSITION MAP (Loop Rotated ${nextIdx + 1}/${availableComps.length}) → Composition: ${compositionId}`);
+        } else if (reel.templateId) {
+          let numMatch = String(reel.templateId).match(/\d+/);
+          compositionId = numMatch ? `Template${numMatch[0]}` : "Template1";
+          console.log(`✅ FALLBACK TO TEMPLATE ID: ${reel.templateId} → Composition: ${compositionId}`);
         } else {
-          const availableComps = COMPOSITION_MAP[imageCount];
-          if (availableComps && availableComps.length > 0) {
-            const lastIdx = this.lastUsedIndexMap.has(imageCount) ? this.lastUsedIndexMap.get(imageCount) : -1;
-            const nextIdx = (lastIdx + 1) % availableComps.length;
-            this.lastUsedIndexMap.set(imageCount, nextIdx);
-            compositionId = availableComps[nextIdx];
-            console.log(`✅ SELECTED FROM COMPOSITION MAP (Loop Rotated ${nextIdx + 1}/${availableComps.length}) → Composition: ${compositionId}`);
-          } else {
-            compositionId = imageCount < 4 ? "ReelComposition" : "Template1";
-            console.log(`⚠️ FALLBACK: ${compositionId}`);
-          }
+          compositionId = imageCount < 4 ? "ReelComposition" : "Template1";
+          console.log(`⚠️ FALLBACK: ${compositionId}`);
         }
       }
       console.log("==============================================");
