@@ -6,7 +6,7 @@ import {
 } from "remotion";
 
 import { MusicPlayer } from "../../components";
-import { CutoutSticker } from "../../components/CutoutSticker"; 
+import { SmartCutout } from "../../components/SmartCutout";
 
 // ======================================================
 // TYPES
@@ -112,7 +112,7 @@ export const FastCutoutReel: React.FC<FastCutoutReelProps> = ({
           zIndex: 10,
         }}
       >
-        <CutoutSticker
+        <SmartCutout
           src={foregroundImage}
           width="85%"
           height="75%"
