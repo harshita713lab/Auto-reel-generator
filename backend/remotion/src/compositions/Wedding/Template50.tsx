@@ -272,7 +272,7 @@ const CutoutCollageScene: React.FC<{
         </div>
       </div>
 
-      {/* 3. 🎭 BIG CENTERED ANIMATED OVERLAY TEXT ("Bich me bde bde text") */}
+      {/* 3. 🎭 BIG CENTERED ANIMATED OVERLAY TEXT ("Todasa niche position") */}
       <div
         style={{
           position: "absolute",
@@ -286,7 +286,7 @@ const CutoutCollageScene: React.FC<{
           transform: `translateY(${textY}px) scale(${textScale}) rotate(${textRotate}deg)`,
           filter: `blur(${textBlur}px)`,
           pointerEvents: "none",
-          padding: "0 25px",
+          padding: "150px 25px 0 25px",
         }}
       >
         <span
