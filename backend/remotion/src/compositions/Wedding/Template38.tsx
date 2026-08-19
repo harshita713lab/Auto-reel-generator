@@ -44,9 +44,6 @@ export const DURATION_IN_FRAMES = 480; // 16 seconds
 
 // Fallback images agar images array empty ho
 export const DEFAULT_IMAGES: ImageItem[] = [
-  { path: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1000&auto=format&fit=crop" },
-
-const DEFAULT_IMAGES: ImageItem[] = [
   {
     path:
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1200&auto=format&fit=crop",

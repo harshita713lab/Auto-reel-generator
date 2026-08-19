@@ -74,7 +74,7 @@ for (let i = 1; i <= 50; i++) {
  */
 function getRequiredImageCount(templateId) {
   if (!templateId) return null;
-  if (String(templateId).includes('50')) return null; // Flexible image count for Template 50
+  if (String(templateId).includes('50') || String(templateId).includes('38')) return null; // Flexible image count for Template 50 & 38
   if (TEMPLATE_IMAGE_COUNTS[templateId] !== undefined) {
     return TEMPLATE_IMAGE_COUNTS[templateId];
   }
