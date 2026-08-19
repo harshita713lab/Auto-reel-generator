@@ -116,6 +116,7 @@ export const FastCutoutReel: React.FC<FastCutoutReelProps> = ({
           src={foregroundImage}
           width="85%"
           height="75%"
+
         />
       </AbsoluteFill>
 
