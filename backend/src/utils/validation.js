@@ -73,7 +73,7 @@ const validateReelData = (data) => {
     errors.push(`Maximum ${MAX_IMAGES} images allowed`);
   }
   
-  if (data.images && data.images.length < 2) {
+  if (data.images && data.images.length < 1) {
     errors.push('At least 2 images are required');
   }
   

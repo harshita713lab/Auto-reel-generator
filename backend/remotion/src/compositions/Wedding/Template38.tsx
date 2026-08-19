@@ -3,10 +3,11 @@ import {
   AbsoluteFill,
   Img,
   useCurrentFrame,
+  useVideoConfig,
+  interpolate,
 } from "remotion";
 
 import { MusicPlayer } from "../../components";
-import { SmartCutout } from "../../components/SmartCutout";
 
 // ======================================================
 // TYPES
@@ -14,7 +15,7 @@ import { SmartCutout } from "../../components/SmartCutout";
 
 interface ImageItem {
   path: string;
-  url?: string; // Yeh property yahan add kar di gayi hai
+  url?: string;
 }
 
 interface Music {
@@ -22,7 +23,7 @@ interface Music {
   volume?: number;
 }
 
-interface FastCutoutReelProps {
+interface GridSplitReelProps {
   images?: ImageItem[];
   music?: Music;
 }
@@ -33,115 +34,110 @@ interface FastCutoutReelProps {
 
 export const FPS = 30;
 export const DURATION_IN_FRAMES = 300; // 10 seconds total
-export const IMAGE_COUNT = 6;
+export const IMAGE_COUNT = 1;
 
-// Background images kitni tezi se change hongi
-const BG_IMAGE_CHANGE_SPEED = 12; 
+const LYRICS = "Chuliya tune";
 
-const LYRICS = "No one can be You to me.";
-
-// Fallback images
+// Fallback images agar images array empty ho
 const DEFAULT_IMAGES: ImageItem[] = [
   { path: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1000&auto=format&fit=crop" },
-  { path: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=1000&auto=format&fit=crop" },
-  { path: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1000&auto=format&fit=crop" },
-  { path: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1000&auto=format&fit=crop" },
-  { path: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1000&auto=format&fit=crop" },
 ];
 
 // ======================================================
 // MAIN COMPONENT
 // ======================================================
 
-export const FastCutoutReel: React.FC<FastCutoutReelProps> = ({
+export const GridSplitReel: React.FC<GridSplitReelProps> = ({
   images = [],
   music,
 }) => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const musicSrc = typeof music === "string" ? music : music?.path;
 
   const safeImages = images.length > 0 ? images : DEFAULT_IMAGES;
+  const currentImg = safeImages[0]?.url || safeImages[0]?.path;
 
-  // 1. Foreground image: Pehli image
-  const foregroundImage = safeImages[0]?.url || safeImages[0]?.path || "";
-
-  // 2. Background images list
-  const bgList = safeImages.slice(1).length > 0 
-    ? safeImages.slice(1).map(img => img.url || img.path)
-    : safeImages.map(img => img.url || img.path);
-
-  // Fast background slideshow logic
-  const bgIndex = Math.floor(frame / BG_IMAGE_CHANGE_SPEED) % bgList.length;
-  const currentBgImg = bgList[bgIndex];
+  // Animation logic for split screen boxes (zoom & subtle movement)
+  const scale = interpolate(
+    frame % 60,
+    [0, 30, 60],
+    [1, 1.05, 1],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+  );
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#000000", overflow: "hidden" }}>
+    <AbsoluteFill style={{ backgroundColor: "#000000", overflow: "hidden", display: "flex", flexDirection: "column" }}>
       
       {/* ==================================================
-          1. FAST-PACED BACKGROUND LAYER
-         ================================================== */}
-      <AbsoluteFill style={{ overflow: "hidden" }}>
+          TOP BOX (1st Split)
+          ================================================== */}
+      <div style={{ flex: 1, position: "relative", overflow: "hidden", borderBottom: "4px solid #000" }}>
         <Img
-          key={bgIndex}
-          src={currentBgImg}
+          src={currentImg}
           style={{
             width: "100%",
             height: "100%",
             objectFit: "cover",
-            filter: "grayscale(100%) brightness(0.55) contrast(130%)",
-            transform: "scale(1.06)",
+            filter: "blur(2px) brightness(0.8)",
+            transform: `scale(${scale})`,
           }}
         />
-        <div
+        <div style={{ position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.3)" }} />
+      </div>
+
+      {/* ==================================================
+          MIDDLE BOX (Main Focus Split with Border/Shadow)
+          ================================================== */}
+      <div style={{ flex: 1.5, position: "relative", overflow: "hidden", borderBottom: "4px solid #000", borderTop: "4px solid #000" }}>
+        <Img
+          src={currentImg}
           style={{
-            position: "absolute",
-            inset: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.45)",
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            transform: `scale(${scale})`,
           }}
         />
-      </AbsoluteFill>
+      </div>
 
       {/* ==================================================
-          2. FOREGROUND CUTOUT STICKER LAYER
-         ================================================== */}
-      <AbsoluteFill
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 10,
-        }}
-      >
-        <SmartCutout
-          src={foregroundImage}
-          width="85%"
-          height="75%"
-
+          BOTTOM BOX (3rd Split)
+          ================================================== */}
+      <div style={{ flex: 1, position: "relative", overflow: "hidden", borderTop: "4px solid #000" }}>
+        <Img
+          src={currentImg}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            filter: "brightness(0.7)",
+            transform: `scale(${scale})`,
+          }}
         />
-      </AbsoluteFill>
+      </div>
 
       {/* ==================================================
-          3. CURSIVE LYRICS TEXT OVERLAY
-         ================================================== */}
+          TEXT LYRICS OVERLAY (Center / Dynamic)
+          ================================================== */}
       <div
         style={{
           position: "absolute",
-          bottom: "60px",
-          left: 0,
-          right: 0,
-          textAlign: "center",
-          padding: "0 20px",
-          zIndex: 30,
+          inset: 0,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 20,
         }}
       >
         <span
           style={{
-            fontFamily: "Brush Script MT, cursive, sans-serif",
-            fontSize: "36px",
+            fontFamily: "Impact, sans-serif",
+            fontSize: "55px",
             color: "#ffffff",
-            textShadow: "2px 2px 10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(255,255,255,0.4)",
-            fontStyle: "italic",
-            letterSpacing: "1px",
+            textTransform: "uppercase",
+            letterSpacing: "3px",
+            textShadow: "3px 3px 15px rgba(0, 0, 0, 0.9)",
           }}
         >
           {LYRICS}
@@ -149,12 +145,12 @@ export const FastCutoutReel: React.FC<FastCutoutReelProps> = ({
       </div>
 
       {/* ==================================================
-          4. MUSIC PLAYER
-         ================================================== */}
+          MUSIC PLAYER
+          ================================================== */}
       {musicSrc && <MusicPlayer src={musicSrc} volume={music?.volume ?? 1} />}
 
     </AbsoluteFill>
   );
 };
 
-export default FastCutoutReel;
+export default GridSplitReel;
