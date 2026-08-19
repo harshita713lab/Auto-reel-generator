@@ -18,6 +18,9 @@ const TEMPLATE_MUSIC_MAP = {
   Template33: { musicId: 'ReelAudio-33.mp3', musicTitle: 'Reel Audio 33' },
   Template34: { musicId: 'ReelAudio-34.mp3', musicTitle: 'Reel Audio 34' },
   Template35: { musicId: 'ReelAudio-35.mp3', musicTitle: 'Apna Bana Le Piya' },
+  Template36: { musicId: 'ReelAudio-36.mp3', musicTitle: 'Reel Audio 36' },
+  Template37: { musicId: 'ReelAudio-37.mp3', musicTitle: 'Reel Audio 37' },
+  Template38: { musicId: 'ReelAudio-38.mp3', musicTitle: 'Chuliya Tune' },
 };
 
 const getMusicForTemplate = (templateId, imageCount) => {

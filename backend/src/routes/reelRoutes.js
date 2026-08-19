@@ -261,6 +261,45 @@ router.get('/templates', (req, res) => {
       minPhotos: 25,
       maxPhotos: 25,
       description: 'Cursive lyrics, physical photo stacking & glowing split slide reveal designed for exactly 25 photos'
+    },
+    {
+      id: 'Template36',
+      name: '🎞️ Template 36 (Multi-Scene Collage Showcase)',
+      slideDuration: 3,
+      transition: 'fade',
+      effect: 'cinematic',
+      colorGrade: 'warm',
+      vignette: true,
+      quality: 'high',
+      minPhotos: 24,
+      maxPhotos: 24,
+      description: 'Dynamic 3-scene wedding collage showcase designed for exactly 24 photos'
+    },
+    {
+      id: 'Template37',
+      name: '🖼️ Template 37 (11-Collage & 7-Fullscreen Flow)',
+      slideDuration: 3.5,
+      transition: 'crossfade',
+      effect: 'cinematic',
+      colorGrade: 'vibrant',
+      vignette: true,
+      quality: 'high',
+      minPhotos: 18,
+      maxPhotos: 18,
+      description: '11-photo intro collage followed by 7 fullscreen shots designed for exactly 18 photos'
+    },
+    {
+      id: 'Template38',
+      name: '✨ Template 38 (Grid Split Lyrics Reel)',
+      slideDuration: 3,
+      transition: 'slide',
+      effect: 'cinematic',
+      colorGrade: 'hdr',
+      vignette: true,
+      quality: 'high',
+      minPhotos: 1,
+      maxPhotos: 1,
+      description: '3-split grid layout with dynamic zoom & lyrics overlay designed for 1 photo'
     }
   ];
 
