@@ -43,6 +43,7 @@ const TEMPLATE_IMAGE_COUNTS = {
   '36': 24,
   '37': 18,
   '38': 1,
+  '50': 20,
 
   // Named aliases
   'simple_1': 14,
@@ -57,7 +58,7 @@ const TEMPLATE_IMAGE_COUNTS = {
 };
 
 // Auto-populate TemplateX and templateX variations
-for (let i = 1; i <= 38; i++) {
+for (let i = 1; i <= 50; i++) {
   const count = TEMPLATE_IMAGE_COUNTS[String(i)];
   if (count !== undefined) {
     TEMPLATE_IMAGE_COUNTS[`Template${i}`] = count;
@@ -73,6 +74,7 @@ for (let i = 1; i <= 38; i++) {
  */
 function getRequiredImageCount(templateId) {
   if (!templateId) return null;
+  if (String(templateId).includes('50')) return null; // Flexible image count for Template 50
   if (TEMPLATE_IMAGE_COUNTS[templateId] !== undefined) {
     return TEMPLATE_IMAGE_COUNTS[templateId];
   }

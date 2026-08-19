@@ -39,9 +39,14 @@ export const IMAGE_COUNT = 1;
 const LYRICS = "Chuliya tune";
 
 // Fallback images agar images array empty ho
-const DEFAULT_IMAGES: ImageItem[] = [
+export const DEFAULT_IMAGES: ImageItem[] = [
   { path: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1000&auto=format&fit=crop" },
 ];
+
+export const DEFAULT_PROPS: GridSplitReelProps = {
+  images: DEFAULT_IMAGES,
+  music: undefined,
+};
 
 // ======================================================
 // MAIN COMPONENT
@@ -153,4 +158,5 @@ export const GridSplitReel: React.FC<GridSplitReelProps> = ({
   );
 };
 
+export const Template38 = GridSplitReel;
 export default GridSplitReel;

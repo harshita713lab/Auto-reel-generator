@@ -54,6 +54,7 @@ function UploadSection() {
       17: "Template18",
       18: "white_polaroid",
       19: "Template34",
+      20: "Template50",
       22: "Template28",
       23: "Template12",
       24: "Template25",

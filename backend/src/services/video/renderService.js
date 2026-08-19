@@ -96,22 +96,26 @@ class RenderService {
       console.log("📸 IMAGE COUNT:", imageCount);
 
       const COMPOSITION_MAP = {
-        3:['Template21'],
+        1: ['Template38'],
+        3: ['Template21'],
         4: ['Template15','Template33','Template13'],
         5: ['Template5'],
         7: ['Template19'],
-        8: ['Template7'],
-        9: ['Template27','Tempalte26'],
+        8: ['Template7','Template30','Template31'],
+        9: ['Template27','Template26','Template29'],
         11: ['Template14','Template3'],
         12: ['Template6', 'Template17'],
         13: ['Template2', 'Template16'],
-        14: ['Template24','Template23','Tempalte20','Template1'],
+        14: ['Template24','Template23','Template20','Template1'],
         15: ['Template9'],
         16: ['Template10'],
         17: ['Template8', 'Template18'],
-        18: ['Template11'],
+        18: ['Template11', 'Template37'],
+        19: ['Template34'],
+        20: ['Template50'],
         23: ['Template12'],
-          24: ['Template25']
+        24: ['Template25', 'Template36'],
+        25: ['Template32', 'Template35']
       };
 
       let matchedTemplates = [];

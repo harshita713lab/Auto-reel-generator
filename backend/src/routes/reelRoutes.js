@@ -300,6 +300,19 @@ router.get('/templates', (req, res) => {
       minPhotos: 1,
       maxPhotos: 1,
       description: '3-split grid layout with dynamic zoom & lyrics overlay designed for 1 photo'
+    },
+    {
+      id: 'Template50',
+      name: '👑 Template 50 (20-Photo Keyframe Cutout Story)',
+      slideDuration: 1,
+      transition: 'fade',
+      effect: 'cinematic',
+      colorGrade: 'rose',
+      vignette: true,
+      quality: 'high',
+      minPhotos: 20,
+      maxPhotos: 20,
+      description: 'Keyframe animations, background cutout pop & 20-photo cinematic sequence'
     }
   ];
 

@@ -21,7 +21,11 @@ const TEMPLATE_MUSIC_MAP = {
   Template36: { musicId: 'ReelAudio-36.mp3', musicTitle: 'Reel Audio 36' },
   Template37: { musicId: 'ReelAudio-37.mp3', musicTitle: 'Reel Audio 37' },
   Template38: { musicId: 'ReelAudio-38.mp3', musicTitle: 'Chuliya Tune' },
+  Template50: { musicId: 'ReelAudio-50.mp3', musicTitle: 'Forever & Always' },
 };
+
+const fs = require('fs');
+const path = require('path');
 
 const getMusicForTemplate = (templateId, imageCount) => {
   console.log("🔍 getMusicForTemplate called with:", {
@@ -29,40 +33,54 @@ const getMusicForTemplate = (templateId, imageCount) => {
     imageCount,
   });
 
+  let selectedMusic = 'ReelAudio-1.mp3';
+
   // Check map first
   if (templateId && TEMPLATE_MUSIC_MAP[templateId]) {
-    return TEMPLATE_MUSIC_MAP[templateId].musicId;
-  }
+    selectedMusic = TEMPLATE_MUSIC_MAP[templateId].musicId;
+  } else {
+    // Extract number from templateId
+    let num = parseInt(templateId);
+    if (isNaN(num)) {
+      const match = String(templateId).match(/\d+/);
+      if (match) {
+        num = parseInt(match[0], 10);
+      }
+    }
 
-  // Extract number from templateId
-  let num = parseInt(templateId);
-  if (isNaN(num)) {
-    const match = String(templateId).match(/\d+/);
-    if (match) {
-      num = parseInt(match[0], 10);
+    if (num && num >= 1) {
+      selectedMusic = `ReelAudio-${num}.mp3`;
+    } else {
+      const fallbackMap = {
+        19: "ReelAudio-34.mp3",
+        14: "ReelAudio-2.mp3",
+        10: "ReelAudio-3.mp3",
+        9: "ReelAudio-29.mp3",
+      };
+      if (fallbackMap[imageCount]) {
+        selectedMusic = fallbackMap[imageCount];
+      }
     }
   }
 
-  if (num && num >= 1) {
-    const music = `ReelAudio-${num}.mp3`;
-    console.log("✅ Using templateId:", templateId, "→", music);
-    return music;
+  // Check if file exists and is non-empty (>0 bytes)
+  const musicPath = path.join(__dirname, '../../assets/music', selectedMusic);
+  try {
+    if (fs.existsSync(musicPath)) {
+      const stats = fs.statSync(musicPath);
+      if (stats.size > 0) {
+        console.log("✅ Using valid music file:", selectedMusic, `(${stats.size} bytes)`);
+        return selectedMusic;
+      } else {
+        console.warn(`⚠️ Music file ${selectedMusic} is 0 bytes! Falling back to ReelAudio-1.mp3`);
+      }
+    } else {
+      console.warn(`⚠️ Music file ${selectedMusic} does not exist! Falling back to ReelAudio-1.mp3`);
+    }
+  } catch (err) {
+    console.warn(`⚠️ Error checking music file ${selectedMusic}:`, err.message);
   }
 
-  // Fallback map
-  const fallbackMap = {
-    19: "ReelAudio-34.mp3",
-    14: "ReelAudio-2.mp3",
-    10: "ReelAudio-3.mp3",
-    9: "ReelAudio-29.mp3",
-  };
-
-  if (fallbackMap[imageCount]) {
-    console.log("✅ Using fallback for imageCount:", imageCount, "→", fallbackMap[imageCount]);
-    return fallbackMap[imageCount];
-  }
-
-  console.log("⚠️ Using default: ReelAudio-1.mp3");
   return "ReelAudio-1.mp3";
 };
 

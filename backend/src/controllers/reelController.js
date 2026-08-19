@@ -77,7 +77,7 @@ exports.createReel = async (req, res) => {
         1: 'Template38', 3: 'Template21', 4: 'premium_grid', 5: 'Template5', 7: 'Template19',
         8: 'white_masonry', 9: 'Template29', 10: 'Template28', 11: 'wedding_split',
         12: 'Template6', 13: 'Template16', 14: 'wedding_seq', 15: 'cinematic_wedding',
-        16: 'white_carousel', 17: 'Template18', 18: 'white_polaroid', 19: 'Template34',
+        16: 'white_carousel', 17: 'Template18', 18: 'white_polaroid', 19: 'Template34', 20: 'Template50',
         22: 'Template28', 23: 'Template12', 24: 'Template25', 25: 'Template32'
       };
       effectiveTemplateId = fallbackByCount[images.length] || 'simple_1';
