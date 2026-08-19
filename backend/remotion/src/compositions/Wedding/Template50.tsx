@@ -272,21 +272,22 @@ const CutoutCollageScene: React.FC<{
         </div>
       </div>
 
-      {/* 3. 🎭 BIG CENTERED ANIMATED OVERLAY TEXT ("Todasa niche position") */}
+      {/* 3. 🎭 BOTTOM ANIMATED OVERLAY TEXT ("Niche aaye text") */}
       <div
         style={{
           position: "absolute",
-          inset: 0,
+          left: 0,
+          right: 0,
+          bottom: "60px",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
           alignItems: "center",
           zIndex: 35,
           opacity: textOpacity,
           transform: `translateY(${textY}px) scale(${textScale}) rotate(${textRotate}deg)`,
           filter: `blur(${textBlur}px)`,
           pointerEvents: "none",
-          padding: "150px 25px 0 25px",
+          padding: "0 25px",
         }}
       >
         <span
