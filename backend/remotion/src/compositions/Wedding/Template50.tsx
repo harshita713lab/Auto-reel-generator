@@ -105,22 +105,22 @@ const CutoutCollageScene: React.FC<{
   // Background Grid Scale Motion
   const bgScale = interpolate(localFrame, [0, duration], [0.98, 1.03], clamp);
 
-  // 🔄 Rotation Animation after 4 seconds (4 sec @ 30 fps = 120 frames)
-  const isAfter4Sec = globalFrame >= 120;
-  const cutoutRotate = isAfter4Sec
+  // 🔄 Keyframe Rotation Animation after 5 seconds (5 sec @ 30 fps = 150 frames)
+  const isAfter5Sec = globalFrame >= 150;
+  const cutoutRotate = isAfter5Sec
     ? interpolate(
         localFrame,
-        [0, 12],
-        [-360, 0],
-        { ...clamp, easing: Easing.out(Easing.back(1.3)) }
+        [0, 14, duration],
+        [-360, 0, 10],
+        { ...clamp, easing: Easing.out(Easing.back(1.4)) }
       )
     : 0;
 
-  const bgRotate = isAfter4Sec
+  const bgRotate = isAfter5Sec
     ? interpolate(
         localFrame,
-        [0, 10],
-        [180, 0],
+        [0, 12, duration],
+        [180, 0, -5],
         { ...clamp, easing: Easing.out(Easing.quad) }
       )
     : 0;
@@ -138,6 +138,42 @@ const CutoutCollageScene: React.FC<{
     [0, 8],
     [50, 0],
     { ...clamp, easing: Easing.out(Easing.quad) }
+  );
+
+  // 🎭 CENTERED BIG TEXT KEYFRAME ANIMATION ("Bich me bde bde text with animation")
+  const textOpacity = interpolate(
+    localFrame,
+    [0, 5, duration - 6, duration],
+    [0, 1, 1, 0],
+    clamp
+  );
+
+  const textScale = interpolate(
+    localFrame,
+    [0, 10, duration],
+    [0.4, 1.1, 1.15],
+    { ...clamp, easing: Easing.out(Easing.back(1.5)) }
+  );
+
+  const textY = interpolate(
+    localFrame,
+    [0, 10],
+    [40, 0],
+    { ...clamp, easing: Easing.out(Easing.quad) }
+  );
+
+  const textRotate = interpolate(
+    localFrame,
+    [0, 10],
+    [-6, 0],
+    { ...clamp, easing: Easing.out(Easing.back(1.2)) }
+  );
+
+  const textBlur = interpolate(
+    localFrame,
+    [0, 6],
+    [10, 0],
+    clamp
   );
 
   return (
@@ -188,12 +224,12 @@ const CutoutCollageScene: React.FC<{
           position: "absolute",
           inset: 0,
           background:
-            "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.85) 100%)",
+            "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.9) 100%)",
           zIndex: 3,
         }}
       />
 
-      {/* 2. FOREGROUND SUBJECT CUTOUT / CENTER PHOTO (Ghum Ghum kar aane ki animation after 4s) */}
+      {/* 2. FOREGROUND SUBJECT CUTOUT / CENTER PHOTO */}
       <div
         style={{
           position: "absolute",
@@ -236,34 +272,88 @@ const CutoutCollageScene: React.FC<{
         </div>
       </div>
 
-      {/* Title Header */}
-      {title && (
+      {/* 3. 🎭 BIG CENTERED ANIMATED OVERLAY TEXT ("Bich me bde bde text") */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 35,
+          opacity: textOpacity,
+          transform: `translateY(${textY}px) scale(${textScale}) rotate(${textRotate}deg)`,
+          filter: `blur(${textBlur}px)`,
+          pointerEvents: "none",
+          padding: "0 25px",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "'Arial Black', 'Impact', 'Georgia', sans-serif",
+            fontSize: "46px",
+            fontWeight: 900,
+            color: "#ffffff",
+            textAlign: "center",
+            lineHeight: 1.1,
+            letterSpacing: "3px",
+            textTransform: "uppercase",
+            textShadow:
+              "0 8px 30px rgba(0,0,0,0.98), 0 0 25px rgba(255, 215, 0, 0.8)",
+            background:
+              "linear-gradient(180deg, #ffffff 0%, #fff2b2 55%, #ffd700 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.9))",
+          }}
+        >
+          {title || "✨ FOREVER & ALWAYS"}
+        </span>
+
         <div
           style={{
-            position: "absolute",
-            top: "55px",
-            width: "100%",
-            textAlign: "center",
-            zIndex: 20,
+            marginTop: "14px",
+            padding: "8px 24px",
+            borderRadius: "30px",
+            backgroundColor: "rgba(0, 0, 0, 0.75)",
+            border: "2px solid rgba(255, 215, 0, 0.6)",
+            boxShadow: "0 8px 25px rgba(0,0,0,0.8), 0 0 15px rgba(255, 215, 0, 0.3)",
+            backdropFilter: "blur(10px)",
           }}
         >
           <span
             style={{
-              fontFamily: "'Merriweather', Georgia, serif",
-              fontSize: "26px",
-              color: "#ffffff",
-              textShadow: "0 4px 15px rgba(0,0,0,0.95)",
-              letterSpacing: "2px",
+              fontFamily: "'Georgia', serif",
+              fontSize: "18px",
               fontWeight: 700,
+              fontStyle: "italic",
+              color: "#ffeaa7",
+              letterSpacing: "1.5px",
+              textShadow: "0 2px 8px rgba(0,0,0,0.9)",
             }}
           >
-            {title}
+            {currentIndex % 4 === 0
+              ? "✨ Our Magical Journey Begins"
+              : currentIndex % 4 === 1
+              ? "💖 Every Moment With You"
+              : currentIndex % 4 === 2
+              ? "🌹 Together Is My Favorite Place"
+              : "👑 Love You More Each Day"}
           </span>
         </div>
-      )}
+      </div>
     </AbsoluteFill>
   );
 };
+
+const ROMANTIC_TITLES = [
+  "✨ Forever & Always",
+  "💖 Pure Love Story",
+  "🌹 Two Hearts, One Soul",
+  "🌟 Timeless Memories",
+  "👑 The Beginning of Always",
+];
 
 // ======================================================
 // MAIN TEMPLATE 50 COMPONENT
@@ -285,6 +375,8 @@ export const Template50: React.FC<Template50Props> = ({
   const currentPhotoIndex = Math.min(totalImages - 1, Math.floor(frame / slideDuration));
   const localFrame = frame % slideDuration;
 
+  const currentTitle = ROMANTIC_TITLES[currentPhotoIndex % ROMANTIC_TITLES.length];
+
   return (
     <AbsoluteFill
       style={{
@@ -300,15 +392,7 @@ export const Template50: React.FC<Template50Props> = ({
         localFrame={localFrame}
         globalFrame={frame}
         duration={slideDuration}
-        title={
-          currentPhotoIndex === 0
-            ? "✨ Forever & Always"
-            : currentPhotoIndex === Math.floor(totalImages / 2)
-            ? "💖 Pure Love Story"
-            : currentPhotoIndex === totalImages - 1
-            ? "👑 The Beginning of Always"
-            : undefined
-        }
+        title={currentTitle}
       />
 
       {/* Header Progress Bar */}
