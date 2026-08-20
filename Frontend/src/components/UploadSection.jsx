@@ -5,7 +5,6 @@ import Upload from "./Upload";
 import ImagePreview from "./ImagePreview";
 import Result from "./Result";
 import TemplateSelector from "./TemplateSelector";
-import MusicSelector from "./MusicSelector";
 
 const API_URL =
   import.meta.env.VITE_API_URL || "http://localhost:5000/api";

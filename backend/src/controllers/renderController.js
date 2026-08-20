@@ -1,7 +1,6 @@
 const Reel = require('../models/Reel');
 const RenderJob = require('../models/RenderJob');
 const renderService = require('../services/video/renderService');
-const exportService = require('../services/video/exportService');
 const logger = require('../utils/logger');
 const { RENDER_CONFIG } = require('../config/constants');
 
