@@ -499,8 +499,8 @@ const Scene2Polaroid = ({
         left: 145,
         top: 500,
 
-        width: 790,
-        height: 590,
+        width: 850,
+        height: 700,
 
         opacity,
 

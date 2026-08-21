@@ -33,11 +33,8 @@ interface Template31Props {
 
 export const FPS = 30;
 
-// ======================================================
-// 15 SECONDS
-// 15 × 30 = 450 FRAMES
-// ======================================================
-
+// 15 seconds
+// 15 × 30 = 450 frames
 export const DURATION_IN_FRAMES = 450;
 
 // ======================================================
@@ -86,7 +83,6 @@ const CONTENT_DURATION = 330;
 // Pair 4 = 83 frames
 //
 // Total = 330 frames
-// ======================================================
 
 const PAIR_DURATIONS = [82, 82, 83, 83];
 
@@ -150,9 +146,7 @@ const getImgSrc = (
 
   if (img?.url) return img.url;
 
-  return (
-    DEFAULT_PROPS.images?.[index]?.path || ""
-  );
+  return DEFAULT_PROPS.images?.[index]?.path || "";
 };
 
 // ======================================================
@@ -403,12 +397,14 @@ export const Template31: React.FC<
   // ====================================================
   // BACKGROUND BRIGHTNESS
   // ====================================================
+  // Increased from 0.42/0.32
+  // so background stays visible.
 
   const backgroundBrightness =
     interpolate(
       imageFrame,
       [0, currentPairDuration],
-      [0.42, 0.32],
+      [0.58, 0.48],
       clamp
     );
 
@@ -533,9 +529,11 @@ export const Template31: React.FC<
   // ====================================================
   // CARD SIZE
   // ====================================================
+  // Increased from 850 × 680
+  // to 900 × 760
 
-  const CARD_WIDTH = 850;
-  const CARD_HEIGHT = 680;
+  const CARD_WIDTH = 900;
+  const CARD_HEIGHT = 760;
 
   // ====================================================
   // CARD TEXT
@@ -558,6 +556,7 @@ export const Template31: React.FC<
           fadeIn * fadeOut,
       }}
     >
+
       {/* ==================================================
           MUSIC
           ================================================== */}
@@ -588,6 +587,7 @@ export const Template31: React.FC<
             zIndex: 50,
           }}
         >
+
           {/* ==================================================
               PINK FLOWER
               ================================================== */}
@@ -653,6 +653,7 @@ export const Template31: React.FC<
           >
             ❤️
           </div>
+
         </AbsoluteFill>
       )}
 
@@ -669,8 +670,9 @@ export const Template31: React.FC<
               "#050505",
           }}
         >
+
           {/* ==================================================
-              CURRENT BLURRED BACKGROUND
+              CURRENT SHARP BACKGROUND
               TOP → DOWN
               ================================================== */}
 
@@ -695,10 +697,10 @@ export const Template31: React.FC<
                 `,
 
                 filter: `
-                  blur(28px)
-                  brightness(${backgroundBrightness})
-                  saturate(1.15)
-                `,
+  blur(10px)
+  brightness(${backgroundBrightness})
+  saturate(1.15)
+`,
 
                 display: "block",
               }}
@@ -706,7 +708,7 @@ export const Template31: React.FC<
           </AbsoluteFill>
 
           {/* ==================================================
-              NEXT BLURRED BACKGROUND
+              NEXT SHARP BACKGROUND
               ================================================== */}
 
           {nextPairIndex !== pairIndex && (
@@ -731,8 +733,9 @@ export const Template31: React.FC<
                   transform:
                     "scale(1.14)",
 
+                  // NO BLUR
                   filter:
-                    "blur(28px) brightness(0.38) saturate(1.15)",
+                    "brightness(0.48) saturate(1.15)",
 
                   display: "block",
                 }}
@@ -747,7 +750,7 @@ export const Template31: React.FC<
           <AbsoluteFill
             style={{
               background:
-                "rgba(0,0,0,0.22)",
+                "rgba(0,0,0,0.18)",
 
               zIndex: 5,
             }}
@@ -796,6 +799,7 @@ export const Template31: React.FC<
               zIndex: 10,
             }}
           >
+
             {/* ==================================================
                 CLEAR CARD IMAGE
                 ================================================== */}
@@ -839,7 +843,6 @@ export const Template31: React.FC<
 
             {/* ==================================================
                 TEXT ON CARD
-                REFERENCE STYLE
                 ================================================== */}
 
             <div
@@ -847,8 +850,8 @@ export const Template31: React.FC<
                 position:
                   "absolute",
 
-                left: 28,
-                bottom: 32,
+                left: 32,
+                bottom: 38,
 
                 zIndex: 5,
 
@@ -867,6 +870,7 @@ export const Template31: React.FC<
                   "none",
               }}
             >
+
               {/* ==================================================
                   FIRST LINE
                   WHITE SERIF
@@ -879,7 +883,7 @@ export const Template31: React.FC<
                   fontFamily:
                     "Georgia, 'Times New Roman', serif",
 
-                  fontSize: 42,
+                  fontSize: 46,
 
                   fontWeight: 500,
 
@@ -921,7 +925,7 @@ export const Template31: React.FC<
                   fontFamily:
                     "'Segoe Print', 'Comic Sans MS', cursive",
 
-                  fontSize: 38,
+                  fontSize: 42,
 
                   fontWeight: 500,
 
@@ -956,7 +960,9 @@ export const Template31: React.FC<
                   currentText.second
                 }
               </div>
+
             </div>
+
           </div>
 
           {/* ==================================================
@@ -971,11 +977,13 @@ export const Template31: React.FC<
               zIndex: 40,
 
               background:
-                "linear-gradient(180deg, rgba(0,0,0,0.28) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.38) 100%)",
+                "linear-gradient(180deg, rgba(0,0,0,0.20) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.30) 100%)",
             }}
           />
+
         </AbsoluteFill>
       )}
+
     </AbsoluteFill>
   );
 };

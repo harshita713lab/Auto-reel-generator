@@ -3,9 +3,8 @@ import {
   AbsoluteFill,
   Img,
   useCurrentFrame,
-  useVideoConfig,
   interpolate,
-  spring,
+  Easing,
 } from "remotion";
 
 import { MusicPlayer } from "../../components";
@@ -41,32 +40,11 @@ export const DURATION_IN_FRAMES = 480; // 16 seconds
 // DEFAULT IMAGE
 // ======================================================
 
-
-// Fallback images agar images array empty ho
-export const DEFAULT_IMAGES: ImageItem[] = [
+const DEFAULT_IMAGES: ImageItem[] = [
   {
     path:
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1200&auto=format&fit=crop",
   },
-];
-
-export const DEFAULT_PROPS: GridSplitReelProps = {
-  images: DEFAULT_IMAGES,
-  music: undefined,
-};
-
-// ======================================================
-// LYRICS
-// ======================================================
-
-const LYRICS_TIMINGS = [
-  { start: 118, end: 153, text: "CHULIYA", type: "bold" },
-  { start: 153, end: 188, text: "TUNE", type: "bold" },
-  { start: 188, end: 223, text: "LAFZON", type: "bold" },
-  { start: 223, end: 258, text: "KO", type: "bold" },
-  { start: 292, end: 350, text: "Mannate", type: "cursive" },
-  { start: 350, end: 410, text: "Puri", type: "cursive" },
-  { start: 410, end: 480, text: "Tumse Hee", type: "cursive" },
 ];
 
 // ======================================================
@@ -78,16 +56,21 @@ const clamp = {
   extrapolateRight: "clamp" as const,
 };
 
+// ======================================================
+// IMAGE STYLE
+// ======================================================
+
 const imageStyle = (
   scale: number,
   x: number,
   y: number,
-  filter = "none"
+  filter = "none",
+  objectPosition = "center center"
 ): React.CSSProperties => ({
   width: "100%",
   height: "100%",
   objectFit: "cover",
-  objectPosition: "center",
+  objectPosition,
   transform: `translate(${x}px, ${y}px) scale(${scale})`,
   filter,
 });
@@ -101,183 +84,395 @@ export const GridSplitReel: React.FC<GridSplitReelProps> = ({
   music,
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
 
-  const safeImages = images.length > 0 ? images : DEFAULT_IMAGES;
+  // ====================================================
+  // IMAGE
+  // ====================================================
+
+  const safeImages =
+    images.length > 0 ? images : DEFAULT_IMAGES;
+
   const img =
     safeImages[0]?.url ||
     safeImages[0]?.path ||
     DEFAULT_IMAGES[0].path;
 
-  const musicSrc = typeof music === "string" ? music : music?.path;
+  // ====================================================
+  // MUSIC
+  // ====================================================
+
+  const musicSrc =
+    typeof music === "string"
+      ? music
+      : music?.path;
 
   // ====================================================
   // SCENE TIMINGS
   // ====================================================
 
-  const SCENE_1_END = 105;
-  const SCENE_2_END = 195;
-  const SCENE_3_END = 255;
-  const SCENE_4_END = 315;
-  const SCENE_5_END = 345;
+  const SCENE_1_END = 105; // 0 - 3.5 sec
+  const SCENE_2_END = 195; // 3.5 - 6.5 sec
+  const SCENE_3_END = 285; // 6.5 - 9.5 sec
+  const SCENE_4_END = 360; // 9.5 - 12 sec
+  const SCENE_5_END = 378; // 12 - 12.6 sec
+  const SCENE_6_END = 480; // 12.6 - 16 sec
+
+  // ====================================================
+  // SCENES
+  // ====================================================
 
   const scene1 = frame < SCENE_1_END;
-  const scene2 = frame >= SCENE_1_END && frame < SCENE_2_END;
-  const scene3 = frame >= SCENE_2_END && frame < SCENE_3_END;
-  const scene4 = frame >= SCENE_3_END && frame < SCENE_4_END;
-  const scene5 = frame >= SCENE_4_END && frame < SCENE_5_END;
-  const scene6 = frame >= SCENE_5_END;
+
+  const scene2 =
+    frame >= SCENE_1_END &&
+    frame < SCENE_2_END;
+
+  const scene3 =
+    frame >= SCENE_2_END &&
+    frame < SCENE_3_END;
+
+  const scene4 =
+    frame >= SCENE_3_END &&
+    frame < SCENE_4_END;
+
+  const scene5 =
+    frame >= SCENE_4_END &&
+    frame < SCENE_5_END;
+
+  const scene6 =
+    frame >= SCENE_5_END &&
+    frame < SCENE_6_END;
 
   // ====================================================
-  // SCENE 1 ANIMATIONS
+  // SCENE 1
+  // PREMIUM THREE STRIP INTRO
   // ====================================================
 
-  const scene1Progress = interpolate(frame, [0, SCENE_1_END], [0, 1], clamp);
-  const blurAmount = interpolate(scene1Progress, [0, 0.55, 1], [10, 8, 0], clamp);
-  const scene1Scale = interpolate(scene1Progress, [0, 1], [1.15, 1.03], clamp);
-  const scene1Y = interpolate(scene1Progress, [0, 1], [15, -10], clamp);
-
-  // ====================================================
-  // SCENE 2 ANIMATIONS (3 Vertical Panels)
-  // ====================================================
-
-  const scene2Progress = interpolate(
+  const scene1Progress = interpolate(
     frame,
-    [SCENE_1_END, SCENE_1_END + 18],
+    [0, SCENE_1_END],
     [0, 1],
     clamp
   );
 
-  const panelScale = interpolate(scene2Progress, [0, 1], [1.12, 1.02], clamp);
-  const leftX = interpolate(scene2Progress, [0, 1], [40, 0], clamp);
-  const centerY = interpolate(scene2Progress, [0, 1], [-25, 0], clamp);
-  const rightX = interpolate(scene2Progress, [0, 1], [-40, 0], clamp);
-
-  // ====================================================
-  // SCENE 3 ANIMATIONS
-  // ====================================================
-
-  const scene3Start = SCENE_2_END;
-  const gridProgress = interpolate(
-    frame,
-    [scene3Start, scene3Start + 20],
-    [0, 1],
+  const blurAmount = interpolate(
+    scene1Progress,
+    [0, 0.45, 1],
+    [12, 7, 0],
     clamp
   );
 
-  const floatingSpring = spring({
-    frame: Math.max(0, frame - scene3Start),
-    fps,
-    config: { damping: 12, stiffness: 120, mass: 0.7 },
-  });
+  const scene1Scale = interpolate(
+    scene1Progress,
+    [0, 1],
+    [1.18, 1.04],
+    clamp
+  );
 
-  const floatingScale = interpolate(floatingSpring, [0, 1], [0.2, 1], clamp);
-  const floatingRotate = interpolate(floatingSpring, [0, 1], [-12, 0], clamp);
-  const gridScale = interpolate(gridProgress, [0, 1], [1.12, 1], clamp);
+  const scene1Y = interpolate(
+    scene1Progress,
+    [0, 1],
+    [18, -8],
+    clamp
+  );
 
   // ====================================================
-  // SCENE 4 ANIMATIONS
+  // SCENE 2
+  // THREE PANEL CINEMATIC REVEAL
   // ====================================================
 
-  const scene4Start = SCENE_3_END;
+  const s2 = frame - SCENE_1_END;
+
+  const panelReveal = interpolate(
+    s2,
+    [0, 24],
+    [0, 1],
+    {
+      ...clamp,
+      easing: Easing.out(Easing.cubic),
+    }
+  );
+
+  const leftPanelX = interpolate(
+    panelReveal,
+    [0, 1],
+    [-100, 0],
+    clamp
+  );
+
+  const centerPanelY = interpolate(
+    panelReveal,
+    [0, 1],
+    [70, 0],
+    clamp
+  );
+
+  const rightPanelX = interpolate(
+    panelReveal,
+    [0, 1],
+    [100, 0],
+    clamp
+  );
+
+  const panelScale = interpolate(
+    panelReveal,
+    [0, 1],
+    [1.18, 1.05],
+    clamp
+  );
+
+  const panelGlow = interpolate(
+    s2,
+    [0, 18, 50, 90],
+    [0, 0.5, 0.15, 0],
+    clamp
+  );
+
+  // ====================================================
+  // SCENE 3
+  // CLEAN EDITORIAL FRAME
+  // ====================================================
+
+  const s3 = frame - SCENE_2_END;
+
+  const collageProgress = interpolate(
+    s3,
+    [0, 35],
+    [0, 1],
+    {
+      ...clamp,
+      easing: Easing.out(Easing.back(1.15)),
+    }
+  );
+
+  const collageScale = interpolate(
+    s3,
+    [0, 90],
+    [1.08, 1],
+    clamp
+  );
+
+  const collagePan = interpolate(
+    s3,
+    [0, 90],
+    [0, -12],
+    clamp
+  );
+
+  const mainFrameY = interpolate(
+    collageProgress,
+    [0, 1],
+    [120, 0],
+    clamp
+  );
+
+  const mainFrameRotate = interpolate(
+    collageProgress,
+    [0, 1],
+    [-4, 0],
+    clamp
+  );
+
+  const scene3Glow = interpolate(
+    s3,
+    [0, 30, 70, 90],
+    [0, 0.6, 0.2, 0],
+    clamp
+  );
+
+  // ====================================================
+  // SCENE 4
+  // CLEAN CINEMATIC HERO
+  // ====================================================
+
+  const s4 = frame - SCENE_3_END;
+
   const heroProgress = interpolate(
+    s4,
+    [0, 75],
+    [0, 1],
+    {
+      ...clamp,
+      easing: Easing.out(Easing.cubic),
+    }
+  );
+
+  const heroScale = interpolate(
+    heroProgress,
+    [0, 1],
+    [1.13, 1.025],
+    clamp
+  );
+
+  const heroX = interpolate(
+    heroProgress,
+    [0, 1],
+    [18, -8],
+    clamp
+  );
+
+  const heroY = interpolate(
+    heroProgress,
+    [0, 1],
+    [8, -5],
+    clamp
+  );
+
+  // ====================================================
+  // SCENE 5
+  // WHITE FLASH
+  // ====================================================
+
+  const transitionProgress = interpolate(
     frame,
-    [scene4Start, scene4Start + 20],
+    [SCENE_4_END, SCENE_4_END + 18],
     [0, 1],
     clamp
   );
-  const heroScale = interpolate(heroProgress, [0, 1], [1.08, 1], clamp);
 
-  const card1Spring = spring({
-    frame: Math.max(0, frame - scene4Start),
-    fps,
-    config: { damping: 13, stiffness: 110 },
-  });
-
-  const card2Spring = spring({
-    frame: Math.max(0, frame - scene4Start - 8),
-    fps,
-    config: { damping: 13, stiffness: 110 },
-  });
-
-  const card3Spring = spring({
-    frame: Math.max(0, frame - scene4Start - 16),
-    fps,
-    config: { damping: 13, stiffness: 110 },
-  });
-
-  // ====================================================
-  // SCENE 5 & 6 ANIMATIONS
-  // ====================================================
-
-  const darkProgress = interpolate(frame, [SCENE_4_END, SCENE_5_END], [0, 1], clamp);
-  const darkOpacity = interpolate(darkProgress, [0, 0.45, 1], [0, 0.65, 1], clamp);
-
-  const finalProgress = interpolate(frame, [SCENE_5_END, DURATION_IN_FRAMES], [0, 1], clamp);
-  const finalScale = interpolate(finalProgress, [0, 1], [1.08, 1.02], clamp);
-  const finalX = interpolate(finalProgress, [0, 1], [0, -8], clamp);
-  const finalY = interpolate(finalProgress, [0, 1], [10, -5], clamp);
-
-  // ====================================================
-  // LYRICS
-  // ====================================================
-
-  const currentLyric = LYRICS_TIMINGS.find(
-    (item) => frame >= item.start && frame < item.end
+  const flashOpacity = interpolate(
+    transitionProgress,
+    [0, 0.45, 0.7, 1],
+    [0, 0.82, 0.3, 0],
+    clamp
   );
 
-  let lyricProgress = 0;
-  if (currentLyric) {
-    lyricProgress = interpolate(
-      frame,
-      [
-        currentLyric.start,
-        currentLyric.start + 8,
-        currentLyric.end - 8,
-        currentLyric.end,
-      ],
-      [0, 1, 1, 0],
-      clamp
-    );
-  }
+  const flashBlur = interpolate(
+    transitionProgress,
+    [0, 0.5, 1],
+    [0, 7, 0],
+    clamp
+  );
 
-  const lyricScale = interpolate(lyricProgress, [0, 1], [0.75, 1], clamp);
-  const lyricBlur = interpolate(lyricProgress, [0, 0.35, 1], [8, 2, 0], clamp);
-  const lyricY = interpolate(lyricProgress, [0, 1], [25, 0], clamp);
+  // ====================================================
+  // SCENE 6
+  // FINAL CINEMATIC HERO
+  // ====================================================
+
+  const finalProgress = interpolate(
+    frame,
+    [SCENE_5_END, DURATION_IN_FRAMES],
+    [0, 1],
+    clamp
+  );
+
+  const finalScale = interpolate(
+    finalProgress,
+    [0, 1],
+    [1.08, 1.015],
+    clamp
+  );
+
+  const finalX = interpolate(
+    finalProgress,
+    [0, 1],
+    [4, -10],
+    clamp
+  );
+
+  const finalY = interpolate(
+    finalProgress,
+    [0, 1],
+    [10, -5],
+    clamp
+  );
 
   // ====================================================
   // RENDER
   // ====================================================
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#000", overflow: "hidden" }}>
-      {/* SCENE 1: HORIZONTAL BLURRED STRIPS */}
+    <AbsoluteFill
+      style={{
+        backgroundColor: "#000",
+        overflow: "hidden",
+      }}
+    >
+
+      {/* ==================================================
+          SCENE 1
+          PREMIUM THREE STRIP INTRO
+      ================================================== */}
+
       {scene1 && (
-        <AbsoluteFill style={{ overflow: "hidden", backgroundColor: "#000", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "12px 0" }}>
+        <AbsoluteFill
+          style={{
+            backgroundColor: "#000",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            padding: "10px 0",
+          }}
+        >
+
           {/* TOP STRIP */}
-          <div style={{ width: "100%", height: "31%", overflow: "hidden", position: "relative" }}>
+
+          <div
+            style={{
+              width: "100%",
+              height: "31%",
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
             <Img
               src={img}
               style={imageStyle(
                 scene1Scale,
                 0,
                 scene1Y,
-                `blur(${blurAmount}px) brightness(0.65)`
+                `blur(${blurAmount}px) brightness(.62)`,
+                "35% center"
               )}
+            />
+
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(to bottom, rgba(0,0,0,.2), transparent, rgba(0,0,0,.35))",
+              }}
             />
           </div>
 
-          {/* MIDDLE STRIP WITH HEART REVEAL */}
-          <div style={{ width: "100%", height: "34%", overflow: "hidden", position: "relative" }}>
+          {/* CENTER STRIP */}
+
+          <div
+            style={{
+              width: "100%",
+              height: "34%",
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
             <Img
               src={img}
               style={imageStyle(
                 scene1Scale + 0.03,
                 0,
                 scene1Y * -1,
-                `blur(${Math.max(0, blurAmount - 2)}px) brightness(0.8)`
+                `blur(${Math.max(
+                  0,
+                  blurAmount - 2
+                )}px) brightness(.82)`,
+                "center center"
               )}
             />
+
+            {/* CENTER SOFT GLOW */}
+
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "radial-gradient(circle at center, rgba(255,255,255,.15), transparent 58%)",
+              }}
+            />
+
+            {/* HEART */}
+
             <div
               style={{
                 position: "absolute",
@@ -285,7 +480,14 @@ export const GridSplitReel: React.FC<GridSplitReelProps> = ({
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                opacity: interpolate(frame, [25, 45, 70], [0, 1, 0.9], clamp),
+
+                opacity: interpolate(
+                  frame,
+                  [25, 45, 75],
+                  [0, 1, 0],
+                  clamp
+                ),
+
                 transform: `scale(${interpolate(
                   frame,
                   [25, 45, 65],
@@ -297,7 +499,10 @@ export const GridSplitReel: React.FC<GridSplitReelProps> = ({
               <span
                 style={{
                   fontSize: 58,
-                  filter: "drop-shadow(0 5px 15px rgba(0,0,0,.7))",
+                  color: "#fff",
+
+                  filter:
+                    "drop-shadow(0 5px 18px rgba(0,0,0,.8)) drop-shadow(0 0 18px rgba(255,255,255,.35))",
                 }}
               >
                 ♥
@@ -306,243 +511,699 @@ export const GridSplitReel: React.FC<GridSplitReelProps> = ({
           </div>
 
           {/* BOTTOM STRIP */}
-          <div style={{ width: "100%", height: "31%", overflow: "hidden", position: "relative" }}>
+
+          <div
+            style={{
+              width: "100%",
+              height: "31%",
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
             <Img
               src={img}
               style={imageStyle(
                 scene1Scale,
                 0,
                 scene1Y * 0.5,
-                `blur(${blurAmount}px) brightness(0.6)`
+                `blur(${blurAmount}px) brightness(.58)`,
+                "65% center"
               )}
+            />
+
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(to top, rgba(0,0,0,.4), transparent)",
+              }}
             />
           </div>
 
+          {/* INTRO LIGHT */}
+
           <AbsoluteFill
             style={{
-              backgroundColor: "#fff",
-              opacity: interpolate(frame, [88, 105], [0.25, 0], clamp),
-              mixBlendMode: "screen",
+              background:
+                "radial-gradient(circle at center, rgba(255,255,255,.18), transparent 60%)",
+
+              opacity: interpolate(
+                frame,
+                [70, 95, 105],
+                [0, 0.4, 0],
+                clamp
+              ),
+
+              pointerEvents: "none",
             }}
           />
         </AbsoluteFill>
       )}
 
-      {/* SCENE 2: THREE VERTICAL PANELS */}
+      {/* ==================================================
+          SCENE 2
+          THREE PANEL PREMIUM REVEAL
+      ================================================== */}
+
       {scene2 && (
         <AbsoluteFill
           style={{
+            backgroundColor: "#080808",
             display: "flex",
             flexDirection: "row",
-            gap: 4,
-            backgroundColor: "#000",
-            padding: "0 2px",
+            gap: 3,
           }}
         >
-          <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
+
+          {/* LEFT PANEL */}
+
+          <div
+            style={{
+              flex: 1,
+              overflow: "hidden",
+              position: "relative",
+              transform:
+                `translateX(${leftPanelX}px)`,
+            }}
+          >
             <Img
               src={img}
+              style={imageStyle(
+                panelScale,
+                0,
+                0,
+                "brightness(.82)",
+                "28% center"
+              )}
+            />
+
+            <div
               style={{
-                ...imageStyle(panelScale, leftX, 0, "brightness(0.9)"),
-                objectPosition: "40% center",
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(to bottom, transparent, rgba(0,0,0,.4))",
               }}
             />
           </div>
-          <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
+
+          {/* CENTER PANEL */}
+
+          <div
+            style={{
+              flex: 1.15,
+              overflow: "hidden",
+              position: "relative",
+              transform:
+                `translateY(${centerPanelY}px)`,
+            }}
+          >
             <Img
               src={img}
+              style={imageStyle(
+                panelScale + 0.02,
+                0,
+                0,
+                "brightness(1)",
+                "center center"
+              )}
+            />
+
+            <div
               style={{
-                ...imageStyle(panelScale + 0.02, 0, centerY, "brightness(1)"),
-                objectPosition: "center center",
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(to bottom, rgba(0,0,0,.05), rgba(0,0,0,.3))",
               }}
             />
           </div>
-          <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
+
+          {/* RIGHT PANEL */}
+
+          <div
+            style={{
+              flex: 1,
+              overflow: "hidden",
+              position: "relative",
+              transform:
+                `translateX(${rightPanelX}px)`,
+            }}
+          >
             <Img
               src={img}
+              style={imageStyle(
+                panelScale,
+                0,
+                0,
+                "brightness(.72)",
+                "72% center"
+              )}
+            />
+
+            <div
               style={{
-                ...imageStyle(panelScale, rightX, 0, "brightness(0.85)"),
-                objectPosition: "60% center",
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(to bottom, transparent, rgba(0,0,0,.4))",
               }}
             />
           </div>
+
+          {/* CENTER LIGHT LINE */}
+
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: "50%",
+              height: 1,
+              backgroundColor:
+                "rgba(255,255,255,.22)",
+              opacity: panelGlow,
+            }}
+          />
         </AbsoluteFill>
       )}
 
-      {/* SCENE 3: GRID + FLOATING CARD */}
+      {/* ==================================================
+          SCENE 3
+          CLEAN EDITORIAL FRAME
+      ================================================== */}
+
       {scene3 && (
-        <AbsoluteFill style={{ backgroundColor: "#000", overflow: "hidden" }}>
+        <AbsoluteFill
+          style={{
+            backgroundColor: "#111",
+            overflow: "hidden",
+          }}
+        >
+
+          {/* BACKGROUND IMAGE */}
+
           <div
             style={{
               position: "absolute",
               inset: 0,
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gridTemplateRows: "1fr 1fr",
-              gap: 4,
-              transform: `scale(${gridScale})`,
-            }}
-          >
-            <div style={{ overflow: "hidden" }}>
-              <Img src={img} style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scale(1.08)", objectPosition: "30% center" }} />
-            </div>
-            <div style={{ overflow: "hidden" }}>
-              <Img src={img} style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scale(1.12)", objectPosition: "70% center" }} />
-            </div>
-            <div style={{ overflow: "hidden" }}>
-              <Img src={img} style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scale(1.1)", objectPosition: "center 35%" }} />
-            </div>
-            <div style={{ overflow: "hidden" }}>
-              <Img src={img} style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scale(1.15)", objectPosition: "center 70%" }} />
-            </div>
-          </div>
-
-          <AbsoluteFill style={{ background: "linear-gradient(135deg, rgba(0,0,0,.1), rgba(0,0,0,.45))" }} />
-
-          {/* FLOATING CARD */}
-          <div
-            style={{
-              position: "absolute",
-              width: 125,
-              height: 155,
-              right: 35,
-              top: 85,
-              backgroundColor: "#fff",
-              padding: 6,
-              borderRadius: 3,
-              boxShadow: "0 12px 30px rgba(0,0,0,.65)",
-              transform: `translateY(${interpolate(floatingSpring, [0, 1], [80, 0], clamp)}px) rotate(${floatingRotate}deg) scale(${floatingScale})`,
-            }}
-          >
-            <Img src={img} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          </div>
-
-          <div
-            style={{
-              position: "absolute",
-              width: 80,
-              height: 100,
-              left: 30,
-              bottom: 75,
-              border: "3px solid white",
               overflow: "hidden",
-              transform: `translateY(${interpolate(floatingSpring, [0, 1], [100, 0], clamp)}px) rotate(-6deg)`,
-              opacity: floatingSpring,
             }}
           >
-            <Img src={img} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "65% center" }} />
+            <Img
+              src={img}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "center",
+
+                transform: `
+                  scale(${collageScale})
+                  translateX(${collagePan}px)
+                `,
+
+                filter:
+                  "brightness(.36) saturate(.8) blur(1px)",
+              }}
+            />
           </div>
+
+          {/* DARK CINEMATIC OVERLAY */}
+
+          <AbsoluteFill
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(0,0,0,.65), rgba(0,0,0,.18), rgba(0,0,0,.72))",
+            }}
+          />
+
+          {/* MAIN WHITE FRAME */}
+
+          <div
+            style={{
+              position: "absolute",
+
+              width: "70%",
+              height: "72%",
+
+              left: "15%",
+              top: "13%",
+
+              backgroundColor: "#fff",
+
+              padding: 7,
+
+              boxShadow:
+                "0 25px 70px rgba(0,0,0,.7)",
+
+              transform: `
+                translateY(${mainFrameY}px)
+                rotate(${mainFrameRotate}deg)
+              `,
+            }}
+          >
+            <Img
+              src={img}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "center 35%",
+              }}
+            />
+          </div>
+
+          {/* FRAME SHINE */}
+
+          <div
+            style={{
+              position: "absolute",
+              left: "15%",
+              top: "13%",
+              width: "70%",
+              height: "72%",
+
+              background:
+                "linear-gradient(120deg, transparent 35%, rgba(255,255,255,.2) 50%, transparent 65%)",
+
+              transform: `translateX(${interpolate(
+                s3,
+                [25, 90],
+                [-100, 100],
+                clamp
+              )}%)`,
+
+              opacity: interpolate(
+                s3,
+                [20, 40, 75],
+                [0, 0.5, 0],
+                clamp
+              ),
+
+              pointerEvents: "none",
+            }}
+          />
+
+          {/* TOP DECORATION */}
+
+          <div
+            style={{
+              position: "absolute",
+              top: 45,
+              left: 42,
+
+              width: 35,
+              height: 1,
+
+              backgroundColor:
+                "rgba(255,255,255,.75)",
+
+              opacity: interpolate(
+                s3,
+                [0, 20, 45],
+                [0, 1, 0.8],
+                clamp
+              ),
+            }}
+          />
+
+          {/* SMALL DOT */}
+
+          <div
+            style={{
+              position: "absolute",
+
+              width: 6,
+              height: 6,
+
+              borderRadius: "50%",
+
+              backgroundColor: "#fff",
+
+              right: 42,
+              bottom: 55,
+
+              opacity: interpolate(
+                s3,
+                [0, 25, 50],
+                [0, 1, 0.6],
+                clamp
+              ),
+
+              boxShadow:
+                "0 0 18px rgba(255,255,255,.8)",
+            }}
+          />
+
+          {/* SMALL GLOW */}
+
+          <div
+            style={{
+              position: "absolute",
+              width: 220,
+              height: 220,
+              borderRadius: "50%",
+
+              left: -100,
+              bottom: -100,
+
+              background:
+                "radial-gradient(circle, rgba(255,255,255,.12), transparent 70%)",
+
+              filter: "blur(25px)",
+
+              opacity: scene3Glow,
+            }}
+          />
         </AbsoluteFill>
       )}
 
-      {/* SCENE 4: HERO + FLOATING FRAMES */}
+      {/* ==================================================
+          SCENE 4
+          CLEAN CINEMATIC HERO
+      ================================================== */}
+
       {scene4 && (
-        <AbsoluteFill style={{ backgroundColor: "#111", overflow: "hidden" }}>
+        <AbsoluteFill
+          style={{
+            backgroundColor: "#111",
+            overflow: "hidden",
+          }}
+        >
+
+          {/* HERO IMAGE */}
+
           <Img
             src={img}
             style={{
               width: "100%",
               height: "100%",
+
               objectFit: "cover",
-              transform: `scale(${heroScale})`,
-              filter: "brightness(.78)",
+              objectPosition: "center",
+
+              transform: `
+                translate(${heroX}px, ${heroY}px)
+                scale(${heroScale})
+              `,
+
+              filter:
+                "brightness(.74) saturate(.88)",
             }}
           />
-          <AbsoluteFill style={{ background: "linear-gradient(to bottom, rgba(0,0,0,.05), rgba(0,0,0,.65))" }} />
 
-          <div style={{ position: "absolute", width: 115, height: 145, left: 28, top: 90, padding: 5, backgroundColor: "#fff", boxShadow: "0 12px 35px rgba(0,0,0,.7)", transform: `translateY(${interpolate(card1Spring, [0, 1], [100, 0], clamp)}px) rotate(-7deg)` }}>
-            <Img src={img} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "30% center" }} />
-          </div>
+          {/* CINEMATIC VIGNETTE */}
 
-          <div style={{ position: "absolute", width: 105, height: 135, right: 25, top: 190, padding: 5, backgroundColor: "#fff", boxShadow: "0 12px 35px rgba(0,0,0,.7)", transform: `translateY(${interpolate(card2Spring, [0, 1], [120, 0], clamp)}px) rotate(6deg)` }}>
-            <Img src={img} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "70% center" }} />
-          </div>
+          <AbsoluteFill
+            style={{
+              background:
+                "radial-gradient(circle, transparent 25%, rgba(0,0,0,.68) 100%)",
+            }}
+          />
 
-          <div style={{ position: "absolute", width: 85, height: 110, right: 45, bottom: 90, border: "3px solid white", overflow: "hidden", transform: `translateY(${interpolate(card3Spring, [0, 1], [130, 0], clamp)}px) rotate(-4deg)` }}>
-            <Img src={img} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 65%" }} />
-          </div>
+          {/* BOTTOM GRADIENT */}
+
+          <AbsoluteFill
+            style={{
+              background:
+                "linear-gradient(to bottom, rgba(0,0,0,.02) 35%, rgba(0,0,0,.72) 100%)",
+            }}
+          />
+
+          {/* SOFT LIGHT */}
+
+          <div
+            style={{
+              position: "absolute",
+
+              width: 320,
+              height: 320,
+
+              borderRadius: "50%",
+
+              right: -120,
+              top: 30,
+
+              background:
+                "radial-gradient(circle, rgba(255,255,255,.16), transparent 70%)",
+
+              filter: "blur(25px)",
+
+              opacity: interpolate(
+                s4,
+                [0, 30, 75],
+                [0, 0.7, 0.25],
+                clamp
+              ),
+            }}
+          />
+
+          {/* SUBTLE WHITE EDGE */}
+
+          <div
+            style={{
+              position: "absolute",
+              left: 28,
+              right: 28,
+              top: 28,
+              bottom: 28,
+
+              border:
+                "1px solid rgba(255,255,255,.16)",
+
+              opacity: interpolate(
+                s4,
+                [0, 30, 70],
+                [0, 1, 0.45],
+                clamp
+              ),
+            }}
+          />
+
+          {/* CORNER LIGHT */}
+
+          <div
+            style={{
+              position: "absolute",
+              top: 28,
+              left: 28,
+              width: 55,
+              height: 55,
+
+              borderTop:
+                "2px solid rgba(255,255,255,.45)",
+
+              borderLeft:
+                "2px solid rgba(255,255,255,.45)",
+
+              opacity: interpolate(
+                s4,
+                [0, 30, 70],
+                [0, 1, 0.5],
+                clamp
+              ),
+            }}
+          />
         </AbsoluteFill>
       )}
 
-      {/* SCENE 5: DARK TRANSITION */}
+      {/* ==================================================
+          SCENE 5
+          CINEMATIC FLASH
+      ================================================== */}
+
       {scene5 && (
-        <AbsoluteFill style={{ backgroundColor: "#000", opacity: darkOpacity, zIndex: 20 }} />
+        <AbsoluteFill
+          style={{
+            backgroundColor: "#fff",
+
+            opacity: flashOpacity,
+
+            filter:
+              `blur(${flashBlur}px)`,
+
+            zIndex: 50,
+          }}
+        />
       )}
 
-      {/* SCENE 6: FINAL FULLSCREEN */}
+      {/* ==================================================
+          SCENE 6
+          FINAL CINEMATIC HERO
+      ================================================== */}
+
       {scene6 && (
-        <AbsoluteFill style={{ backgroundColor: "#000", overflow: "hidden" }}>
+        <AbsoluteFill
+          style={{
+            backgroundColor: "#000",
+            overflow: "hidden",
+          }}
+        >
+
+          {/* FINAL IMAGE */}
+
           <Img
             src={img}
             style={{
               width: "100%",
               height: "100%",
+
               objectFit: "cover",
-              transform: `translate(${finalX}px, ${finalY}px) scale(${finalScale})`,
-              filter: "brightness(.82)",
+              objectPosition: "center",
+
+              transform: `
+                translate(${finalX}px, ${finalY}px)
+                scale(${finalScale})
+              `,
+
+              filter:
+                "brightness(.78) saturate(.9)",
             }}
           />
-          <AbsoluteFill style={{ background: "linear-gradient(to bottom, rgba(0,0,0,.05), rgba(0,0,0,.55))" }} />
+
+          {/* VIGNETTE */}
+
+          <AbsoluteFill
+            style={{
+              background:
+                "radial-gradient(circle at center, transparent 20%, rgba(0,0,0,.72) 100%)",
+            }}
+          />
+
+          {/* BOTTOM GRADIENT */}
+
+          <AbsoluteFill
+            style={{
+              background:
+                "linear-gradient(to bottom, rgba(0,0,0,.02) 40%, rgba(0,0,0,.72) 100%)",
+            }}
+          />
+
+          {/* FILM GLOW */}
+
+          <AbsoluteFill
+            style={{
+              background:
+                "radial-gradient(circle at 50% 35%, rgba(255,255,255,.08), transparent 45%)",
+
+              opacity: interpolate(
+                finalProgress,
+                [0, 0.4, 1],
+                [0, 0.8, 0.3],
+                clamp
+              ),
+            }}
+          />
+
+          {/* FINAL BORDER */}
+
+          <div
+            style={{
+              position: "absolute",
+
+              left: 25,
+              right: 25,
+              top: 25,
+              bottom: 25,
+
+              border:
+                "1px solid rgba(255,255,255,.16)",
+            }}
+          />
+
+          {/* MOVING BORDER SHINE */}
+
+          <div
+            style={{
+              position: "absolute",
+
+              left: 25,
+              top: 25,
+
+              width: "30%",
+              height: 1,
+
+              background:
+                "linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent)",
+
+              transform: `translateX(${interpolate(
+                finalProgress,
+                [0, 1],
+                [0, 230],
+                clamp
+              )}%)`,
+
+              opacity: interpolate(
+                finalProgress,
+                [0, 0.25, 0.7, 1],
+                [0, 0.8, 0.35, 0],
+                clamp
+              ),
+            }}
+          />
         </AbsoluteFill>
       )}
 
-      {/* LYRICS */}
-      {currentLyric && (
+      {/* ==================================================
+          WATERMARK
+      ================================================== */}
+
+      {scene6 && (
         <div
           style={{
             position: "absolute",
-            inset: 0,
-            zIndex: 100,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: currentLyric.type === "cursive" ? "flex-end" : "center",
-            paddingBottom: currentLyric.type === "cursive" ? 150 : 0,
-            pointerEvents: "none",
+
+            bottom: 25,
+
+            width: "100%",
+
+            zIndex: 110,
+
+            textAlign: "center",
+
+            opacity: interpolate(
+              frame,
+              [SCENE_5_END + 20, DURATION_IN_FRAMES],
+              [0, 0.7],
+              clamp
+            ),
           }}
         >
           <span
             style={{
-              color: "#fff",
-              fontFamily: currentLyric.type === "bold" ? "Arial Black, Impact, sans-serif" : "Georgia, serif",
-              fontSize: currentLyric.type === "bold" ? 62 : 54,
-              fontWeight: currentLyric.type === "bold" ? 900 : 400,
-              fontStyle: currentLyric.type === "cursive" ? "italic" : "normal",
-              textTransform: currentLyric.type === "bold" ? "uppercase" : "none",
-              letterSpacing: currentLyric.type === "bold" ? "4px" : "1px",
-              opacity: lyricProgress,
-              transform: `translateY(${lyricY}px) scale(${lyricScale})`,
-              filter: `blur(${lyricBlur}px)`,
-              textShadow: "0 4px 18px rgba(0,0,0,.95)",
-              whiteSpace: "nowrap",
+              color:
+                "rgba(255,255,255,.72)",
+
+              fontSize: 9,
+
+              fontFamily:
+                "Arial, sans-serif",
+
+              letterSpacing: "3px",
+
+              textShadow:
+                "0 2px 8px rgba(0,0,0,.9)",
             }}
           >
-            {currentLyric.text}
-          </span>
-        </div>
-      )}
-
-      {/* WATERMARK */}
-      {scene6 && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: 25,
-            width: "100%",
-            zIndex: 110,
-            textAlign: "center",
-            opacity: interpolate(frame, [SCENE_5_END + 20, DURATION_IN_FRAMES], [0, 0.75], clamp),
-          }}
-        >
-          <span style={{ color: "rgba(255,255,255,.8)", fontSize: 10, fontFamily: "sans-serif", letterSpacing: "2px", textShadow: "0 2px 8px rgba(0,0,0,.9)" }}>
             INSTAGRAM • PRADIP_PICTURES
           </span>
         </div>
       )}
 
-      {musicSrc && <MusicPlayer src={musicSrc} volume={music?.volume ?? 1} />}
+      {/* ==================================================
+          MUSIC
+      ================================================== */}
+
+      {musicSrc && (
+        <MusicPlayer
+          src={musicSrc}
+          volume={music?.volume ?? 1}
+        />
+      )}
     </AbsoluteFill>
   );
 };
 
-export const Template38 = GridSplitReel;
 export default GridSplitReel;

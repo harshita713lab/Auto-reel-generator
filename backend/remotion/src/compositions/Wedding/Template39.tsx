@@ -2,11 +2,10 @@ import React from "react";
 import {
   AbsoluteFill,
   Img,
+  Audio,
   useCurrentFrame,
   interpolate,
 } from "remotion";
-
-import { MusicPlayer } from "../../components";
 
 // ======================================================
 // TYPES
@@ -14,7 +13,6 @@ import { MusicPlayer } from "../../components";
 
 interface ImageItem {
   path: string;
-  url?: string;
 }
 
 interface Music {
@@ -22,249 +20,172 @@ interface Music {
   volume?: number;
 }
 
-interface ExactReelProps {
+interface Template22Props {
   images?: ImageItem[];
   music?: Music;
 }
 
 // ======================================================
-// CONFIG
+// SETTINGS
 // ======================================================
+
+export const IMAGE_COUNT = 4;
 
 export const FPS = 30;
-export const DURATION_IN_FRAMES = 750; // 25 seconds
-export const IMAGE_COUNT = 10;
+
+// 8 seconds = 240 frames
+export const DURATION_IN_FRAMES = 240;
 
 // ======================================================
-// LYRIC TYPE
+// TEXT
 // ======================================================
 
-interface LyricLine {
-  startFrame: number;
-  endFrame: number;
-  text: string;
-  imageIndex: number;
-}
-
-// ======================================================
-// TIMELINE
-// ======================================================
-
-const LYRICS_TIMELINE: LyricLine[] = [
-  // ====================================================
-  // INTRO — 0 TO 5 SECONDS
-  // Black background + text one by one
-  // ====================================================
-
-  // 0 - 1.25 sec
-  {
-    startFrame: 0,
-    endFrame: 38,
-    text: "MUJHE 🫶",
-    imageIndex: 0,
-  },
-
-  // 1.25 - 2.5 sec
-  {
-    startFrame: 38,
-    endFrame: 75,
-    text: "Har PAAL",
-    imageIndex: 0,
-  },
-
-  // 2.5 - 3.75 sec
-  {
-    startFrame: 75,
-    endFrame: 113,
-    text: "💌 Tere Rehna",
-    imageIndex: 0,
-  },
-
-  // 3.75 - 5 sec
-  {
-    startFrame: 113,
-    endFrame: 150,
-    text: "HAI <3 SATH",
-    imageIndex: 0,
-  },
-
-  // ====================================================
-  // MAIN REEL — 5 SECONDS ONWARDS
-  // ====================================================
-
-  // 5 - 7 sec
-  {
-    startFrame: 150,
-    endFrame: 210,
-    text: "tm kch adhory sy <3",
-    imageIndex: 0,
-  },
-
-  // 7 - 9 sec
-  {
-    startFrame: 210,
-    endFrame: 270,
-    text: "hm bh kch adhe hn",
-    imageIndex: 1,
-  },
-
-  // 9 - 11 sec
-  {
-    startFrame: 270,
-    endFrame: 330,
-    text: "adha adha hm to dono mila dein",
-    imageIndex: 2,
-  },
-
-  // 11 - 13 sec
-  {
-    startFrame: 330,
-    endFrame: 390,
-    text: "tou ban jaygi apni ek zindagani",
-    imageIndex: 3,
-  },
-
-  // 13 - 15 sec
-  {
-    startFrame: 390,
-    endFrame: 450,
-    text: "ye duniya mile na mile humko",
-    imageIndex: 4,
-  },
-
-  // 15 - 17 sec
-  {
-    startFrame: 450,
-    endFrame: 510,
-    text: "khushiya bhaga dengi har gum ko",
-    imageIndex: 5,
-  },
-
-  // 17 - 19 sec
-  {
-    startFrame: 510,
-    endFrame: 570,
-    text: "tum sath ho phir kya baki ho",
-    imageIndex: 6,
-  },
-
-  // 19 - 23 sec
-  {
-    startFrame: 570,
-    endFrame: 690,
-    text: "mery liye tm kafi ho",
-    imageIndex: 7,
-  },
-
-  // 23 - 25 sec
-  {
-    startFrame: 690,
-    endFrame: 750,
-    text: "🥰",
-    imageIndex: 8,
-  },
+const TEXTS = [
+  "Dil ka shehar tu hai",
+  "Achhi khabar tu hai",
+  "Fursat ki hasi tu hai",
+  "Jo bhi thi kami, tu hai",
 ];
 
 // ======================================================
-// DEFAULT IMAGES
+// MAIN COMPOSITION
 // ======================================================
 
-const DEFAULT_IMAGES: ImageItem[] = Array.from(
-  { length: 10 },
-  (_, index) => ({
-    path: `https://images.unsplash.com/photo-${
-      1500000000000 + index * 1000
-    }?q=80&w=1000&auto=format&fit=crop`,
-  })
-);
-
-// ======================================================
-// MAIN COMPONENT
-// ======================================================
-
-export const ExactReel: React.FC<ExactReelProps> = ({
+export const Template22: React.FC<Template22Props> = ({
   images = [],
   music,
 }) => {
   const frame = useCurrentFrame();
 
   // ====================================================
-  // MUSIC
+  // IMAGE 1
+  // 0 - 2 SEC
+  // Frames: 0 - 60
   // ====================================================
 
-  const musicSrc =
-    typeof music === "string"
-      ? music
-      : music?.path;
+  const image1Progress = interpolate(
+    frame,
+    [0, 60],
+    [0, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
+  const zoom1 = interpolate(
+    image1Progress,
+    [0, 1],
+    [1, 1.10]
+  );
 
   // ====================================================
-  // SAFE IMAGES
-  // ====================================================
-  // IMPORTANT:
-  // If user uploads even ONE image,
-  // use that image instead of DEFAULT_IMAGES.
-  //
-  // For Template38 (1 image):
-  // same image will repeat throughout the reel.
+  // IMAGE 2
+  // 2 - 4 SEC
+  // Frames: 60 - 120
   // ====================================================
 
-  const safeImages =
-    images.length > 0
-      ? images
-      : DEFAULT_IMAGES;
+  const image2Progress = interpolate(
+    frame,
+    [60, 120],
+    [0, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
+  const zoom2 = interpolate(
+    image2Progress,
+    [0, 1],
+    [1, 1.10]
+  );
 
   // ====================================================
-  // CURRENT LYRIC
+  // IMAGE 3
+  // 4 - 6 SEC
+  // Frames: 120 - 180
   // ====================================================
 
-  const currentLyric =
-    LYRICS_TIMELINE.find(
-      (item) =>
-        frame >= item.startFrame &&
-        frame < item.endFrame
-    ) || LYRICS_TIMELINE[0];
+  const image3Progress = interpolate(
+    frame,
+    [120, 180],
+    [0, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
+  const zoom3 = interpolate(
+    image3Progress,
+    [0, 1],
+    [1, 1.10]
+  );
 
   // ====================================================
-  // IMAGE VISIBILITY
+  // IMAGE 4
+  // 6 - 8 SEC
+  // Frames: 180 - 240
   // ====================================================
 
-  // First 5 seconds = black screen
-  // After 5 seconds = image visible
+  const image4Progress = interpolate(
+    frame,
+    [180, 240],
+    [0, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
 
-  const showImage = frame >= 150;
-
-  // ====================================================
-  // SAFE IMAGE INDEX
-  // ====================================================
-  // This is VERY important for 1-image reel.
-  //
-  // Example:
-  // imageIndex = 5
-  // images.length = 1
-  //
-  // 5 % 1 = 0
-  //
-  // So the same image is safely reused.
-  // ====================================================
-
-  const activeImgIndex =
-    currentLyric.imageIndex % safeImages.length;
-
-  const currentImage =
-    safeImages[activeImgIndex];
-
-  const currentImg =
-    currentImage?.url ||
-    currentImage?.path;
+  const zoom4 = interpolate(
+    image4Progress,
+    [0, 1],
+    [1, 1.10]
+  );
 
   // ====================================================
-  // IMAGE ZOOM
+  // CURRENT IMAGE / TEXT / ZOOM
   // ====================================================
 
-  const scale = interpolate(
-    frame % 60,
-    [0, 30, 60],
-    [1, 1.02, 1],
+  let currentImage = "";
+  let currentText = "";
+  let currentZoom = 1;
+
+  if (frame < 60) {
+    // 0 - 2 sec
+    currentImage = images[0]?.path || "";
+    currentText = TEXTS[0];
+    currentZoom = zoom1;
+  } else if (frame < 120) {
+    // 2 - 4 sec
+    currentImage = images[1]?.path || "";
+    currentText = TEXTS[1];
+    currentZoom = zoom2;
+  } else if (frame < 180) {
+    // 4 - 6 sec
+    currentImage = images[2]?.path || "";
+    currentText = TEXTS[2];
+    currentZoom = zoom3;
+  } else {
+    // 6 - 8 sec
+    currentImage = images[3]?.path || "";
+    currentText = TEXTS[3];
+    currentZoom = zoom4;
+  }
+
+  // ====================================================
+  // TEXT FADE
+  // Every image gets its own 2-second animation
+  // ====================================================
+
+  const localFrame = frame % 60;
+
+  const textOpacity = interpolate(
+    localFrame,
+    [0, 5, 52, 60],
+    [0, 1, 1, 0],
     {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",
@@ -272,50 +193,18 @@ export const ExactReel: React.FC<ExactReelProps> = ({
   );
 
   // ====================================================
-  // INTRO TEXT FADE
+  // TEXT SLIGHT MOVEMENT
   // ====================================================
 
-  const introTextOpacity =
-    frame < 150
-      ? interpolate(
-          frame % 38,
-          [0, 7, 30, 38],
-          [0, 1, 1, 0],
-          {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          }
-        )
-      : 1;
-
-  // ====================================================
-  // MAIN LYRIC FADE
-  // ====================================================
-
-  const lyricDuration =
-    currentLyric.endFrame -
-    currentLyric.startFrame;
-
-  const lyricFrame =
-    frame - currentLyric.startFrame;
-
-  const lyricOpacity =
-    frame >= 150
-      ? interpolate(
-          lyricFrame,
-          [
-            0,
-            8,
-            Math.max(9, lyricDuration - 8),
-            lyricDuration,
-          ],
-          [0, 1, 1, 0],
-          {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          }
-        )
-      : introTextOpacity;
+  const textY = interpolate(
+    localFrame,
+    [0, 8, 52, 60],
+    [8, 0, 0, -4],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
 
   // ====================================================
   // RENDER
@@ -324,131 +213,121 @@ export const ExactReel: React.FC<ExactReelProps> = ({
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: "#000000",
+        backgroundColor: "black",
         overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
       }}
     >
-      {/* ==================================================
-          IMAGE
-          ================================================== */}
 
-      {showImage && currentImg && (
-        <div
+      {/* ==================================================
+          CURRENT IMAGE
+      ================================================== */}
+
+      {currentImage && (
+        <Img
+          src={currentImage}
           style={{
-            width: "85%",
-            height: "65%",
-            position: "relative",
-            overflow: "hidden",
-            borderRadius: "8px",
-            boxShadow:
-              "0px 10px 30px rgba(0,0,0,0.8)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
+            position: "absolute",
+            inset: 0,
+
+            width: "100%",
+            height: "100%",
+
+            objectFit: "cover",
+
+            transform: `scale(${currentZoom})`,
           }}
-        >
-          <Img
-            src={currentImg}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              transform: `scale(${scale})`,
-            }}
-          />
-        </div>
+        />
       )}
 
       {/* ==================================================
-          TEXT OVERLAY
-          ================================================== */}
+          WARM CINEMATIC OVERLAY
+      ================================================== */}
 
-      <div
+      <AbsoluteFill
         style={{
-          position: "absolute",
-          inset: 0,
+          background: "rgba(80, 45, 30, 0.10)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* ==================================================
+          TEXT
+      ================================================== */}
+
+      <AbsoluteFill
+        style={{
           display: "flex",
-          justifyContent: "center",
           alignItems: "center",
-          zIndex: 20,
-          padding: "0 20px",
-          textAlign: "center",
+          justifyContent: "center",
+
+          opacity: textOpacity,
+
+          transform: `translateY(${textY}px)`,
+
           pointerEvents: "none",
         }}
       >
-        <span
+        <div
           style={{
-            fontFamily: "sans-serif",
-
-            fontSize:
-              frame < 150
-                ? "36px"
-                : "32px",
-
             color: "#ffffff",
 
+            fontSize: 40,
+
+            fontWeight: 400,
+
+            fontFamily:
+              "Georgia, 'Times New Roman', serif",
+
+            fontStyle: "italic",
+
+            textAlign: "center",
+
+            letterSpacing: "0.8px",
+
+            lineHeight: 1.25,
+
             textShadow:
-              "2px 2px 8px rgba(0, 0, 0, 0.9)",
+              "0px 2px 5px rgba(0,0,0,0.55)",
 
-            fontWeight: "bold",
+            background: "transparent",
 
-            whiteSpace: "pre-line",
-
-            lineHeight: "1.4",
-
-            opacity: lyricOpacity,
+            padding: 0,
           }}
         >
-          {currentLyric.text}
-        </span>
-      </div>
+          {currentText}
+        </div>
+      </AbsoluteFill>
 
       {/* ==================================================
-          WATERMARK
-          ================================================== */}
+          VIGNETTE
+      ================================================== */}
 
-      <div
+      <AbsoluteFill
         style={{
-          position: "absolute",
-          bottom: "30px",
-          width: "100%",
-          textAlign: "center",
-          zIndex: 30,
+          pointerEvents: "none",
+
+          background:
+            "radial-gradient(" +
+            "ellipse at center, " +
+            "transparent 50%, " +
+            "rgba(0,0,0,0.25) 100%" +
+            ")",
         }}
-      >
-        <span
-          style={{
-            fontFamily: "sans-serif",
-            fontSize: "12px",
-            color:
-              "rgba(255, 255, 255, 0.5)",
-            letterSpacing: "1px",
-          }}
-        >
-          @melodious_tanuu
-        </span>
-      </div>
+      />
 
       {/* ==================================================
           MUSIC
-          ================================================== */}
+      ================================================== */}
 
-      {musicSrc && (
-        <MusicPlayer
-          src={musicSrc}
-          volume={music?.volume ?? 1}
+      {music?.path && (
+        <Audio
+          src={music.path}
+          volume={music.volume ?? 1}
         />
       )}
+
     </AbsoluteFill>
   );
 };
 
-// ======================================================
-// EXPORT
-// ======================================================
-
-export default ExactReel;
+export default Template22;

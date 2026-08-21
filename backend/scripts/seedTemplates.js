@@ -37,6 +37,9 @@ async function seedTemplates() {
       serverSelectionTimeoutMS: 10000,
     });
     console.log('✅ MongoDB Connected');
+console.log('📦 Database:', mongoose.connection.db.databaseName);
+console.log('📁 Collection:', Template.collection.name);
+    console.log('✅ MongoDB Connected');
 
     // 1️⃣ Check folder
     if (!fs.existsSync(WEDDING_DIR)) {

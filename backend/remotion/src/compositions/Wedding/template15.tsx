@@ -1,331 +1,947 @@
 import React from "react";
 import {
   AbsoluteFill,
-  Audio,
-  interpolate,
+  Img,
   useCurrentFrame,
-  useVideoConfig,
+  interpolate,
+  Easing,
 } from "remotion";
-
-import { AnimatedImage ,MusicPlayer } from "../../components";
-import { getBeatScale } from "../../utils/beatUtils";
+import { MusicPlayer } from "../../components";
 
 // ======================================================
-// TEMPLATE SETTINGS
+// TYPES
 // ======================================================
 
-export const IMAGE_COUNT = 4;
-export const FPS = 30;
-export const DURATION_IN_FRAMES = 450; // 15 sec
+interface ImageItem {
+  path: string;
+  url?: string;
+}
 
-// ======================================================
-// INTERFACE
-// ======================================================
+interface Music {
+  path: string;
+  volume?: number;
+}
 
-interface PremiumGridProps {
-  images?: Array<{
-    path: string;
-  }>;
-
-  music?: {
-    path: string;
-    volume?: number;
-  };
-
-  slideDuration?: number;
-
-  backgroundColor?: string;
-
-  title?: string;
-
-  overlayText?: string;
-
-  gap?: number;
-
-  transition?: "fade" | "glide" | "slide" | "zoom";
-
-  effect?: "none" | "cinematic" | "warm" | "cool" | "golden";
-
-  showCounter?: boolean;
-
-  beatTimestamps?: number[];
+interface Template33Props {
+  images?: ImageItem[];
+  music?: Music;
 }
 
 // ======================================================
-// PREMIUM GRID
+// CONFIG
 // ======================================================
 
-export const PremiumGrid: React.FC<PremiumGridProps> = ({
-  images = [],
+export const FPS = 30;
 
-  music,
+// EXACT 11 SECONDS
+export const DURATION_IN_FRAMES = 330;
 
-  backgroundColor = "#000000",
+// ======================================================
+// IMAGE COUNT
+// ======================================================
 
-  gap = 16,
+export const IMAGE_COUNT = 4;
 
-  beatTimestamps = [],
-}) => {
-  const frame = useCurrentFrame();
+// ======================================================
+// TIMING
+// ======================================================
+//
+// 0 - 3 sec  = 4 image grid
+// 3 - 11 sec = 4 framed fullscreen images
+//
+// ======================================================
 
-  const { fps, width } = useVideoConfig();
+const GRID_DURATION = 90; // 3 sec
 
-  const beatScale = getBeatScale(
-    frame,
-    fps,
-    beatTimestamps
-  );
+const FULLSCREEN_DURATION = 240; // 8 sec
 
-  // ======================================================
-  // ONLY 4 IMAGES
-  // ======================================================
+// ======================================================
+// GRID IMAGE DURATIONS
+// ======================================================
+//
+// Image 1 = 0.0 - 0.5 sec
+// Image 2 = 0.5 - 1.0 sec
+// Image 3 = 1.0 - 1.5 sec
+// Image 4 = 1.5 - 2.0 sec
+//
+// 2.0 - 3.0 sec = complete grid hold
+//
+// ======================================================
 
-  const imageList = images.slice(0, IMAGE_COUNT);
+const GRID_IMAGE_DURATION = 15;
 
-  // ======================================================
-  // PHASE 1
-  // 0 - 4 SEC
-  // 2x2 COLLAGE
-  // ======================================================
+// ======================================================
+// FULLSCREEN DURATIONS
+// ======================================================
+//
+// 3 - 5 sec  = Image 1
+// 5 - 7 sec  = Image 2
+// 7 - 9 sec  = Image 3
+// 9 - 11 sec = Image 4
+//
+// ======================================================
 
-  const gridEndFrame = 120;
+const FULLSCREEN_DURATIONS = [
+  60,
+  60,
+  60,
+  60,
+];
 
-  const isGridPhase =
-    frame < gridEndFrame;
+// ======================================================
+// SAFE CLAMP
+// ======================================================
 
-  // ======================================================
-  // PHASE 2
-  // 4 - 15 SEC
-  // FULL SCREEN SHOWCASE
-  // ======================================================
+const clamp = {
+  extrapolateLeft: "clamp" as const,
+  extrapolateRight: "clamp" as const,
+};
 
-  const spotlightFrame = Math.max(
-    0,
-    frame - gridEndFrame
-  );
+// ======================================================
+// DEFAULT PROPS
+// ======================================================
 
-  const spotlightDurationPerImage = 82;
-
-  const currentSpotlightIndex =
-    !isGridPhase && imageList.length > 0
-      ? Math.min(
-          imageList.length - 1,
-          Math.floor(
-            spotlightFrame /
-              spotlightDurationPerImage
-          )
-        )
-      : 0;
-
-  const spotlightLocalFrame =
-    spotlightFrame %
-    spotlightDurationPerImage;
-
-  // ======================================================
-  // LEFT / RIGHT SLIDE
-  // ======================================================
-
-  const isEven =
-    currentSpotlightIndex % 2 === 0;
-
-  const startX = isEven
-    ? -width
-    : width;
-
-  const slideX = interpolate(
-    spotlightLocalFrame,
-    [0, 10],
-    [startX, 0],
+export const DEFAULT_PROPS: Template33Props = {
+  images: [
     {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    }
-  );
+      path:
+        "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=1200&auto=format&fit=crop",
+    },
+    {
+      path:
+        "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop",
+    },
+    {
+      path:
+        "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=1200&auto=format&fit=crop",
+    },
+    {
+      path:
+        "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=1200&auto=format&fit=crop",
+    },
+  ],
 
-  // ======================================================
+  music: undefined,
+};
+
+// ======================================================
+// IMAGE SOURCE
+// ======================================================
+
+const getImgSrc = (
+  images: ImageItem[],
+  index: number
+): string => {
+  if (!images || images.length === 0) {
+    return (
+      DEFAULT_PROPS.images?.[0]?.path ||
+      ""
+    );
+  }
+
+  const actualIndex =
+    index % images.length;
+
+  const image =
+    images[actualIndex];
+
+  // Prefer URL
+  if (image?.url) {
+    return image.url;
+  }
+
+  // Fallback to path
+  if (image?.path) {
+    return image.path;
+  }
+
+  return (
+    DEFAULT_PROPS.images?.[0]?.path ||
+    ""
+  );
+};
+
+// ======================================================
+// GET FULLSCREEN IMAGE INDEX
+// ======================================================
+
+const getFullscreenImageIndex = (
+  frame: number
+): number => {
+  const localFrame =
+    frame - GRID_DURATION;
+
+  let accumulated = 0;
+
+  for (
+    let i = 0;
+    i < FULLSCREEN_DURATIONS.length;
+    i++
+  ) {
+    accumulated +=
+      FULLSCREEN_DURATIONS[i];
+
+    if (
+      localFrame < accumulated
+    ) {
+      return i;
+    }
+  }
+
+  return 3;
+};
+
+// ======================================================
+// GET FULLSCREEN START
+// ======================================================
+
+const getFullscreenStart = (
+  imageIndex: number
+): number => {
+  let start = 0;
+
+  for (
+    let i = 0;
+    i < imageIndex;
+    i++
+  ) {
+    start +=
+      FULLSCREEN_DURATIONS[i];
+  }
+
+  return start;
+};
+
+// ======================================================
+// GRID POSITIONS
+// ======================================================
+//
+// Reference-style masonry layout
+//
+// ======================================================
+
+const GRID_POSITIONS = [
+
+  // ====================================================
+  // IMAGE 1 - TOP LEFT
+  // Text ke liye upar blank space
+  // ====================================================
+
+  {
+    left: "6%",
+    top: "15%",
+    width: "44%",
+    height: "36.5%",
+  },
+
+  // ====================================================
+  // IMAGE 2 - TOP RIGHT
+  // ====================================================
+
+  {
+    left: "48%",
+    top: "8.5%",
+    width: "46%",
+    height: "43%",
+  },
+
+  // ====================================================
+  // IMAGE 3 - BOTTOM LEFT
+  // ====================================================
+
+  {
+    left: "6%",
+    top: "51.5%",
+    width: "44%",
+    height: "43%",
+  },
+
+  // ====================================================
+  // IMAGE 4 - BOTTOM RIGHT
+  // ====================================================
+
+  {
+    left: "48%",
+    top: "51.5%",
+    width: "46%",
+    height: "43%",
+  },
+];
+
+// ======================================================
+// GRID IMAGE PROPS
+// ======================================================
+
+interface GridImageProps {
+  src: string;
+  index: number;
+  frame: number;
+}
+
+// ======================================================
+// GRID IMAGE
+// ======================================================
+
+const GridImage: React.FC<
+  GridImageProps
+> = ({
+  src,
+  index,
+  frame,
+}) => {
+
+  // ====================================================
+  // START FRAME
+  // ====================================================
+
+  const startFrame =
+    index *
+    GRID_IMAGE_DURATION;
+
+  // ====================================================
+  // LOCAL FRAME
+  // ====================================================
+
+  const localFrame =
+    frame - startFrame;
+
+  // ====================================================
+  // OPACITY
+  // ====================================================
+
+  const opacity =
+    interpolate(
+      localFrame,
+      [0, 5],
+      [0, 1],
+      clamp
+    );
+
+  // ====================================================
+  // ENTRANCE SCALE
+  // ====================================================
+
+  const scale =
+    interpolate(
+      localFrame,
+      [0, 6],
+      [0.96, 1],
+      {
+        ...clamp,
+        easing:
+          Easing.out(
+            Easing.cubic
+          ),
+      }
+    );
+
+  // ====================================================
+  // POSITION
+  // ====================================================
+
+  const position =
+    GRID_POSITIONS[index];
+
+  // ====================================================
   // RETURN
-  // ======================================================
+  // ====================================================
 
   return (
     <AbsoluteFill
       style={{
-        background: backgroundColor,
+        left:
+          position.left,
 
-        justifyContent: "center",
+        top:
+          position.top,
 
-        alignItems: "center",
+        width:
+          position.width,
 
-        overflow: "hidden",
+        height:
+          position.height,
+
+        opacity,
+
+        transform:
+          `scale(${scale})`,
+
+        transformOrigin:
+          "center center",
+
+        overflow:
+          "hidden",
+
+        backgroundColor:
+          "#ffffff",
+
+        border:
+          "3px solid #ffffff",
+
+        boxSizing:
+          "border-box",
+
+        boxShadow:
+          "none",
+
+        zIndex:
+          2,
       }}
     >
-      {/* ==================================================
-          MUSIC
-      ================================================== */}
 
-      {music?.path && (
-        <MusicPlayer
-          src={music.path}
-          volume={music.volume ?? 1}
-        />
-      )}
+      <Img
+        src={src}
+        style={{
+          width:
+            "100%",
 
-      {/* ==================================================
-          PHASE 1
-          0 - 4 SEC
-          2x2 COLLAGE
-      ================================================== */}
+          height:
+            "100%",
 
-      {isGridPhase && (
-        <div
-          style={{
-            width: "100%",
+          objectFit:
+            "cover",
 
-            height: "100%",
+          display:
+            "block",
 
-            display: "grid",
+          filter:
+            "none",
 
-            gridTemplateColumns:
-              "1fr 1fr",
+          WebkitFilter:
+            "none",
 
-            gridTemplateRows:
-              "1fr 1fr",
+          mixBlendMode:
+            "normal",
+        }}
+      />
 
-            gap,
-
-            padding: 20,
-
-            transform:
-              `scale(${beatScale})`,
-
-            opacity: interpolate(
-              frame,
-              [0, 10, 110, 120],
-              [0, 1, 1, 0],
-              {
-                extrapolateLeft:
-                  "clamp",
-
-                extrapolateRight:
-                  "clamp",
-              }
-            ),
-          }}
-        >
-          {imageList.map(
-            (img, index) => (
-              <div
-                key={index}
-                style={{
-                  borderRadius: 16,
-
-                  overflow: "hidden",
-
-                  position: "relative",
-
-                  boxShadow:
-                    "0 10px 30px rgba(0,0,0,0.5)",
-                }}
-              >
-                <AnimatedImage
-                  src={img.path}
-
-                  animation="kenBurns"
-
-                  durationInFrames={
-                    gridEndFrame
-                  }
-
-                  style={{
-                    width: "100%",
-
-                    height: "100%",
-
-                    objectFit: "cover",
-                  }}
-                />
-              </div>
-            )
-          )}
-
-          {/* Empty boxes if fewer than 4 images */}
-
-          {Array.from({
-            length: Math.max(
-              0,
-              IMAGE_COUNT -
-                imageList.length
-            ),
-          }).map(
-            (_, index) => (
-              <div
-                key={`empty-${index}`}
-                style={{
-                  borderRadius: 16,
-
-                  overflow: "hidden",
-
-                  background:
-                    "rgba(255,255,255,.08)",
-                }}
-              />
-            )
-          )}
-        </div>
-      )}
-
-      {/* ==================================================
-          PHASE 2
-          4 - 15 SEC
-          FULL SCREEN SHOWCASE
-      ================================================== */}
-
-      {!isGridPhase &&
-        imageList[
-          currentSpotlightIndex
-        ] && (
-          <div
-            style={{
-              position: "absolute",
-
-              inset: 0,
-
-              width: "100%",
-
-              height: "100%",
-
-              transform:
-                `translateX(${slideX}px) scale(${beatScale})`,
-
-              zIndex: 20,
-
-              overflow: "hidden",
-            }}
-          >
-            <AnimatedImage
-              src={
-                imageList[
-                  currentSpotlightIndex
-                ].path
-              }
-
-              animation="kenBurns"
-
-              durationInFrames={
-                spotlightDurationPerImage
-              }
-
-              style={{
-                width: "100%",
-
-                height: "100%",
-
-                objectFit: "cover",
-              }}
-            />
-          </div>
-        )}
     </AbsoluteFill>
   );
 };
 
-export default PremiumGrid;
+// ======================================================
+// GRID TITLE
+// ======================================================
+//
+// Image 1 ke upar blank area mein text
+//
+// ======================================================
+// ======================================================
+// GRID TITLE
+// ======================================================
+
+const GridTitle: React.FC<{
+  frame: number;
+}> = ({ frame }) => {
+
+  const opacity = interpolate(
+    frame,
+    [0, 8],
+    [0, 1],
+    clamp
+  );
+
+  const translateY = interpolate(
+    frame,
+    [0, 10],
+    [6, 0],
+    {
+      ...clamp,
+      easing: Easing.out(Easing.cubic),
+    }
+  );
+
+  return (
+    <AbsoluteFill
+      style={{
+        left: "6%",
+        top: "9.5%",
+        width: "44%",
+        height: "5%",
+
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+
+        opacity,
+
+        transform: `translateY(${translateY}px)`,
+
+        zIndex: 20,
+        pointerEvents: "none",
+      }}
+    >
+      <div
+        style={{
+          fontFamily:
+            "Georgia, 'Times New Roman', serif",
+
+          fontSize: "29px",
+
+          fontWeight: 600,
+
+          lineHeight: 1.1,
+
+          color: "#171717",
+
+          textAlign: "center",
+
+          whiteSpace: "nowrap",
+
+          letterSpacing: "0.2px",
+
+          // very subtle, clean shadow
+          textShadow:
+            "0 1px 2px rgba(255,255,255,0.45)",
+        }}
+      >
+        Hona tha Pyaar
+        <span
+          style={{
+            marginLeft: "7px",
+            fontSize: "24px",
+          }}
+        >
+          ❤️
+        </span>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// ======================================================
+// FULLSCREEN TITLE
+// ======================================================
+// Fullscreen image ke top par
+// "YOU + ME = ❤️"
+// ======================================================
+
+const FullscreenTitle: React.FC<{
+  frame: number;
+}> = ({ frame }) => {
+  const opacity = interpolate(
+    frame,
+    [0, 8],
+    [0, 1],
+    clamp
+  );
+
+  const translateY = interpolate(
+    frame,
+    [0, 10],
+    [8, 0],
+    {
+      ...clamp,
+      easing: Easing.out(Easing.cubic),
+    }
+  );
+
+  return (
+    <AbsoluteFill
+      style={{
+        position: "absolute",
+
+        top: "2.5%",
+        left: "0%",
+        width: "100%",
+        height: "7%",
+
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+
+        opacity,
+
+        transform: `translateY(${translateY}px)`,
+
+        zIndex: 10,
+        pointerEvents: "none",
+      }}
+    >
+      <div
+        style={{
+          fontFamily:
+            "Georgia, 'Times New Roman', serif",
+
+          fontSize: "30px",
+
+          fontWeight: 500,
+
+          lineHeight: 1,
+
+          color: "black",
+
+          textAlign: "center",
+
+          whiteSpace: "nowrap",
+
+          letterSpacing: "1.5px",
+
+          textShadow:
+            "0 2px 6px rgba(0,0,0,0.45)",
+        }}
+      >
+        YOU + ME
+        <span
+          style={{
+            marginLeft: "9px",
+            fontSize: "27px",
+          }}
+        >
+          = ❤️
+        </span>
+      </div>
+    </AbsoluteFill>
+  );
+};
+// ======================================================
+// TEMPLATE 33
+// ======================================================
+
+export const Template33: React.FC<
+  Template33Props
+> = ({
+  images = [],
+  music,
+}) => {
+
+  const frame =
+    useCurrentFrame();
+
+  // ====================================================
+  // SAFE IMAGES
+  // ====================================================
+
+  const safeImages =
+    images.length >= 4
+      ? images
+      : [
+          ...images,
+          ...DEFAULT_PROPS.images!,
+        ].slice(0, 4);
+
+  // ====================================================
+  // MUSIC
+  // ====================================================
+
+  const musicSrc =
+    music?.path;
+
+  // ====================================================
+  // FULLSCREEN STATE
+  // ====================================================
+
+  const isFullscreen =
+    frame >= GRID_DURATION;
+
+  // ====================================================
+  // FULLSCREEN IMAGE INDEX
+  // ====================================================
+
+  const fullscreenIndex =
+    isFullscreen
+      ? getFullscreenImageIndex(
+          frame
+        )
+      : 0;
+
+  // ====================================================
+  // FULLSCREEN START
+  // ====================================================
+
+  const fullscreenStart =
+    isFullscreen
+      ? getFullscreenStart(
+          fullscreenIndex
+        )
+      : 0;
+
+  // ====================================================
+  // FULLSCREEN LOCAL FRAME
+  // ====================================================
+
+  const fullscreenLocalFrame =
+    isFullscreen
+      ? frame -
+        GRID_DURATION -
+        fullscreenStart
+      : 0;
+
+  // ====================================================
+  // FULLSCREEN DURATION
+  // ====================================================
+
+  const fullscreenDuration =
+    FULLSCREEN_DURATIONS[
+      fullscreenIndex
+    ];
+
+  // ====================================================
+  // FULLSCREEN PROGRESS
+  // ====================================================
+
+  const fullscreenProgress =
+    interpolate(
+      fullscreenLocalFrame,
+      [
+        0,
+        Math.max(
+          1,
+          fullscreenDuration - 1
+        ),
+      ],
+      [0, 1],
+      clamp
+    );
+
+  // ====================================================
+  // FULLSCREEN ZOOM
+  // ====================================================
+
+  const fullscreenZoom =
+    interpolate(
+      fullscreenProgress,
+      [0, 1],
+      [1.01, 1.025],
+      {
+        ...clamp,
+        easing:
+          Easing.inOut(
+            Easing.cubic
+          ),
+      }
+    );
+
+  // ====================================================
+  // FULLSCREEN OPACITY
+  // ====================================================
+
+  const fullscreenOpacity =
+    interpolate(
+      fullscreenLocalFrame,
+      [0, 3],
+      [0, 1],
+      clamp
+    );
+
+  // ====================================================
+  // RETURN
+  // ====================================================
+
+  return (
+    <AbsoluteFill
+      style={{
+        backgroundColor:
+          "#eee8e4",
+
+        overflow:
+          "hidden",
+      }}
+    >
+
+      {/* ==================================================
+          MUSIC
+          ================================================== */}
+
+      {musicSrc && (
+        <MusicPlayer
+          src={musicSrc}
+          volume={
+            music?.volume ?? 1
+          }
+        />
+      )}
+
+      {/* ==================================================
+          0 - 3 SEC
+          4 IMAGE GRID
+          ================================================== */}
+
+      {frame < GRID_DURATION && (
+        <AbsoluteFill
+          style={{
+            backgroundColor:
+              "#eee8e4",
+
+            overflow:
+              "hidden",
+          }}
+        >
+
+          {/* ==============================================
+              GRID TITLE
+              Image 1 ke upar
+              ============================================== */}
+
+          <GridTitle
+            frame={frame}
+          />
+
+          {/* ==============================================
+              IMAGE 1
+              TOP LEFT
+              ============================================== */}
+
+          <GridImage
+            src={getImgSrc(
+              safeImages,
+              0
+            )}
+            index={0}
+            frame={frame}
+          />
+
+          {/* ==============================================
+              IMAGE 2
+              TOP RIGHT
+              ============================================== */}
+
+          <GridImage
+            src={getImgSrc(
+              safeImages,
+              1
+            )}
+            index={1}
+            frame={frame}
+          />
+
+          {/* ==============================================
+              IMAGE 3
+              BOTTOM LEFT
+              ============================================== */}
+
+          <GridImage
+            src={getImgSrc(
+              safeImages,
+              2
+            )}
+            index={2}
+            frame={frame}
+          />
+
+          {/* ==============================================
+              IMAGE 4
+              BOTTOM RIGHT
+              ============================================== */}
+
+          <GridImage
+            src={getImgSrc(
+              safeImages,
+              3
+            )}
+            index={3}
+            frame={frame}
+          />
+
+        </AbsoluteFill>
+      )}
+
+      {/* ==================================================
+          3 - 11 SEC
+          FRAMED FULLSCREEN IMAGES
+          ================================================== */}
+
+      {isFullscreen && (
+        <AbsoluteFill
+          style={{
+            backgroundColor:
+              "#eee8e4",
+
+            overflow:
+              "hidden",
+
+            opacity:
+              fullscreenOpacity,
+          }}
+        >
+  <FullscreenTitle
+      frame={fullscreenLocalFrame}
+    />
+          {/* =================================================
+              FULLSCREEN IMAGE FRAME
+              ================================================= */}
+
+          <AbsoluteFill
+            style={{
+              position:
+                "absolute",
+
+              left:
+                "8%",
+
+              top:
+                "8.5%",
+
+              width:
+                "84%",
+
+              height:
+                "85.5%",
+
+              overflow:
+                "hidden",
+
+              backgroundColor:
+                "#ffffff",
+
+              boxSizing:
+                "border-box",
+            }}
+          >
+
+            {/* ===============================================
+                FULLSCREEN IMAGE
+                =============================================== */}
+
+            <Img
+              src={getImgSrc(
+                safeImages,
+                fullscreenIndex
+              )}
+              style={{
+                position:
+                  "absolute",
+
+                width:
+                  "100%",
+
+                height:
+                  "100%",
+
+                objectFit:
+                  "cover",
+
+                display:
+                  "block",
+
+                transform:
+                  `scale(${fullscreenZoom})`,
+
+                transformOrigin:
+                  "center center",
+
+                filter:
+                  "none",
+
+                WebkitFilter:
+                  "none",
+
+                mixBlendMode:
+                  "normal",
+              }}
+            />
+
+          </AbsoluteFill>
+
+        </AbsoluteFill>
+      )}
+
+    </AbsoluteFill>
+  );
+};
+
+// ======================================================
+// DEFAULT EXPORT
+// ======================================================
+
+export default Template33;

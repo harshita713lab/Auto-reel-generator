@@ -105,7 +105,7 @@ class RenderService {
         9: ['Template27','Template26','Template29'],
         11: ['Template14','Template3'],
         12: ['Template6', 'Template17'],
-        13: ['Template2', 'Template16'],
+        13: ['Template16', 'Template2'],
         14: ['Template24','Template23','Template20','Template1'],
         15: ['Template9'],
         16: ['Template10'],
