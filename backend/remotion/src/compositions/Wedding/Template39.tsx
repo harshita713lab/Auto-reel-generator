@@ -41,10 +41,10 @@ export const DURATION_IN_FRAMES = 240;
 // ======================================================
 
 const TEXTS = [
-  "Dil ka shehar tu hai",
-  "Achhi khabar tu hai",
-  "Fursat ki hasi tu hai",
-  "Jo bhi thi kami, tu hai",
+  "दिल ka shehar tu hai❤️",
+  "Achhi ख़बर tu hai🥰",
+  "फ़ुर्सत ki hasi tu hai🤗",
+  "Jo bhi thi कमी, tu hai❤️",
 ];
 
 // ======================================================
@@ -60,7 +60,6 @@ export const Template22: React.FC<Template22Props> = ({
   // ====================================================
   // IMAGE 1
   // 0 - 2 SEC
-  // Frames: 0 - 60
   // ====================================================
 
   const image1Progress = interpolate(
@@ -82,7 +81,6 @@ export const Template22: React.FC<Template22Props> = ({
   // ====================================================
   // IMAGE 2
   // 2 - 4 SEC
-  // Frames: 60 - 120
   // ====================================================
 
   const image2Progress = interpolate(
@@ -104,7 +102,6 @@ export const Template22: React.FC<Template22Props> = ({
   // ====================================================
   // IMAGE 3
   // 4 - 6 SEC
-  // Frames: 120 - 180
   // ====================================================
 
   const image3Progress = interpolate(
@@ -126,7 +123,6 @@ export const Template22: React.FC<Template22Props> = ({
   // ====================================================
   // IMAGE 4
   // 6 - 8 SEC
-  // Frames: 180 - 240
   // ====================================================
 
   const image4Progress = interpolate(
@@ -154,37 +150,37 @@ export const Template22: React.FC<Template22Props> = ({
   let currentZoom = 1;
 
   if (frame < 60) {
-    // 0 - 2 sec
     currentImage = images[0]?.path || "";
     currentText = TEXTS[0];
     currentZoom = zoom1;
   } else if (frame < 120) {
-    // 2 - 4 sec
     currentImage = images[1]?.path || "";
     currentText = TEXTS[1];
     currentZoom = zoom2;
   } else if (frame < 180) {
-    // 4 - 6 sec
     currentImage = images[2]?.path || "";
     currentText = TEXTS[2];
     currentZoom = zoom3;
   } else {
-    // 6 - 8 sec
     currentImage = images[3]?.path || "";
     currentText = TEXTS[3];
     currentZoom = zoom4;
   }
 
   // ====================================================
-  // TEXT FADE
-  // Every image gets its own 2-second animation
+  // LOCAL FRAME
+  // Every image = 60 frames
   // ====================================================
 
   const localFrame = frame % 60;
 
+  // ====================================================
+  // TEXT FADE
+  // ====================================================
+
   const textOpacity = interpolate(
     localFrame,
-    [0, 5, 52, 60],
+    [0, 5, 48, 60],
     [0, 1, 1, 0],
     {
       extrapolateLeft: "clamp",
@@ -193,13 +189,112 @@ export const Template22: React.FC<Template22Props> = ({
   );
 
   // ====================================================
-  // TEXT SLIGHT MOVEMENT
+  // TEXT MOVEMENT
   // ====================================================
 
   const textY = interpolate(
     localFrame,
-    [0, 8, 52, 60],
-    [8, 0, 0, -4],
+    [0, 8, 48, 60],
+    [12, 0, 0, -8],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
+  // ====================================================
+  // TEXT SCALE
+  // Small cinematic appearance
+  // ====================================================
+
+  const textScale = interpolate(
+    localFrame,
+    [0, 10, 48, 60],
+    [0.92, 1, 1, 0.97],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
+  // ====================================================
+  // FLASH EFFECT
+  //
+  // Flash happens around every image change.
+  // Very soft so it doesn't look like a harsh transition.
+  // ====================================================
+
+  const flashIn = interpolate(
+    localFrame,
+    [0, 2, 7],
+    [0.38, 0.16, 0],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
+  // ====================================================
+  // LIGHT LEAK
+  // ====================================================
+
+  const lightLeakOpacity = interpolate(
+    localFrame,
+    [0, 12, 35, 60],
+    [0.18, 0.08, 0.05, 0.12],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
+  const lightLeakX = interpolate(
+    localFrame,
+    [0, 60],
+    [-25, 25],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
+  // ====================================================
+  // SOFT IMAGE FADE
+  // ====================================================
+
+  const imageOpacity = interpolate(
+    localFrame,
+    [0, 5, 60],
+    [0, 1, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
+  // ====================================================
+  // IMAGE SLIGHT MOTION
+  // Keeps zoom but adds tiny cinematic movement
+  // ====================================================
+
+  const imageMoveX = interpolate(
+    localFrame,
+    [0, 60],
+    [-5, 5],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
+
+  // ====================================================
+  // WARMTH
+  // ====================================================
+
+  const warmOpacity = interpolate(
+    localFrame,
+    [0, 30, 60],
+    [0.08, 0.12, 0.10],
     {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",
@@ -213,7 +308,7 @@ export const Template22: React.FC<Template22Props> = ({
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: "black",
+        backgroundColor: "#000",
         overflow: "hidden",
       }}
     >
@@ -234,18 +329,79 @@ export const Template22: React.FC<Template22Props> = ({
 
             objectFit: "cover",
 
-            transform: `scale(${currentZoom})`,
+            opacity: imageOpacity,
+
+            transform: `
+              translateX(${imageMoveX}px)
+              scale(${currentZoom})
+            `,
+
+            transformOrigin: "center center",
+
+            display: "block",
           }}
         />
       )}
 
       {/* ==================================================
-          WARM CINEMATIC OVERLAY
+          WARM CINEMATIC COLOR
       ================================================== */}
 
       <AbsoluteFill
         style={{
-          background: "rgba(80, 45, 30, 0.10)",
+          background:
+            `rgba(80, 45, 30, ${warmOpacity})`,
+
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* ==================================================
+          SOFT PINK GLOW
+      ================================================== */}
+
+      <AbsoluteFill
+        style={{
+          background:
+            "radial-gradient(" +
+            "circle at 50% 45%, " +
+            "rgba(255,220,230,0.16), " +
+            "transparent 60%" +
+            ")",
+
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* ==================================================
+          LIGHT LEAK
+      ================================================== */}
+
+      <div
+        style={{
+          position: "absolute",
+
+          top: "-20%",
+          left: `${lightLeakX}%`,
+
+          width: "75%",
+          height: "140%",
+
+          background:
+            "linear-gradient(" +
+            "115deg, " +
+            "transparent 20%, " +
+            "rgba(255,190,205,0.13) 45%, " +
+            "rgba(255,245,240,0.10) 52%, " +
+            "transparent 75%" +
+            ")",
+
+          filter: "blur(35px)",
+
+          opacity: lightLeakOpacity,
+
+          transform: "rotate(8deg)",
+
           pointerEvents: "none",
         }}
       />
@@ -257,41 +413,51 @@ export const Template22: React.FC<Template22Props> = ({
       <AbsoluteFill
         style={{
           display: "flex",
+
           alignItems: "center",
+
           justifyContent: "center",
 
           opacity: textOpacity,
 
-          transform: `translateY(${textY}px)`,
+          transform:
+            `translateY(${textY}px) scale(${textScale})`,
 
           pointerEvents: "none",
+
+          padding: "0 70px",
+
+          zIndex: 10,
         }}
       >
         <div
           style={{
-            color: "#ffffff",
+            color: "#fffafc",
 
-            fontSize: 40,
+            fontSize: 52,
 
             fontWeight: 400,
 
             fontFamily:
-              "Georgia, 'Times New Roman', serif",
+              "'Brush Script MT', 'Segoe Script', 'Lucida Handwriting', cursive",
 
-            fontStyle: "italic",
+            fontStyle: "normal",
 
             textAlign: "center",
 
-            letterSpacing: "0.8px",
+            letterSpacing: "1px",
 
-            lineHeight: 1.25,
+            lineHeight: 1.3,
 
             textShadow:
-              "0px 2px 5px rgba(0,0,0,0.55)",
+              "0px 3px 8px rgba(0,0,0,0.55), " +
+              "0px 0px 18px rgba(255,220,230,0.25)",
 
             background: "transparent",
 
             padding: 0,
+
+            maxWidth: 900,
           }}
         >
           {currentText}
@@ -299,7 +465,54 @@ export const Template22: React.FC<Template22Props> = ({
       </AbsoluteFill>
 
       {/* ==================================================
-          VIGNETTE
+          HEART DECORATION
+          Small subtle hearts around text
+      ================================================== */}
+
+      <div
+        style={{
+          position: "absolute",
+
+          left: "50%",
+          top: "58%",
+
+          transform: "translateX(-50%)",
+
+          color: "rgba(255,225,235,0.75)",
+
+          fontSize: 22,
+
+          opacity: textOpacity * 0.8,
+
+          zIndex: 11,
+
+          pointerEvents: "none",
+
+          textShadow:
+            "0 2px 6px rgba(0,0,0,0.4)",
+        }}
+      >
+        ♡
+      </div>
+
+      {/* ==================================================
+          FLASH
+      ================================================== */}
+
+      <AbsoluteFill
+        style={{
+          backgroundColor: "#fff",
+
+          opacity: flashIn,
+
+          pointerEvents: "none",
+
+          zIndex: 20,
+        }}
+      />
+
+      {/* ==================================================
+          SOFT VIGNETTE
       ================================================== */}
 
       <AbsoluteFill
@@ -309,9 +522,37 @@ export const Template22: React.FC<Template22Props> = ({
           background:
             "radial-gradient(" +
             "ellipse at center, " +
-            "transparent 50%, " +
-            "rgba(0,0,0,0.25) 100%" +
+            "transparent 45%, " +
+            "rgba(0,0,0,0.30) 100%" +
             ")",
+
+          zIndex: 30,
+        }}
+      />
+
+      {/* ==================================================
+          FILM GRAIN
+          Very subtle
+      ================================================== */}
+
+      <AbsoluteFill
+        style={{
+          pointerEvents: "none",
+
+          opacity: 0.055,
+
+          zIndex: 40,
+
+          backgroundImage:
+            "url(\"data:image/svg+xml," +
+            "<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'>" +
+            "<filter id='n'>" +
+            "<feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/>" +
+            "</filter>" +
+            "<rect width='100%' height='100%' filter='url(%23n)' opacity='.35'/>" +
+            "</svg>\")",
+
+          mixBlendMode: "soft-light",
         }}
       />
 

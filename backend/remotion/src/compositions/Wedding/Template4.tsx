@@ -13,7 +13,7 @@ import {
 
 export const IMAGE_COUNT = 4;
 export const FPS = 30;
-export const DURATION_IN_FRAMES = 330; // 11 seconds
+export const DURATION_IN_FRAMES = 330;
 
 // ======================================================
 // TYPES
@@ -57,7 +57,6 @@ const clamp = {
 
 // ======================================================
 // TEXT TIMELINE
-// 330 frames / 4 scenes
 // ======================================================
 
 const LYRICS_TIMELINE = [
@@ -267,17 +266,24 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
 
   const activeBlock =
     LYRICS_TIMELINE.find(
-      (item) => frame >= item.start && frame < item.end
+      (item) =>
+        frame >= item.start &&
+        frame < item.end
     ) ||
-    LYRICS_TIMELINE[LYRICS_TIMELINE.length - 1];
+    LYRICS_TIMELINE[
+      LYRICS_TIMELINE.length - 1
+    ];
 
   const currentImg =
-    safeImages[activeBlock.imageIdx] || DEFAULT_IMAGES[0];
+    safeImages[activeBlock.imageIdx] ||
+    DEFAULT_IMAGES[0];
 
-  const localFrame = frame - activeBlock.start;
+  const localFrame =
+    frame - activeBlock.start;
 
   const sceneDuration =
-    activeBlock.end - activeBlock.start;
+    activeBlock.end -
+    activeBlock.start;
 
   // ====================================================
   // TEXT FADE
@@ -285,7 +291,7 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
 
   const textOpacity = interpolate(
     localFrame,
-    [0, 10, sceneDuration - 12, sceneDuration],
+    [0, 12, sceneDuration - 14, sceneDuration],
     [0, 1, 1, 0],
     clamp
   );
@@ -296,8 +302,8 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
 
   const textY = interpolate(
     localFrame,
-    [0, 20],
-    [48, 0],
+    [0, 24],
+    [25, 0],
     {
       ...clamp,
       easing: Easing.out(Easing.cubic),
@@ -306,11 +312,11 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
 
   const textScale = interpolate(
     localFrame,
-    [0, 20],
-    [0.90, 1],
+    [0, 24],
+    [0.96, 1],
     {
       ...clamp,
-      easing: Easing.out(Easing.back(1.1)),
+      easing: Easing.out(Easing.cubic),
     }
   );
 
@@ -325,38 +331,46 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
     3 = left
   */
 
-  const direction = activeBlock.imageIdx % 4;
+  const direction =
+    activeBlock.imageIdx % 4;
 
   let startX = 0;
   let startY = 0;
 
+  // MUCH SMALLER DISTANCE = SMOOTHER
+
   if (direction === 0) {
-    startY = 1050;
+    startY = 520;
   }
 
   if (direction === 1) {
-    startX = 1050;
+    startX = 520;
   }
 
   if (direction === 2) {
-    startY = -1050;
+    startY = -520;
   }
 
   if (direction === 3) {
-    startX = -1050;
+    startX = -520;
   }
 
   // ====================================================
   // CARD PROGRESS
   // ====================================================
 
+  /*
+    No back() here.
+    Back easing was causing the bounce/jitter.
+  */
+
   const cardProgress = interpolate(
     localFrame,
-    [0, 10, 32],
-    [0, 0.38, 1],
+    [0, 26],
+    [0, 1],
     {
       ...clamp,
-      easing: Easing.out(Easing.back(1.12)),
+      easing: Easing.out(Easing.cubic),
     }
   );
 
@@ -390,31 +404,24 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
 
   const entryRotation =
     direction === 0
-      ? -7
+      ? -4
       : direction === 1
-      ? 8
+      ? 4
       : direction === 2
-      ? 6
-      : -8;
-
-  /*
-    IMPORTANT:
-    Card ab end me 0deg par nahi jayega.
-    Thoda natural tilted rahega.
-  */
+      ? 3
+      : -4;
 
   const finalRotation =
     activeBlock.imageIdx % 2 === 0
-      ? -2.2
-      : 2.2;
+      ? -1.5
+      : 1.5;
 
   const cardRotate = interpolate(
     cardProgress,
-    [0, 0.35, 0.72, 1],
+    [0, 0.55, 1],
     [
       entryRotation,
-      entryRotation * 0.35,
-      finalRotation * 1.3,
+      finalRotation * 1.12,
       finalRotation,
     ],
     {
@@ -427,13 +434,23 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
   // CARD SCALE
   // ====================================================
 
+  /*
+    Previously:
+    0.72 -> 1.025 -> 1
+
+    That overshoot was causing a small jump.
+
+    Now:
+    0.90 -> 1
+  */
+
   const cardScale = interpolate(
     cardProgress,
-    [0, 0.65, 1],
-    [0.72, 1.025, 1],
+    [0, 1],
+    [0.90, 1],
     {
       ...clamp,
-      easing: Easing.out(Easing.back(1.05)),
+      easing: Easing.out(Easing.cubic),
     }
   );
 
@@ -443,7 +460,7 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
 
   const cardOpacity = interpolate(
     localFrame,
-    [0, 6, sceneDuration - 10, sceneDuration],
+    [0, 8, sceneDuration - 12, sceneDuration],
     [0, 1, 1, 0],
     clamp
   );
@@ -452,10 +469,15 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
   // VERY SUBTLE FLOAT
   // ====================================================
 
+  /*
+    Almost static.
+    Only 1.5px movement.
+  */
+
   const floatY = interpolate(
     localFrame,
-    [30, sceneDuration],
-    [0, -5],
+    [25, sceneDuration / 2, sceneDuration],
+    [0, -1.5, 0],
     {
       ...clamp,
       easing: Easing.inOut(Easing.sin),
@@ -466,17 +488,24 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
   // IMAGE KEN BURNS
   // ====================================================
 
+  /*
+    Much smaller movement.
+  */
+
   const imageScale = interpolate(
     localFrame,
     [0, sceneDuration],
-    [1.02, 1.085],
-    clamp
+    [1.015, 1.045],
+    {
+      ...clamp,
+      easing: Easing.inOut(Easing.sin),
+    }
   );
 
   const imageX = interpolate(
     localFrame,
     [0, sceneDuration],
-    [-10, 10],
+    [-3, 3],
     {
       ...clamp,
       easing: Easing.inOut(Easing.sin),
@@ -486,7 +515,7 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
   const imageY = interpolate(
     localFrame,
     [0, sceneDuration],
-    [7, -7],
+    [2, -2],
     {
       ...clamp,
       easing: Easing.inOut(Easing.sin),
@@ -497,10 +526,15 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
   // BACKGROUND MOVEMENT
   // ====================================================
 
+  /*
+    Background was also moving.
+    Now almost completely static.
+  */
+
   const bgMove = interpolate(
     frame,
     [0, DURATION_IN_FRAMES],
-    [-10, 10],
+    [-2, 2],
     {
       ...clamp,
       easing: Easing.inOut(Easing.sin),
@@ -524,8 +558,8 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
 
   const transitionFlash = interpolate(
     localFrame,
-    [0, 4, 12],
-    [0.20, 0.06, 0],
+    [0, 5, 14],
+    [0.10, 0.035, 0],
     clamp
   );
 
@@ -563,7 +597,8 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
           top: "50%",
           width: 1100,
           height: 1100,
-          transform: "translate(-50%, -50%)",
+          transform:
+            "translate(-50%, -50%)",
           borderRadius: "50%",
           background:
             "radial-gradient(circle, rgba(255,255,255,0.96) 0%, rgba(255,249,244,0.70) 38%, transparent 74%)",
@@ -690,7 +725,7 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
         const float = interpolate(
           (frame + index * 13) % 120,
           [0, 60, 120],
-          [0, -5, 0],
+          [0, -2, 0],
           {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
@@ -820,28 +855,20 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
 
       {/* ==================================================
           MAIN TEXT
-          MORE DOWN + BIGGER
       ================================================== */}
 
       <div
         style={{
           position: "absolute",
-
-          // ⬇️ TEXT AB AUR NICHE
           top: 145,
-
           left: 0,
           right: 0,
-
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           textAlign: "center",
-
           zIndex: 30,
-
           opacity: textOpacity,
-
           transform: `
             translateY(${textY}px)
             scale(${textScale})
@@ -892,7 +919,7 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
             const lineOpacity =
               interpolate(
                 lineFrame,
-                [0, 9],
+                [0, 10],
                 [0, 1],
                 clamp
               );
@@ -900,12 +927,12 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
             const lineY =
               interpolate(
                 lineFrame,
-                [0, 14],
-                [22, 0],
+                [0, 16],
+                [15, 0],
                 {
                   ...clamp,
                   easing:
-                    Easing.out(Easing.quad),
+                    Easing.out(Easing.cubic),
                 }
               );
 
@@ -914,7 +941,6 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
                 key={idx}
                 style={{
                   opacity: lineOpacity,
-
                   transform:
                     `translateY(${lineY}px)`,
 
@@ -923,7 +949,6 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
                       ? "'Montserrat', 'Helvetica Neue', sans-serif"
                       : "'Brush Script MT', 'Segoe Script', 'Snell Roundhand', 'URW Chancery L', cursive",
 
-                  // ⬆️ TEXT BIGGER
                   fontSize:
                     line.font === "sans"
                       ? 58
@@ -948,8 +973,7 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
                       ? "uppercase"
                       : "none",
 
-                  whiteSpace:
-                    "nowrap",
+                  whiteSpace: "nowrap",
 
                   textShadow:
                     line.font === "script"
@@ -1010,10 +1034,8 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
       <div
         style={{
           position: "absolute",
-
           left: "50%",
           top: "63%",
-
           width: "76%",
           height: "53%",
 
@@ -1023,7 +1045,7 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
               ${cardX * 0.92}px,
               ${cardY * 0.92 + floatY}px
             )
-            rotate(${cardRotate + 2}deg)
+            rotate(${cardRotate + 1.5}deg)
           `,
 
           zIndex: 7,
@@ -1054,10 +1076,8 @@ export const AestheticTextCutoutReel: React.FC<TemplateProps> = ({
       <div
         style={{
           position: "absolute",
-
           left: "50%",
           top: "63%",
-
           width: "76%",
           height: "53%",
 

@@ -386,7 +386,6 @@ const Scene1 = ({ images = [] }: { images: ImageItem[] }) => {
 
 const Scene2 = ({ images = [] }: { images: ImageItem[] }) => {
   const frame = useCurrentFrame();
-
   const { fps } = useVideoConfig();
 
   const sceneImages = [
@@ -396,46 +395,180 @@ const Scene2 = ({ images = [] }: { images: ImageItem[] }) => {
     images[11],
   ];
 
-  const progress = spring({
-    frame,
-    fps,
+  // =====================================================
+  // TIMING
+  // Scene 2 = 3 seconds = 90 frames
+  // =====================================================
 
-    config: {
-      damping: 12,
-      stiffness: 150,
-      mass: 0.7,
-    },
-  });
+  // TOP
+  const TOP_CARD_1_START = 0;
+  const TOP_CARD_2_START = 22;
 
-  const translateY = interpolate(
-    progress,
-    [0, 1],
-    [500, 0],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    }
+  // BOTTOM
+  const BOTTOM_CARD_1_START = 48;
+  const BOTTOM_CARD_2_START = 70;
+
+  // =====================================================
+  // SPRING HELPER
+  // =====================================================
+
+  const getProgress = (startFrame: number) => {
+    return spring({
+      frame: Math.max(0, frame - startFrame),
+      fps,
+
+      config: {
+        damping: 14,
+        stiffness: 140,
+        mass: 0.7,
+      },
+    });
+  };
+
+  // =====================================================
+  // PROGRESS
+  // =====================================================
+
+  const topCard1Progress = getProgress(
+    TOP_CARD_1_START
   );
 
-  const scale = interpolate(
-    progress,
-    [0, 1],
-    [0.75, 1],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    }
+  const topCard2Progress = getProgress(
+    TOP_CARD_2_START
   );
 
-  const opacity = interpolate(
-    progress,
-    [0, 0.15, 1],
-    [0, 1, 1],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-    }
+  const bottomCard1Progress = getProgress(
+    BOTTOM_CARD_1_START
   );
+
+  const bottomCard2Progress = getProgress(
+    BOTTOM_CARD_2_START
+  );
+
+  // =====================================================
+  // CARD ANIMATION
+  // =====================================================
+
+  const animateCard = (
+    progress: number,
+    rotation: number
+  ) => {
+
+    // -----------------------------------------------
+    // SLIDE FROM BOTTOM
+    // -----------------------------------------------
+
+    const translateY = interpolate(
+      progress,
+      [0, 1],
+      [550, 0],
+      {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      }
+    );
+
+    // -----------------------------------------------
+    // SCALE / BOUNCE
+    // -----------------------------------------------
+
+    const scale = interpolate(
+      progress,
+      [0, 0.65, 1],
+      [0.72, 1.05, 1],
+      {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      }
+    );
+
+    // -----------------------------------------------
+    // ROTATION
+    // IMPORTANT:
+    // Final rotation = rotation
+    // So card never becomes completely straight
+    // -----------------------------------------------
+
+    const rotate = interpolate(
+      progress,
+      [0, 0.35, 0.7, 1],
+      [
+        rotation * 1.8,
+        rotation * -0.5,
+        rotation * 1.15,
+        rotation,
+      ],
+      {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      }
+    );
+
+    // -----------------------------------------------
+    // FADE IN
+    // -----------------------------------------------
+
+    const opacity = interpolate(
+      progress,
+      [0, 0.08, 1],
+      [0, 1, 1],
+      {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      }
+    );
+
+    return {
+      translateY,
+      scale,
+      rotate,
+      opacity,
+    };
+  };
+
+  // =====================================================
+  // ANIMATION VALUES
+  // =====================================================
+
+  const top1 = animateCard(
+    topCard1Progress,
+    7
+  );
+
+  const top2 = animateCard(
+    topCard2Progress,
+    -9
+  );
+
+  const bottom1 = animateCard(
+    bottomCard1Progress,
+    -7
+  );
+
+  const bottom2 = animateCard(
+    bottomCard2Progress,
+    9
+  );
+
+  // =====================================================
+  // CARD TRANSFORM
+  // =====================================================
+
+  const cardTransform = (
+    animation: {
+      translateY: number;
+      scale: number;
+      rotate: number;
+    }
+  ) => `
+    translateY(${animation.translateY}px)
+    scale(${animation.scale})
+    rotate(${animation.rotate}deg)
+  `;
+
+  // =====================================================
+  // RETURN
+  // =====================================================
 
   return (
     <AbsoluteFill
@@ -449,8 +582,10 @@ const Scene2 = ({ images = [] }: { images: ImageItem[] }) => {
           "linear-gradient(180deg, #d8c9c0 0%, #d9bfd0 48%, #d89da2 100%)",
       }}
     >
+
       {/* ==================================================
-          TOP CARD
+          TOP CARD 1
+          FIRST TO ARRIVE
       ================================================== */}
 
       <div
@@ -463,12 +598,13 @@ const Scene2 = ({ images = [] }: { images: ImageItem[] }) => {
           width: 990,
           height: 700,
 
-          opacity,
+          opacity: top1.opacity,
 
-          transform:
-            `translateY(${translateY}px) scale(${scale})`,
+          transform: cardTransform(top1),
 
           transformOrigin: "center center",
+
+          zIndex: 2,
         }}
       >
         <div
@@ -487,8 +623,6 @@ const Scene2 = ({ images = [] }: { images: ImageItem[] }) => {
 
             backgroundColor: "#f1e3d4",
 
-            transform: "rotate(4deg)",
-
             boxShadow:
               "0 18px 38px rgba(0,0,0,0.16)",
           }}
@@ -505,7 +639,33 @@ const Scene2 = ({ images = [] }: { images: ImageItem[] }) => {
             }}
           />
         </div>
+      </div>
 
+
+      {/* ==================================================
+          TOP CARD 2
+          SECOND TO ARRIVE
+      ================================================== */}
+
+      <div
+        style={{
+          position: "absolute",
+
+          top: 170,
+          left: 45,
+
+          width: 990,
+          height: 700,
+
+          opacity: top2.opacity,
+
+          transform: cardTransform(top2),
+
+          transformOrigin: "center center",
+
+          zIndex: 3,
+        }}
+      >
         <div
           style={{
             position: "absolute",
@@ -521,8 +681,6 @@ const Scene2 = ({ images = [] }: { images: ImageItem[] }) => {
             boxSizing: "border-box",
 
             backgroundColor: "#f5e6d5",
-
-            transform: "rotate(-6deg)",
 
             boxShadow:
               "0 22px 45px rgba(0,0,0,0.22)",
@@ -542,8 +700,10 @@ const Scene2 = ({ images = [] }: { images: ImageItem[] }) => {
         </div>
       </div>
 
+
       {/* ==================================================
-          BOTTOM CARD
+          BOTTOM CARD 1
+          THIRD TO ARRIVE
       ================================================== */}
 
       <div
@@ -556,12 +716,13 @@ const Scene2 = ({ images = [] }: { images: ImageItem[] }) => {
           width: 990,
           height: 700,
 
-          opacity,
+          opacity: bottom1.opacity,
 
-          transform:
-            `translateY(${translateY}px) scale(${scale})`,
+          transform: cardTransform(bottom1),
 
           transformOrigin: "center center",
+
+          zIndex: 2,
         }}
       >
         <div
@@ -580,8 +741,6 @@ const Scene2 = ({ images = [] }: { images: ImageItem[] }) => {
 
             backgroundColor: "#f1e3d4",
 
-            transform: "rotate(-4deg)",
-
             boxShadow:
               "0 18px 38px rgba(0,0,0,0.16)",
           }}
@@ -598,7 +757,33 @@ const Scene2 = ({ images = [] }: { images: ImageItem[] }) => {
             }}
           />
         </div>
+      </div>
 
+
+      {/* ==================================================
+          BOTTOM CARD 2
+          FOURTH TO ARRIVE
+      ================================================== */}
+
+      <div
+        style={{
+          position: "absolute",
+
+          top: 1030,
+          left: 45,
+
+          width: 990,
+          height: 700,
+
+          opacity: bottom2.opacity,
+
+          transform: cardTransform(bottom2),
+
+          transformOrigin: "center center",
+
+          zIndex: 3,
+        }}
+      >
         <div
           style={{
             position: "absolute",
@@ -614,8 +799,6 @@ const Scene2 = ({ images = [] }: { images: ImageItem[] }) => {
             boxSizing: "border-box",
 
             backgroundColor: "#f5e6d5",
-
-            transform: "rotate(6deg)",
 
             boxShadow:
               "0 22px 45px rgba(0,0,0,0.22)",
@@ -634,6 +817,7 @@ const Scene2 = ({ images = [] }: { images: ImageItem[] }) => {
           />
         </div>
       </div>
+
     </AbsoluteFill>
   );
 };
@@ -911,7 +1095,7 @@ export const Template6 = ({
 
       <Sequence
         from={180}
-        durationInFrames={60}
+        durationInFrames={90}
       >
         <Scene2 images={images} />
       </Sequence>
@@ -923,7 +1107,7 @@ export const Template6 = ({
       ================================================== */}
 
       <Sequence
-        from={240}
+        from={270}
         durationInFrames={90}
       >
         <Scene3 images={images} />
