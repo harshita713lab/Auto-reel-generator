@@ -13,6 +13,7 @@ import {
 
 export const FPS = 30;
 export const DURATION_IN_FRAMES = 300;
+export const IMAGE_COUNT = 1;
 
 // ======================================================
 // TYPES

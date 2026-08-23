@@ -1,0 +1,366 @@
+[
+  {
+    "templateId": "Template1",
+    "file": "template1.tsx",
+    "requiredImages": 14,
+    "assignedMusic": "ReelAudio-1.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template2",
+    "file": "template2.tsx",
+    "requiredImages": 13,
+    "assignedMusic": "ReelAudio-2.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template3",
+    "file": "template3.tsx",
+    "requiredImages": 11,
+    "assignedMusic": "ReelAudio-3.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template4",
+    "file": "Template4.tsx",
+    "requiredImages": 5,
+    "assignedMusic": "ReelAudio-4.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template5",
+    "file": "Tempalte5.tsx",
+    "requiredImages": 5,
+    "assignedMusic": "ReelAudio-5.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template6",
+    "file": "Template6.tsx",
+    "requiredImages": 12,
+    "assignedMusic": "ReelAudio-6.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template7",
+    "file": "Template7.tsx",
+    "requiredImages": 8,
+    "assignedMusic": "ReelAudio-7.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template8",
+    "file": "Template8.tsx",
+    "requiredImages": 17,
+    "assignedMusic": "ReelAudio-8.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template9",
+    "file": "template9.tsx",
+    "requiredImages": 15,
+    "assignedMusic": "ReelAudio-9.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template10",
+    "file": "Template10.tsx",
+    "requiredImages": 16,
+    "assignedMusic": "ReelAudio-10.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template11",
+    "file": "Tempalte11.tsx",
+    "requiredImages": 18,
+    "assignedMusic": "ReelAudio-11.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template12",
+    "file": "template12.tsx",
+    "requiredImages": 23,
+    "assignedMusic": "ReelAudio-12.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template13",
+    "file": "template13.tsx",
+    "requiredImages": 4,
+    "assignedMusic": "ReelAudio-13.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template14",
+    "file": "template14.tsx",
+    "requiredImages": 11,
+    "assignedMusic": "ReelAudio-14.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template15",
+    "file": "template15.tsx",
+    "requiredImages": 4,
+    "assignedMusic": "ReelAudio-15.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template16",
+    "file": "Template16.tsx",
+    "requiredImages": 13,
+    "assignedMusic": "ReelAudio-16.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template17",
+    "file": "Template17.tsx",
+    "requiredImages": 12,
+    "assignedMusic": "ReelAudio-17.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template18",
+    "file": "Template18.tsx",
+    "requiredImages": 17,
+    "assignedMusic": "ReelAudio-18.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template19",
+    "file": "Template19.tsx",
+    "requiredImages": 7,
+    "assignedMusic": "ReelAudio-19.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template20",
+    "file": "Template20.tsx",
+    "requiredImages": 14,
+    "assignedMusic": "ReelAudio-20.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template21",
+    "file": "Template21.tsx",
+    "requiredImages": 3,
+    "assignedMusic": "ReelAudio-21.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template22",
+    "file": "Template22.tsx",
+    "requiredImages": 4,
+    "assignedMusic": "ReelAudio-22.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template23",
+    "file": "Template23.tsx",
+    "requiredImages": 14,
+    "assignedMusic": "ReelAudio-23.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template24",
+    "file": "Template24.tsx",
+    "requiredImages": 14,
+    "assignedMusic": "ReelAudio-24.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template25",
+    "file": "Template25.tsx",
+    "requiredImages": 24,
+    "assignedMusic": "ReelAudio-25.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template26",
+    "file": "Template26.tsx",
+    "requiredImages": 9,
+    "assignedMusic": "ReelAudio-26.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template27",
+    "file": "Template27.tsx",
+    "requiredImages": 9,
+    "assignedMusic": "ReelAudio-27.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template28",
+    "file": "Template28.tsx",
+    "requiredImages": 22,
+    "assignedMusic": "ReelAudio-28.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template29",
+    "file": "Template29.tsx",
+    "requiredImages": 9,
+    "assignedMusic": "ReelAudio-29.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template30",
+    "file": "Template30.tsx",
+    "requiredImages": 8,
+    "assignedMusic": "ReelAudio-30.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template31",
+    "file": "Template31.tsx",
+    "requiredImages": 8,
+    "assignedMusic": "ReelAudio-31.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template32",
+    "file": "Template32.tsx",
+    "requiredImages": 25,
+    "assignedMusic": "ReelAudio-32.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template33",
+    "file": "Template33.tsx",
+    "requiredImages": 4,
+    "assignedMusic": "ReelAudio-33.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template34",
+    "file": "Template34.tsx",
+    "requiredImages": 19,
+    "assignedMusic": "ReelAudio-34.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template35",
+    "file": "Template35.tsx",
+    "requiredImages": 25,
+    "assignedMusic": "ReelAudio-35.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template36",
+    "file": "Template36.tsx",
+    "requiredImages": 24,
+    "assignedMusic": "ReelAudio-36.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template37",
+    "file": "Template37.tsx",
+    "requiredImages": 18,
+    "assignedMusic": "ReelAudio-37.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template38",
+    "file": "Template38.tsx",
+    "requiredImages": 1,
+    "assignedMusic": "ReelAudio-38.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template39",
+    "file": "Template39.tsx",
+    "requiredImages": 4,
+    "assignedMusic": "ReelAudio-39.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template40",
+    "file": "Template40.tsx",
+    "requiredImages": 11,
+    "assignedMusic": "ReelAudio-40.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template41",
+    "file": "Template41.tsx",
+    "requiredImages": 10,
+    "assignedMusic": "ReelAudio-41.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template42",
+    "file": "Template42.tsx",
+    "requiredImages": 1,
+    "assignedMusic": "ReelAudio-42.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template43",
+    "file": "Template43.tsx",
+    "requiredImages": 6,
+    "assignedMusic": "ReelAudio-43.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template44",
+    "file": "Template44.tsx",
+    "requiredImages": 15,
+    "assignedMusic": "ReelAudio-1.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template45",
+    "file": "Template45.tsx",
+    "requiredImages": 15,
+    "assignedMusic": "ReelAudio-1.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template46",
+    "file": "Template46.tsx",
+    "requiredImages": 19,
+    "assignedMusic": "ReelAudio-1.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template47",
+    "file": "Template47.tsx",
+    "requiredImages": 17,
+    "assignedMusic": "ReelAudio-47.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template48",
+    "file": "Template48.tsx",
+    "requiredImages": 12,
+    "assignedMusic": "ReelAudio-48.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template49",
+    "file": "Template49.tsx",
+    "requiredImages": 8,
+    "assignedMusic": "ReelAudio-49.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template50",
+    "file": "Template50.tsx",
+    "requiredImages": "Flexible (Template 50)",
+    "assignedMusic": "ReelAudio-50.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template51",
+    "file": "Template51.tsx",
+    "requiredImages": 1,
+    "assignedMusic": "ReelAudio-1.mp3",
+    "status": "PASSED"
+  },
+  {
+    "templateId": "Template52",
+    "file": "Template52.tsx",
+    "requiredImages": 1,
+    "assignedMusic": "ReelAudio-1.mp3",
+    "status": "PASSED"
+  }
+]
