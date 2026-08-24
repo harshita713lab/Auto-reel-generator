@@ -1,30 +1,32 @@
 import React from 'react';
 import { Composition, AbsoluteFill, Sequence } from 'remotion';
 import { default as AnimatedImage } from './components/AnimatedImage';
+import { MediaFrame } from './components/MediaFrame';
 
 // ============================================================
 //  DEFAULT COMPOSITION (FALLBACK – अगर कोई और Composition न मिले)
 // ============================================================
-const DefaultComposition: React.FC<any> = ({ images = [], template = {} }) => {
-  const slideDuration = template.slideDuration || 3;
-  const fps = 30;
-  const slideFrames = Math.round(slideDuration * fps);
+const DefaultComposition: React.FC<any> = ({ images = [], media = [], template = {} }) => {
+  const mediaList = media && media.length > 0 ? media : images;
+  const slideDuration = template.slideDuration || 3;
+  const fps = 30;
+  const slideFrames = Math.round(slideDuration * fps);
 
-  return (
-    <AbsoluteFill style={{ backgroundColor: template.backgroundColor || '#986363' }}>
-      {images.map((img: any, index: number) => {
-        return (
-          <Sequence
-            key={index}
-            from={index * slideFrames}
-            durationInFrames={slideFrames}
-          >
-            <AnimatedImage src={img.path || img.url} />
-          </Sequence>
-        );
-      })}
-    </AbsoluteFill>
-  );
+  return (
+    <AbsoluteFill style={{ backgroundColor: template.backgroundColor || '#986363' }}>
+      {mediaList.map((img: any, index: number) => {
+        return (
+          <Sequence
+            key={index}
+            from={index * slideFrames}
+            durationInFrames={slideFrames}
+          >
+            <MediaFrame item={img} slotDuration={slideDuration} />
+          </Sequence>
+        );
+      })}
+    </AbsoluteFill>
+  );
 };
 
 const defaultProps = {
@@ -43,104 +45,91 @@ const defaultProps = {
 
 // @ts-ignore
 const weddingContext = require.context(
-  './compositions/Wedding',
-  false,
-  /\.(tsx|ts)$/
+  './compositions/Wedding',
+  false,
+  /\.(tsx|ts)$/
+);
+
+// @ts-ignore
+const videoTemplatesContext = require.context(
+  './compositions/VideoTemplates',
+  false,
+  /\.(tsx|ts)$/
 );
 
 const compositionRegistry: Record<
-  string,
-  {
-    component: React.ComponentType<any>;
-    durationInFrames?: number;
-    calculateMetadata?: any;
-    defaultProps?: any;
-    imageCount?: number;
-  }
+  string,
+  {
+    component: React.ComponentType<any>;
+    durationInFrames?: number;
+    calculateMetadata?: any;
+    defaultProps?: any;
+    imageCount?: number;
+  }
 > = {};
 
-weddingContext.keys().forEach((filename: string) => {
-  try {
-    const id = filename
-      .replace('./', '')
-      .replace(/\.(tsx|ts)$/, '');
+const loadContextCompositions = (ctx: any) => {
+  ctx.keys().forEach((filename: string) => {
+    try {
+      const id = filename
+        .replace('./', '')
+        .replace(/\.(tsx|ts)$/, '');
 
-    const module = weddingContext(filename);
+      const module = ctx(filename);
+      let Component = module.default || module[id];
 
-    console.log(`🔍 Loading: ${filename}`);
-    console.log('Exports:', Object.keys(module));
+      if (!Component) {
+        const matchingExport = Object.keys(module).find(
+          (key) => key.toLowerCase() === id.toLowerCase()
+        );
+        if (matchingExport) {
+          Component = module[matchingExport];
+        }
+      }
 
-    let Component = module.default;
+      if (!Component) {
+        console.warn(`⚠️ Skipping ${filename} — no React component export found`);
+        return;
+      }
 
-    if (!Component) {
-      Component = module[id];
-    }
+      const duration = module.DURATION_IN_FRAMES;
+      const calculateMetadata = module.calculateMetadata;
+      const defaultProps = module.DEFAULT_PROPS || { images: [], videos: [], music: undefined };
+      const imageCount = module.IMAGE_COUNT;
 
-    if (!Component) {
-      const matchingExport = Object.keys(module).find(
-        (key) => key.toLowerCase() === id.toLowerCase()
-      );
+      const aliases = new Set<string>();
+      aliases.add(id);
+      aliases.add(id.charAt(0).toUpperCase() + id.slice(1));
+      aliases.add(id.toLowerCase());
 
-      if (matchingExport) {
-        Component = module[matchingExport];
-      }
-    }
+      const match = id.match(/^(?:template|tempalte)(\d+)$/i);
+      if (match) {
+        const num = match[1];
+        aliases.add(`Template${num}`);
+        aliases.add(`template${num}`);
+      }
 
-    if (!Component) {
-      console.warn(
-        `⚠️ Skipping ${filename} — no React component export found`
-      );
-      return;
-    }
+      const compConfig = {
+        component: Component,
+        durationInFrames: duration,
+        calculateMetadata,
+        defaultProps,
+        imageCount,
+      };
 
-    const duration = module.DURATION_IN_FRAMES;
-    const calculateMetadata = module.calculateMetadata;
-    const defaultProps =
-      module.DEFAULT_PROPS || {
-        images: [],
-        music: undefined,
-      };
-    const imageCount = module.IMAGE_COUNT;
+      aliases.forEach((alias) => {
+        compositionRegistry[alias] = compConfig;
+      });
 
-    const aliases = new Set<string>();
-    aliases.add(id);
-    aliases.add(id.charAt(0).toUpperCase() + id.slice(1));
-    aliases.add(id.toLowerCase());
-
-    const match = id.match(/^(?:template|tempalte)(\d+)$/i);
-    if (match) {
-      const num = match[1];
-      aliases.add(`Template${num}`);
-      aliases.add(`template${num}`);
-      aliases.add(`Tempalte${num}`);
-      aliases.add(`tempalte${num}`);
+      console.log(`✅ Auto-registered: ${id}`);
+    } catch (error) {
+      console.error(`❌ Failed to load ${filename}:`, error);
     }
+  });
+};
 
-    const compConfig = {
-      component: Component,
-      durationInFrames: duration,
-      calculateMetadata,
-      defaultProps,
-      imageCount,
-    };
-
-    aliases.forEach((alias) => {
-      compositionRegistry[alias] = compConfig;
-    });
-
-    console.log(
-      `✅ Auto-registered: ${id} (aliases: ${Array.from(aliases).join(', ')}) | IMAGE_COUNT: ${
-        imageCount ?? 'not specified'
-      }`
-    );
-
-  } catch (error) {
-    console.error(
-      `❌ Failed to load ${filename}:`,
-      error
-    );
-  }
-});
+loadContextCompositions(weddingContext);
+loadContextCompositions(videoTemplatesContext);
 
 // Explicit default fallback compositions
 compositionRegistry['ReelComposition'] = {

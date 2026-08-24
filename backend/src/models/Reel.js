@@ -24,8 +24,8 @@ const ImageSchema = new mongoose.Schema({
   duration: {
     type: Number,
     default: 3,
-    min: 0.5,
-    max: 10,
+    min: 0.1,
+    max: 600,
   },
   order: {
     type: Number,
@@ -59,6 +59,19 @@ const ImageSchema = new mongoose.Schema({
   overlay: {
     type: mongoose.Schema.Types.Mixed,
   },
+  type: {
+    type: String,
+    enum: ['image', 'video'],
+    default: 'image',
+  },
+  startOffset: {
+    type: Number,
+    default: 0,
+  },
+  muted: {
+    type: Boolean,
+    default: true,
+  },
   metadata: {
     type: mongoose.Schema.Types.Mixed,
     default: {},
@@ -81,6 +94,7 @@ const ReelSchema = new mongoose.Schema({
     default: 'simple_1',
   },
   images: [ImageSchema],
+  media: [ImageSchema],
   music: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Music',

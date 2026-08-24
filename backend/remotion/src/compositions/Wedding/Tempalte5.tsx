@@ -7,14 +7,19 @@ import {
   spring,
   useVideoConfig,
 } from "remotion";
-import { MusicPlayer } from "../../components"; // ✅ MusicPlayer Import
+import { MusicPlayer, MediaFrame } from "../../components"; // ✅ MusicPlayer & MediaFrame Import
 
 // ======================================================
 // INTERFACES
 // ======================================================
 
 interface ImageItem {
-  path: string;
+  path?: string;
+  url?: string;
+  type?: 'image' | 'video';
+  duration?: number;
+  startOffset?: number;
+  muted?: boolean;
 }
 
 interface TemplateGridProps {
@@ -112,11 +117,11 @@ const SequentialGridScene: React.FC<TemplateGridProps> = ({
 }) => {
   const frame = useCurrentFrame();
 
-  const img1 = images[0]?.path || "";
-  const img2 = images[1]?.path || "";
-  const img3 = images[2]?.path || "";
-  const img4 = images[3]?.path || "";
-  const img5 = images[4]?.path || "";
+  const item1 = images[0];
+  const item2 = images[1];
+  const item3 = images[2];
+  const item4 = images[3];
+  const item5 = images[4];
 
   const getCardAnim = (startFrame: number) => {
     const opacity = interpolate(
@@ -155,30 +160,30 @@ const SequentialGridScene: React.FC<TemplateGridProps> = ({
         {/* Box 1 */}
         <div style={{ position: "relative", overflow: "hidden", ...getCardAnim(0) }}>
           <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "50%", overflow: "hidden" }}>
-            {img1 && <Img src={img1} style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+            {item1 && <MediaFrame item={item1} slotDuration={10} style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
             <OverlayText text={textOverlay.image1} startFrame={0} />
           </div>
           <div style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: "50%", overflow: "hidden" }}>
-            {img2 && <Img src={img2} style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+            {item2 && <MediaFrame item={item2} slotDuration={10} style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
             <OverlayText text={textOverlay.image2} startFrame={0} />
           </div>
         </div>
 
         {/* Box 2 */}
         <div style={{ position: "relative", overflow: "hidden", ...getCardAnim(60) }}>
-          {img3 && <Img src={img3} style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+          {item3 && <MediaFrame item={item3} slotDuration={10} style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
           {frame >= 60 && <OverlayText text={textOverlay.topRight} startFrame={60} />}
         </div>
 
         {/* Box 3 */}
         <div style={{ position: "relative", overflow: "hidden", ...getCardAnim(120) }}>
-          {img4 && <Img src={img4} style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+          {item4 && <MediaFrame item={item4} slotDuration={10} style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
           {frame >= 120 && <OverlayText text={textOverlay.bottomLeft} startFrame={120} />}
         </div>
 
         {/* Box 4 */}
         <div style={{ position: "relative", overflow: "hidden", ...getCardAnim(180) }}>
-          {img5 && <Img src={img5} style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+          {item5 && <MediaFrame item={item5} slotDuration={10} style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
           {frame >= 180 && <OverlayText text={textOverlay.bottomRight} startFrame={180} />}
         </div>
       </div>

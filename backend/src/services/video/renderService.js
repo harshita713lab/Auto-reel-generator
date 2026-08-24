@@ -34,45 +34,59 @@ class RenderService {
       const sharp = require('sharp');
 
       // ============================================================
-      // IMAGE PROCESSING – imageWebUrl हमेशा define रहेगा
+      // MEDIA PROCESSING – Images & Video Clips
       // ============================================================
-      const images = await Promise.all(reel.images.map(async (img) => {
+      const mediaList = reel.media && reel.media.length > 0 ? reel.media : reel.images;
+      const images = await Promise.all(mediaList.map(async (img) => {
         let imageWebUrl = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCwAA8A/9k=';
+        const isVideo = img.type === 'video' || (img.path && /\.(mp4|mov|webm|avi|mkv)$/i.test(img.path));
 
         if (img.path && typeof img.path === 'string') {
           if (img.path.startsWith('http://') || img.path.startsWith('https://') || img.path.startsWith('data:')) {
             imageWebUrl = img.path;
           } else {
             if (fsSync.existsSync(img.path)) {
-              try {
-                const resizedBuf = await sharp(img.path)
-                  .resize(1080, 1920, { fit: 'cover', position: 'center' })
-                  .jpeg({ quality: 80 })
-                  .toBuffer();
-                imageWebUrl = `data:image/jpeg;base64,${resizedBuf.toString('base64')}`;
-              } catch (sharpErr) {
-                const fileBuf = fsSync.readFileSync(img.path);
-                imageWebUrl = `data:image/jpeg;base64,${fileBuf.toString('base64')}`;
+              if (isVideo) {
+                imageWebUrl = `${serverBaseUrl}/uploads/videos/${path.basename(img.path)}`;
+                if (!fsSync.existsSync(path.join(__dirname, '../../../uploads/videos', path.basename(img.path)))) {
+                  imageWebUrl = `${serverBaseUrl}/uploads/temp/${path.basename(img.path)}`;
+                }
+              } else {
+                try {
+                  const resizedBuf = await sharp(img.path)
+                    .resize(1080, 1920, { fit: 'cover', position: 'center' })
+                    .jpeg({ quality: 80 })
+                    .toBuffer();
+                  imageWebUrl = `data:image/jpeg;base64,${resizedBuf.toString('base64')}`;
+                } catch (sharpErr) {
+                  const fileBuf = fsSync.readFileSync(img.path);
+                  imageWebUrl = `data:image/jpeg;base64,${fileBuf.toString('base64')}`;
+                }
               }
             } else {
-              imageWebUrl = `${serverBaseUrl}/uploads/images/${path.basename(img.path)}`;
+              const subFolder = isVideo ? 'videos' : 'images';
+              imageWebUrl = `${serverBaseUrl}/uploads/${subFolder}/${path.basename(img.path)}`;
             }
           }
         }
 
         return {
+          type: isVideo ? 'video' : 'image',
           path: imageWebUrl,
           duration: img.duration || 3,
+          startOffset: img.startOffset || 0,
+          muted: img.muted !== undefined ? img.muted : true,
           animation: img.animation || "kenBurns",
           transition: img.transition || "fade"
         };
       }));
 
-      console.log("REEL IMAGES");
-      console.log(reel.images);
+      console.log("REEL MEDIA LIST");
+      console.log(images);
 
       const inputProps = {
         images,
+        media: images,
         music: null, // Remotion को बिना ऑडियो के रेंडर करना है
         beatTimestamps: reel.beatTimestamps || [],
         config: {
@@ -97,7 +111,7 @@ class RenderService {
 
       const COMPOSITION_MAP = {
         1: ['Template38'],
-        3: ['Template21'],
+        3: ['VideoTemplate1', 'VideoTemplate2', 'VideoTemplate3', 'Template21'],
         4: ['Template15','Template33','Template13'],
         5: ['Template5'],
         7: ['Template19'],
@@ -138,7 +152,10 @@ class RenderService {
       }
 
       let compositionId;
-      if (matchedTemplate && matchedTemplate.compositionId) {
+      if (reel.templateId && String(reel.templateId).startsWith('VideoTemplate')) {
+        compositionId = reel.templateId;
+        console.log(`✅ DIRECTLY USING VIDEO TEMPLATE: ${compositionId}`);
+      } else if (matchedTemplate && matchedTemplate.compositionId) {
         compositionId = matchedTemplate.compositionId;
         console.log(`✅ SELECTED FROM DB (Loop Rotated ${this.lastUsedIndexMap.get(imageCount) + 1}/${matchedTemplates.length}): ${matchedTemplate.name} (Priority: ${matchedTemplate.priority}) → Composition: ${compositionId}`);
       } else {

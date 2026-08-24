@@ -24,7 +24,7 @@ const colorGradeLabels = {
   null: '🎨 Natural'
 };
 
-function TemplateSelector({ onSelect, selectedId, imageCount }) {
+function TemplateSelector({ onSelect, selectedId, imageCount, mode = 'mixed' }) {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
@@ -61,6 +61,13 @@ function TemplateSelector({ onSelect, selectedId, imageCount }) {
       setLoading(false);
     }
   };
+
+  const displayTemplates = templates.filter((t) => {
+    if (!mode || mode === 'mixed') return true;
+    if (mode === 'photos') return t.mediaType === 'photo' || t.mediaType === 'mixed' || !t.mediaType;
+    if (mode === 'videos') return t.mediaType === 'video' || t.mediaType === 'mixed';
+    return true;
+  });
 
   const isTemplateCompatible = (template) => {
     if (!imageCount) return true;
@@ -108,7 +115,7 @@ function TemplateSelector({ onSelect, selectedId, imageCount }) {
           {loading ? (
             <div className="templates-loading">Loading templates...</div>
           ) : (
-            templates.map((template) => {
+            displayTemplates.map((template) => {
               const compatible = isTemplateCompatible(template);
               const compatMessage = getCompatibilityMessage(template);
               const isSelected = selectedId === template.id;

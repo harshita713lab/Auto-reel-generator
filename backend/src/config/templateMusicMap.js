@@ -33,6 +33,38 @@ const getMusicForTemplate = (templateId, imageCount) => {
     imageCount,
   });
 
+  // Dynamic Rule: VideoTemplateN -> videoAudioN.mp3 / videoAudioN.wav / videoAudioN.m4a
+  if (templateId && /videoTemplate\d+/i.test(String(templateId))) {
+    const match = String(templateId).match(/\d+/);
+    const num = match ? match[0] : '1';
+    const audioExts = ['mp3', 'wav', 'm4a', 'aac'];
+
+    // Try videoAudioN first
+    for (const ext of audioExts) {
+      const candidate = `videoAudio${num}.${ext}`;
+      const p1 = path.join(__dirname, '../../assets/music', candidate);
+      const p2 = path.join(__dirname, '../../assets/songs', candidate);
+      if ((fs.existsSync(p1) && fs.statSync(p1).size > 0) || (fs.existsSync(p2) && fs.statSync(p2).size > 0)) {
+        console.log(`🎵 Matched Video Audio: ${candidate} for ${templateId}`);
+        return candidate;
+      }
+    }
+
+    // Try videoAudio1 or videoAudio fallback
+    for (const ext of audioExts) {
+      const fallbackCandidate = `videoAudio1.${ext}`;
+      const p1 = path.join(__dirname, '../../assets/music', fallbackCandidate);
+      const p2 = path.join(__dirname, '../../assets/songs', fallbackCandidate);
+      if ((fs.existsSync(p1) && fs.statSync(p1).size > 0) || (fs.existsSync(p2) && fs.statSync(p2).size > 0)) {
+        console.log(`🎵 Matched fallback Video Audio: ${fallbackCandidate} for ${templateId}`);
+        return fallbackCandidate;
+      }
+    }
+
+    console.log(`🎵 Using default Video Audio target: videoAudio${num}.mp3 for ${templateId}`);
+    return `videoAudio${num}.mp3`;
+  }
+
   let selectedMusic = 'ReelAudio-1.mp3';
 
   // Check map first

@@ -3,9 +3,10 @@ const fs = require('fs').promises;
 const imageService = require('../services/image/imageService');
 const optimizeImages = require('../services/image/optimizeImages');
 const thumbnailService = require('../services/image/thumbnailService');
+const ffmpegService = require('../services/video/ffmpegService');
 const fileService = require('../services/storage/fileService');
 const logger = require('../utils/logger');
-const { IMAGE_CONFIG, DIRECTORIES } = require('../config/constants');
+const { IMAGE_CONFIG, MEDIA_VIDEO_CONFIG, DIRECTORIES } = require('../config/constants');
 
 /**
  * Upload images
@@ -416,6 +417,105 @@ exports.getUploadHistory = async (req, res) => {
     logger.error('Failed to get upload history:', error);
     res.status(500).json({
       error: 'Failed to get upload history',
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * Process single media item (Image or Video)
+ */
+async function processUploadedMedia(file) {
+  const ext = file.originalname.split('.').pop().toLowerCase();
+  const isVideo = ['mp4', 'mov', 'webm', 'avi', 'mkv'].includes(ext);
+
+  if (!isVideo) {
+    const processed = await processUploadedImage(file);
+    return { ...processed, type: 'image', duration: 3 };
+  }
+
+  // Process Video Clip
+  const timestamp = Date.now();
+  const filename = `video_${timestamp}.${ext}`;
+  const videoDir = DIRECTORIES.VIDEOS || path.join(DIRECTORIES.UPLOADS, 'videos');
+  await fs.mkdir(videoDir, { recursive: true });
+  const videoPath = path.join(videoDir, filename);
+
+  // Copy/move file to videos directory
+  await fs.copyFile(file.path, videoPath);
+  await fs.unlink(file.path).catch(() => {});
+
+  let videoInfo = { duration: 5, video: { width: 1080, height: 1920 } };
+  try {
+    videoInfo = await ffmpegService.getVideoInfo(videoPath);
+  } catch (err) {
+    logger.warn('Failed to get video info, using default:', err.message);
+  }
+
+  // Generate thumbnail for video
+  const thumbnailFilename = `thumb_${timestamp}.jpg`;
+  const thumbnailPath = path.join(DIRECTORIES.THUMBNAILS, thumbnailFilename);
+  try {
+    await ffmpegService.createThumbnail(videoPath, {
+      timestamp: '00:00:01',
+      outputPath: thumbnailPath,
+    });
+  } catch (err) {
+    logger.warn('Failed to create video thumbnail:', err.message);
+  }
+
+  return {
+    filename,
+    originalName: file.originalname,
+    path: videoPath.replace(/\\/g, '/'),
+    url: `/uploads/videos/${filename}`,
+    thumbnail: thumbnailFilename,
+    thumbnailUrl: `/uploads/thumbnails/${thumbnailFilename}`,
+    type: 'video',
+    duration: Math.round((videoInfo.duration || 5) * 10) / 10,
+    width: videoInfo.video?.width || 1080,
+    height: videoInfo.video?.height || 1920,
+    uploadedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Upload Media (Images + Video Clips) Controller
+ */
+exports.uploadMedia = async (req, res) => {
+  try {
+    const files = req.files || (req.file ? [req.file] : []);
+    if (!files || files.length === 0) {
+      return res.status(400).json({ success: false, error: 'No media files uploaded' });
+    }
+
+    const uploadedFiles = [];
+    const errors = [];
+
+    for (const file of files) {
+      try {
+        const processed = await processUploadedMedia(file);
+        uploadedFiles.push(processed);
+      } catch (err) {
+        logger.error(`Failed to process uploaded file ${file.originalname}:`, err);
+        errors.push({ file: file.originalname, error: err.message });
+      }
+    }
+
+    return res.json({
+      success: true,
+      files: uploadedFiles,
+      data: uploadedFiles,
+      uploaded: uploadedFiles,
+      errors,
+      total: uploadedFiles.length,
+      message: `${uploadedFiles.length} media item(s) uploaded successfully`,
+    });
+  } catch (error) {
+    logger.error('Media upload failed:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to upload media',
       message: error.message,
     });
   }

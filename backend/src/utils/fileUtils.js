@@ -2,7 +2,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
-const { IMAGE_CONFIG, AUDIO_CONFIG, DIRECTORIES } = require('../config/constants');
+const { IMAGE_CONFIG, MEDIA_VIDEO_CONFIG, AUDIO_CONFIG, DIRECTORIES } = require('../config/constants');
 
 // Ensure upload directories exist
 const ensureDir = (dir) => {
@@ -12,6 +12,7 @@ const ensureDir = (dir) => {
 };
 
 ensureDir(DIRECTORIES.IMAGES);
+ensureDir(DIRECTORIES.VIDEOS);
 ensureDir(DIRECTORIES.MUSIC_UPLOAD);
 ensureDir(DIRECTORIES.TEMP);
 
@@ -42,10 +43,22 @@ const musicStorage = multer.diskStorage({
 // File filter for images
 const imageFilter = (req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase().slice(1);
-  if (IMAGE_CONFIG.ALLOWED_EXTENSIONS.includes(ext)) {
+  if (IMAGE_CONFIG.ALLOWED_EXTENSIONS.includes(ext) || (MEDIA_VIDEO_CONFIG && MEDIA_VIDEO_CONFIG.ALLOWED_EXTENSIONS.includes(ext))) {
     cb(null, true);
   } else {
-    cb(new Error(`Invalid image type: ${ext}. Allowed: ${IMAGE_CONFIG.ALLOWED_EXTENSIONS.join(', ')}`), false);
+    cb(new Error(`Invalid file type: ${ext}`), false);
+  }
+};
+
+// Unified File Filter for Media (Images + Videos)
+const mediaFilter = (req, file, cb) => {
+  const ext = path.extname(file.originalname).toLowerCase().slice(1);
+  const isImage = IMAGE_CONFIG.ALLOWED_EXTENSIONS.includes(ext);
+  const isVideo = MEDIA_VIDEO_CONFIG ? MEDIA_VIDEO_CONFIG.ALLOWED_EXTENSIONS.includes(ext) : ['mp4', 'mov', 'webm', 'avi', 'mkv'].includes(ext);
+  if (isImage || isVideo) {
+    cb(null, true);
+  } else {
+    cb(new Error(`Invalid media type: ${ext}. Allowed images: ${IMAGE_CONFIG.ALLOWED_EXTENSIONS.join(', ')} | Allowed videos: mp4, mov, webm, avi, mkv`), false);
   }
 };
 
@@ -64,7 +77,17 @@ const uploadImages = multer({
   storage: imageStorage,
   fileFilter: imageFilter,
   limits: {
-    fileSize: IMAGE_CONFIG.MAX_FILE_SIZE,
+    fileSize: MEDIA_VIDEO_CONFIG ? MEDIA_VIDEO_CONFIG.MAX_FILE_SIZE : 50 * 1024 * 1024,
+    files: 50,
+  },
+});
+
+// Upload middleware for media (Images + Videos)
+const uploadMedia = multer({
+  storage: imageStorage,
+  fileFilter: mediaFilter,
+  limits: {
+    fileSize: MEDIA_VIDEO_CONFIG ? MEDIA_VIDEO_CONFIG.MAX_FILE_SIZE : 50 * 1024 * 1024,
     files: 50,
   },
 });
@@ -81,6 +104,7 @@ const uploadMusic = multer({
 
 module.exports = {
   uploadImages,
+  uploadMedia,
   uploadMusic,
   ensureDir,
 };
