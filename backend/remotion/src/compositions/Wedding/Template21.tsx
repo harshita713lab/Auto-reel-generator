@@ -11,7 +11,7 @@ import {
 // CONFIG
 // ======================================================
 
-export const IMAGE_COUNT = 1;
+export const IMAGE_COUNT = 3;
 export const FPS = 30;
 export const DURATION_IN_FRAMES = 360;
 
