@@ -7,7 +7,8 @@
     "test:db": "node tests/test-db.js",
     "test:reel": "node tests/test-reel.js",
     "test:remotion": "node tests/test-remotion.js",
-    "test:all": "node tests/test-db.js && node tests/test-reel.js && node tests/test-remotion.js",
+    "test:52-templates": "node tests/test_all_52_templates.js",
+    "test:all": "node tests/test-db.js && node tests/test-reel.js && node tests/test-remotion.js && node tests/test_all_52_templates.js",
     "lint": "eslint src/**/*.js",
     "format": "prettier --write src/**/*.js"
   },

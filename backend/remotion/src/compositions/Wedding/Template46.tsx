@@ -227,47 +227,64 @@ const FloatingHeartsOverlay = ({ frame }: { frame: number }) => {
 };
 
 // ======================================================
-// 📜 NEW EXACT KESARIYA LYRICS (UPDATED BY USER)
-// POSITIONED AT THE BOTTOM, NO BACKGROUND BOX, WORD-BY-WORD POP ANIMATION
 // ======================================================
-const NEW_KESARIYA_LYRICS = [
-  "MUJHKO ITNA BATAYE KOI ❤️",
-  "KAISE TUJHSE DIL NA LAGAYE KOI ✨",
-  "RABBA NE TUJHKO BANANE MEIN 🌹",
-  "KARDI HAI HUSN KI KHAALI TIJORIYAN 💫",
-  "KAJAL KI SIYAHI SE LIKHI ✒️",
-  "HAI TUNE JAANE 💖",
-  "KITNO KI LOVE STORIYAN 📖✨",
-  "KESARIYA TERA ISHQ HAI PIYA ❤️",
-  "RANG JAAUN JO MAIN HATH LAGAUN ✨",
-  "MUJHKO ITNA BATAYE KOI ❤️",
-  "KAISE TUJHSE DIL NA LAGAYE KOI ✨",
-  "RABBA NE TUJHKO BANANE MEIN 🌹",
-  "KARDI HAI HUSN KI KHAALI TIJORIYAN 💫",
-  "KAJAL KI SIYAHI SE LIKHI ✒️",
-  "HAI TUNE JAANE 💖",
-  "KITNO KI LOVE STORIYAN 📖✨",
-  "KESARIYA TERA ISHQ HAI PIYA ❤️",
-  "RANG JAAUN JO MAIN HATH LAGAUN ✨",
-  "KESARIYA TERA ISHQ HAI PIYA... ✨❤️",
+// 📜 EXACT TIMED CHAAR KADAM LYRICS (UPDATED BY USER)
+// 1 to 3s: Bin Kuch Kahe,
+// 3 to 5s: Bin Kuch Sunen
+// 5 to 9s: Haathon Mein Haath Liye...
+// 9 to 11s: Chaar Kadam
+// 11 to 13s: Bas Char Kadam
+// 13 to 18s: Chal Do Na Saath Mere...
+// ======================================================
+
+const TIMED_CHAAR_KADAM_LYRICS = [
+  {
+    text: "Bin Kuch Kahe,",
+    startFrame: 30,  // 1.0s
+    endFrame: 90,   // 3.0s
+  },
+  {
+    text: "Bin Kuch Sunen",
+    startFrame: 90,  // 3.0s
+    endFrame: 150,  // 5.0s
+  },
+  {
+    text: "Haathon Mein Haath Liye...",
+    startFrame: 150, // 5.0s
+    endFrame: 270, // 9.0s
+  },
+  {
+    text: "Chaar Kadam",
+    startFrame: 270, // 9.0s
+    endFrame: 330, // 11.0s
+  },
+  {
+    text: "Bas Char Kadam",
+    startFrame: 330, // 11.0s
+    endFrame: 390, // 13.0s
+  },
+  {
+    text: "Chal Do Na Saath Mere...",
+    startFrame: 390, // 13.0s
+    endFrame: 540, // 18.0s
+  },
 ];
 
-const WordByWordPopLyrics = ({
-  scene,
-  frame,
-  sceneDuration,
-}: {
-  scene: number;
-  frame: number;
-  sceneDuration: number;
-}) => {
-  const lyricLine = NEW_KESARIYA_LYRICS[(scene - 1) % NEW_KESARIYA_LYRICS.length];
-  const words = lyricLine.split(" ");
+const WordByWordPopLyrics = ({ frame }: { frame: number }) => {
+  const currentLyric = TIMED_CHAAR_KADAM_LYRICS.find(
+    (item) => frame >= item.startFrame && frame < item.endFrame
+  );
+
+  if (!currentLyric) return null;
+
+  const localFrame = frame - currentLyric.startFrame;
+  const lyricDuration = currentLyric.endFrame - currentLyric.startFrame;
+  const words = currentLyric.text.split(" ");
 
   const lineExitDuration = 5;
   const lineOpacity = interpolate(
-    frame,
-    [sceneDuration - lineExitDuration, sceneDuration],
+    localFrame,
+    [lyricDuration - lineExitDuration, lyricDuration],
     [1, 0],
     clamp
   );
@@ -296,8 +313,8 @@ const WordByWordPopLyrics = ({
         }}
       >
         {words.map((word, wIdx) => {
-          const wordStartFrame = (wIdx / words.length) * (sceneDuration * 0.72);
-          const wordAge = frame - wordStartFrame;
+          const wordStartFrame = (wIdx / words.length) * Math.min(20, lyricDuration * 0.4);
+          const wordAge = localFrame - wordStartFrame;
 
           if (wordAge < 0) {
             return (
@@ -1061,11 +1078,7 @@ export const Template46: React.FC<Template46Props> = ({ images = [], music }) =>
       })}
 
       {/* 4. Pure Floating Word-by-Word Popping Lyrics at Bottom Edge */}
-      <WordByWordPopLyrics
-        scene={currentSceneIndex + 1}
-        frame={localSceneFrame}
-        sceneDuration={currentSceneDur}
-      />
+      <WordByWordPopLyrics frame={frame} />
 
       {/* Audio Player */}
       {musicSrc && <MusicPlayer src={musicSrc} volume={music?.volume ?? 1} showVisualizer={true} />}

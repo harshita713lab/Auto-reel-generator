@@ -8,7 +8,7 @@ const TEMPLATE_IMAGE_COUNTS = {
   '1': 14,
   '2': 13,
   '3': 11,
-  '4': 5,
+  '4': 4,
   '5': 5,
   '6': 12,
   '7': 8,
@@ -25,7 +25,7 @@ const TEMPLATE_IMAGE_COUNTS = {
   '18': 17,
   '19': 7,
   '20': 14,
-  '21': 3,
+  '21': 1,
   '22': 4,
   '23': 14,
   '24': 14,
@@ -43,7 +43,20 @@ const TEMPLATE_IMAGE_COUNTS = {
   '36': 24,
   '37': 18,
   '38': 1,
+  '39': 4,
+  '40': 11,
+  '41': 10,
+  '42': 1,
+  '43': 6,
+  '44': 15,
+  '45': 15,
+  '46': 19,
+  '47': 17,
+  '48': 12,
+  '49': 8,
   '50': 20,
+  '51': 1,
+  '52': 1,
 
   // Named aliases
   'simple_1': 14,
@@ -58,7 +71,7 @@ const TEMPLATE_IMAGE_COUNTS = {
 };
 
 // Auto-populate TemplateX and templateX variations
-for (let i = 1; i <= 50; i++) {
+for (let i = 1; i <= 52; i++) {
   const count = TEMPLATE_IMAGE_COUNTS[String(i)];
   if (count !== undefined) {
     TEMPLATE_IMAGE_COUNTS[`Template${i}`] = count;
@@ -74,7 +87,7 @@ for (let i = 1; i <= 50; i++) {
  */
 function getRequiredImageCount(templateId) {
   if (!templateId) return null;
-  if (String(templateId).includes('50') || String(templateId).includes('38')) return null; // Flexible image count for Template 50 & 38
+  if (String(templateId).includes('50')) return null; // Flexible image count for Template 50
   if (TEMPLATE_IMAGE_COUNTS[templateId] !== undefined) {
     return TEMPLATE_IMAGE_COUNTS[templateId];
   }
