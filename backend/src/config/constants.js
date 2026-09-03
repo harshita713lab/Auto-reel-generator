@@ -9,6 +9,7 @@ const DIRECTORIES = {
   MUSIC: path.join(ROOT_DIR, 'assets', 'music'),
   UPLOADS: path.join(ROOT_DIR, 'uploads'),
   IMAGES: path.join(ROOT_DIR, 'uploads', 'images'),
+  VIDEOS: path.join(ROOT_DIR, 'uploads', 'videos'),
   MUSIC_UPLOAD: path.join(ROOT_DIR, 'uploads', 'music'),
   TEMP: path.join(ROOT_DIR, 'uploads', 'temp'),
   THUMBNAILS: path.join(ROOT_DIR, 'uploads', 'thumbnails'),
@@ -19,6 +20,11 @@ const DIRECTORIES = {
   RENDERS: path.join(ROOT_DIR, 'output', 'renders'),
   CACHE: path.join(ROOT_DIR, 'cache'),
   REMOTION: path.join(ROOT_DIR, 'remotion'),
+};
+
+const MEDIA_VIDEO_CONFIG = {
+  ALLOWED_EXTENSIONS: ['mp4', 'mov', 'webm', 'avi', 'mkv'],
+  MAX_FILE_SIZE: 50 * 1024 * 1024,
 };
 
 const VIDEO_CONFIG = {
@@ -111,6 +117,7 @@ const API_CONFIG = {
 module.exports = {
   DIRECTORIES,
   VIDEO_CONFIG,
+  MEDIA_VIDEO_CONFIG,
   IMAGE_CONFIG,
   AUDIO_CONFIG,
   RENDER_CONFIG,

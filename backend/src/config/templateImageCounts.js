@@ -67,7 +67,11 @@ const TEMPLATE_IMAGE_COUNTS = {
   'white_masonry': 8,
   'white_polaroid': 18,
   'premium_grid': 4,
-  'memory_blend': 14
+  'memory_blend': 14,
+  'VideoTemplate1': 3,
+  'videotemplate1': 3,
+  'VideoTemplate3Clips': 3,
+  'videotemplate3clips': 3,
 };
 
 // Auto-populate TemplateX and templateX variations
@@ -87,10 +91,10 @@ for (let i = 1; i <= 52; i++) {
  */
 function getRequiredImageCount(templateId) {
   if (!templateId) return null;
-  if (String(templateId).includes('50')) return null; // Flexible image count for Template 50
   if (TEMPLATE_IMAGE_COUNTS[templateId] !== undefined) {
     return TEMPLATE_IMAGE_COUNTS[templateId];
   }
+  if (String(templateId).includes('50')) return null; // Flexible image count for Template 50
   
   // Try extracting number from templateId string (e.g. "Template 25", "template_12")
   const match = String(templateId).match(/\d+/);

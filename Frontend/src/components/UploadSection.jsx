@@ -5,11 +5,15 @@ import Upload from "./Upload";
 import ImagePreview from "./ImagePreview";
 import Result from "./Result";
 import TemplateSelector from "./TemplateSelector";
+import CreationModeSelector from "./CreationModeSelector";
+import VideoCardPreview from "./VideoCardPreview";
+import MusicSelector from "./MusicSelector";
 
 const API_URL =
   import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 function UploadSection() {
+  const [creationMode, setCreationMode] = useState("mixed");
   const [images, setImages] = useState([]);
   const [previewUrls, setPreviewUrls] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -31,7 +35,15 @@ function UploadSection() {
   // TEMPLATE MAPPING
   // =========================================================
 
-  const getBestTemplateId = (count) => {
+  const getBestTemplateId = (count, mode = creationMode) => {
+    if (mode === 'videos') {
+      if (count === 3) return "VideoTemplate1";
+      if (count === 4) return "premium_grid";
+      if (count === 11) return "wedding_split";
+      if (count === 15) return "cinematic_wedding";
+      return "VideoTemplate1";
+    }
+
     const countMap = {
       // ⭐ SINGLE IMAGE REEL
       1: "Template38",
@@ -167,19 +179,19 @@ function UploadSection() {
     const formData = new FormData();
 
     images.forEach((file) => {
-      formData.append("images", file);
+      formData.append("media", file);
     });
 
     try {
       // =====================================================
-      // UPLOAD IMAGES
+      // UPLOAD MEDIA (Images / Videos / Mixed)
       // =====================================================
 
       setProgress(30);
-      setStatus("Uploading images...");
+      setStatus("Uploading media files...");
 
       const uploadRes = await fetch(
-        `${API_URL}/upload/images`,
+        `${API_URL}/upload/media`,
         {
           method: "POST",
           body: formData,
@@ -218,7 +230,7 @@ function UploadSection() {
         uploadedImagesList.length === 0
       ) {
         throw new Error(
-          "Images upload ho gayi par response me files data nahi mila."
+          "Media upload ho gaya par response me files data nahi mila."
         );
       }
 
@@ -229,12 +241,11 @@ function UploadSection() {
         },
         body: JSON.stringify({
           images: uploadedImagesList,
-
-          // ⭐ 1 image ke case mein Template38
-          templateId: selectedTemplateId,
-
-          musicId: selectedMusicId,
-          musicStartTime: musicStartTime,
+          media: uploadedImagesList,
+          templateId: getBestTemplateId(uploadedImagesList.length, creationMode),
+          musicId: "template_default",
+          musicStartTime: 0,
+          creationMode: creationMode,
         }),
       });
 
@@ -464,19 +475,33 @@ function UploadSection() {
   // UI
   // =========================================================
 
+  const getAcceptPattern = () => {
+    if (creationMode === 'photos') return 'image/*';
+    if (creationMode === 'videos') return 'video/*,video/mp4,video/quicktime,video/webm';
+    return 'image/*,video/*,video/mp4,video/quicktime,video/webm';
+  };
+
   return (
     <div className="upload-section">
       <div className="upload-card">
-        <h2>📸 Create Your Reel</h2>
+        <h2>🎬 Create Your Reel</h2>
 
         <p>
-          Upload 1-100 images and get a
-          professional Reel instantly
+          Upload photos or video clips and get a professional Reel instantly
         </p>
 
         {!reelData ? (
           <>
-            <Upload onAddImages={handleAddImages} />
+            <CreationModeSelector
+              activeMode={creationMode}
+              onModeChange={setCreationMode}
+            />
+
+            <Upload
+              onAddImages={handleAddImages}
+              accept={getAcceptPattern()}
+              mode={creationMode}
+            />
 
             {previewUrls.length > 0 && (
               <>
@@ -499,12 +524,6 @@ function UploadSection() {
                 <ImagePreview
                   images={previewUrls}
                   onDelete={handleDeleteImage}
-                />
-
-                <TemplateSelector
-                  onSelect={setSelectedTemplateId}
-                  selectedId={selectedTemplateId}
-                  imageCount={images.length}
                 />
               </>
             )}

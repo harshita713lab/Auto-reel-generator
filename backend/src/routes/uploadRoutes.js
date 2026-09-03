@@ -1,15 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const uploadController = require('../controllers/uploadController');
-const { uploadImages, uploadMusic } = require('../utils/fileUtils');
+const { uploadImages, uploadMedia, uploadMusic } = require('../utils/fileUtils');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const FormData = require('form-data');
 
 // Upload images
-router.post('/images', uploadImages.array('images', 50), uploadController.uploadImages);
-router.post('/image', uploadImages.single('image'), uploadController.uploadImage);
+router.post('/images', uploadImages.any(), uploadController.uploadImages);
+router.post('/image', uploadImages.any(), uploadController.uploadImage);
+
+// Upload media (Images + Video Clips)
+router.post('/media', uploadMedia.any(), uploadController.uploadMedia);
+router.post('/media/single', uploadMedia.any(), uploadController.uploadMedia);
 
 // Upload music
 router.post('/music', uploadMusic.single('music'), uploadController.uploadMusic);

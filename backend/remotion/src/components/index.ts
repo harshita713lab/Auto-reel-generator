@@ -8,4 +8,5 @@ export { ProgressBar } from './ProgressBar';
 export { MusicPlayer } from './MusicPlayer';
 export { Frame } from './Frame';
 export { default as Collage } from "./Collage";
-export {default as AnimatedCollage } from './AnimatedCollage'
+export { default as AnimatedCollage } from './AnimatedCollage';
+export { MediaFrame } from './MediaFrame';

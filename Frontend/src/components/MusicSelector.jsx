@@ -7,7 +7,7 @@ import { faPlay, faPause, faScissors, faChevronDown, faCheck, faMusic, faSliders
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const BACKEND_BASE = 'http://localhost:5000';
 
-function MusicSelector({ onSelect, onApplyDirectly, selectedId, selectedTemplateId }) {
+function MusicSelector({ onSelect, onApplyDirectly, selectedId, selectedTemplateId, mode = 'photos' }) {
   const [musicList, setMusicList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(true); // Default open for ease of use
@@ -100,10 +100,28 @@ function MusicSelector({ onSelect, onApplyDirectly, selectedId, selectedTemplate
     return `${mins}:${remainder < 10 ? '0' : ''}${remainder}`;
   };
 
-  const filteredMusic = musicList.filter(track => 
-    track.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (track.artist && track.artist.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredMusic = musicList
+    .filter(track => 
+      track.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (track.artist && track.artist.toLowerCase().includes(searchTerm.toLowerCase()))
+    )
+    .sort((a, b) => {
+      const aName = (a.filename || a.id || '').toLowerCase();
+      const bName = (b.filename || b.id || '').toLowerCase();
+
+      if (mode === 'videos') {
+        const aIsVid = aName.includes('videoaudio');
+        const bIsVid = bName.includes('videoaudio');
+        if (aIsVid && !bIsVid) return -1;
+        if (!aIsVid && bIsVid) return 1;
+      } else {
+        const aIsReel = aName.includes('reelaudio');
+        const bIsReel = bName.includes('reelaudio');
+        if (aIsReel && !bIsReel) return -1;
+        if (!aIsReel && bIsReel) return 1;
+      }
+      return 0;
+    });
 
   const isTemplateDefaultSelected = selectedId === 'template_default' || !selectedId;
 

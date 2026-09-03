@@ -16,8 +16,22 @@ router.get('/templates', (req, res) => {
 
   const rawTemplates = [
     {
+      id: 'VideoTemplate1',
+      name: '🎬 Video Template 1 (Collage + Speed Ramp)',
+      slideDuration: 4,
+      transition: 'fade',
+      effect: 'cinematic',
+      colorGrade: 'hdr',
+      vignette: true,
+      quality: 'high',
+      minPhotos: 3,
+      maxPhotos: 3,
+      mediaType: 'video',
+      description: 'Dedicated 3-clip video reel template (12 seconds total)'
+    },
+    {
       id: 'simple_1',
-      name: '🎬 Classic Slideshow (Template 1)',
+      name: '📷 Classic Photo Slideshow (Template 1)',
       slideDuration: 4,
       transition: 'fade',
       effect: 'none',
@@ -26,11 +40,12 @@ router.get('/templates', (req, res) => {
       quality: 'high',
       minPhotos: 14,
       maxPhotos: 14,
-      description: 'Classic slideshow designed for exactly 14 photos'
+      mediaType: 'photo',
+      description: 'Classic photo slideshow designed for 14 photos'
     },
     {
       id: 'wedding_seq',
-      name: '💒 Wedding Sequence (Template 20)',
+      name: '💒 Hybrid Wedding Sequence (Template 20)',
       slideDuration: 3,
       transition: 'crossfade',
       effect: 'cinematic',
@@ -39,11 +54,12 @@ router.get('/templates', (req, res) => {
       quality: 'high',
       minPhotos: 14,
       maxPhotos: 14,
-      description: 'Romantic wedding sequence designed for exactly 14 photos'
+      mediaType: 'mixed',
+      description: 'Romantic wedding sequence for photos & video clips'
     },
     {
       id: 'cinematic_wedding',
-      name: '🎥 Cinematic Wedding Reel (Template 9)',
+      name: '🎥 Beat-Sync Video Reel (Template 9)',
       slideDuration: 3.5,
       transition: 'blur',
       effect: 'lightLeak',
@@ -52,11 +68,12 @@ router.get('/templates', (req, res) => {
       quality: 'high',
       minPhotos: 15,
       maxPhotos: 15,
-      description: 'Stunning cinematic wedding highlights designed for exactly 15 photos'
+      mediaType: 'video',
+      description: 'Stunning cinematic video highlights designed for video clips'
     },
     {
       id: 'wedding_split',
-      name: '🖼️ Wedding Split Slider (Template 3)',
+      name: '🎞️ Video Split Slider (Template 3)',
       slideDuration: 3,
       transition: 'slide',
       effect: 'none',
@@ -65,11 +82,12 @@ router.get('/templates', (req, res) => {
       quality: 'high',
       minPhotos: 11,
       maxPhotos: 11,
-      description: 'Split-screen slider layout designed for exactly 11 photos'
+      mediaType: 'video',
+      description: 'Split-screen video slider layout for video clips'
     },
     {
       id: 'white_carousel',
-      name: '🎠 White Card Carousel (Template 10)',
+      name: '🎠 Photo Card Carousel (Template 10)',
       slideDuration: 2.5,
       transition: 'fade',
       effect: 'kenBurns',
@@ -78,11 +96,12 @@ router.get('/templates', (req, res) => {
       quality: 'high',
       minPhotos: 16,
       maxPhotos: 16,
-      description: 'Elegant white-bordered carousel designed for exactly 16 photos'
+      mediaType: 'photo',
+      description: 'Elegant white-bordered photo carousel'
     },
     {
       id: 'white_masonry',
-      name: '🧱 White Card Masonry (Template 7)',
+      name: '🧱 Photo Card Masonry (Template 7)',
       slideDuration: 3,
       transition: 'fade',
       effect: 'montage',
@@ -91,11 +110,12 @@ router.get('/templates', (req, res) => {
       quality: 'high',
       minPhotos: 8,
       maxPhotos: 8,
-      description: 'Creative masonry layout designed for exactly 8 photos'
+      mediaType: 'photo',
+      description: 'Creative masonry layout for photo cards'
     },
     {
       id: 'white_polaroid',
-      name: '📸 White Card Polaroid Stack (Template 11)',
+      name: '📸 Retro Polaroid Photo Stack (Template 11)',
       slideDuration: 3,
       transition: 'fade',
       effect: 'none',
@@ -104,11 +124,12 @@ router.get('/templates', (req, res) => {
       quality: 'high',
       minPhotos: 18,
       maxPhotos: 18,
-      description: 'Retro polaroid stack feel designed for exactly 18 photos'
+      mediaType: 'photo',
+      description: 'Retro polaroid stack for photos'
     },
     {
       id: 'premium_grid',
-      name: '✨ Premium Grid (Template 15)',
+      name: '⚡ Video Grid Cut (Template 15)',
       slideDuration: 3,
       transition: 'fade',
       effect: 'cinematic',
@@ -117,7 +138,8 @@ router.get('/templates', (req, res) => {
       quality: 'high',
       minPhotos: 4,
       maxPhotos: 4,
-      description: 'Modern 4-photo grid layout designed for exactly 4 photos'
+      mediaType: 'video',
+      description: 'Modern 4-clip video grid cut'
     },
     {
       id: 'Template25',

@@ -443,7 +443,7 @@ const Scene3: React.FC<{
           position: "absolute",
           left: 0,
           right: 0,
-          bottom: 120,
+          bottom: 150,
           textAlign: "center",
           color: "#fff",
           fontSize: 70,
@@ -453,7 +453,7 @@ const Scene3: React.FC<{
           textShadow: "0 2px 10px rgba(0,0,0,0.3)",
         }}
       >
-        ALWAYS TOGETHER ♡
+        ALWAYS TOGETHER🤍
       </div>
     </AbsoluteFill>
   );
